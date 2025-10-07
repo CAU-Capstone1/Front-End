@@ -1,9 +1,9 @@
-import { NavLink } from "react-router";
+import Button from "../components/button";
 
 function What1() {
     return (
         <>
-            <div><NavLink to='/what2'>다 골랐어욤</NavLink></div>
+            <Button toWhere='/what2' className='px-5 py-4'>다음으로</Button >
         </>
     );
 }

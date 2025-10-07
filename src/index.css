@@ -1,1 +1,6 @@
 @import "tailwindcss";
+
+/* header footer 없다는 가정하에 */
+body {
+    @apply flex items-center justify-center min-h-screen text-center;
+}

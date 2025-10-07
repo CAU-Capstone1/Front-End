@@ -1,10 +1,10 @@
-import { NavLink } from "react-router";
+import Button from "../components/button";
 
 function AboutPage() {
     return (
         <>
             <div>음악 완성</div>
-            <div><NavLink to='/'>처음으로</NavLink></div>
+            <Button toWhere="/">처음으로</Button>
         </>
     );
 }

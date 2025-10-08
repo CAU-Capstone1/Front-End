@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { NavLink } from "react-router";
 
 //버튼 컴포넌트가 뭐뭐 받을지 규칙 정해두는 것
-interface ButtonProps {
+type ButtonProps = {
     toWhere: string; //경로
     children: ReactNode; //내용물
 }

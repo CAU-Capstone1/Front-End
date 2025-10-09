@@ -1,10 +1,10 @@
 import Button from "../components/button";
-import AudioRecorder from "../components/AudioRecorder";
+import AudioFileUploader from "../components/audioFile";
 
 function MainPage() {
     return (
         <div className="flex flex-col items-center justify-center gap-10">
-            <AudioRecorder />
+            <AudioFileUploader />
             <div >
                 어서오세요<br />지금부터 음악을 만들어볼까요 ?
             </div >

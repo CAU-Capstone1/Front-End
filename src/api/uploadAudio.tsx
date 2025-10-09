@@ -1,4 +1,3 @@
-// src/api/uploadAudio.ts
 export async function uploadAudio(file: File | Blob, fileName?: string) {
     const formData = new FormData();
     formData.append("audio", file, fileName ?? (file as File).name ?? `audio-${Date.now()}.webm`);

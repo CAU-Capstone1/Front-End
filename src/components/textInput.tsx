@@ -4,61 +4,74 @@ import Button from "./button";
 
 type InputProps = {
     placeholder?: string;
-    postUrl: string;
+    postUrl?: string; // 무드 페이지에서만 필요
     nextPath: string;
-}
+    type?: "style" | "mood"; // 페이지 종류 구분
+};
 
-function InputText({ placeholder, postUrl, nextPath }: InputProps) {
-    const [value, setValue] = useState(""); //사용자가 입력한 텍스트
+function InputText({ placeholder, postUrl, nextPath, type }: InputProps) {
+    const [value, setValue] = useState("");
     const [loading, setLoading] = useState(false);
-    const toWhere = useNavigate();
+    const navigate = useNavigate();
 
     const handleSubmit = async (e?: React.FormEvent) => {
-        e?.preventDefault(); //form의 기본 새로고침 방지
-        if (value.trim() == "" || loading) return;
+        e?.preventDefault();
+        if (value.trim() === "" || loading) return;
 
-        try {
-            setLoading(true);
-            const response = await fetch(postUrl, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ text: value.trim() })
-            });
-
-            //전송했는데 오류날때
-            if (!response.ok) {
-                throw new Error(`😱서버 오류`);
-            }
-
-            //성공
-            console.log("🐳서버 전송 완료:", value);
-            setValue("");
-            toWhere(nextPath);
-
-        } catch (err) {
-            //전송 자체를 못했을때
-            console.error("❌ 전송 실패:", err);
-            alert("서버 전송에 실패했습니다. 다시 시도해주세요.");
-
-        } finally {
-            //성공하던 실패하던 로딩 상태는 해제
-            setLoading(false);
+        // 페이지2: 스타일 입력 — 저장만
+        if (type === "style") {
+            sessionStorage.setItem("style", value.trim());
+            navigate(nextPath);
+            return;
         }
-    }
+
+        // 페이지3: 무드 입력 — 스타일+무드 합쳐서 전송
+        if (type === "mood" && postUrl) {
+            setLoading(true);
+            const style = sessionStorage.getItem("style");
+            const hummingPath =
+                sessionStorage.getItem("hummingPath") || "storage/hm_1234.webm";
+
+            const body = {
+                hummingPath,
+                mood: value.trim(),
+                style,
+            };
+
+            try {
+                const response = await fetch(postUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(body),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`서버 오류 (${response.status})`);
+                }
+
+                console.log("🐳 서버 전송 완료:", body);
+                navigate(nextPath);
+            } catch (err) {
+                console.error("❌ 전송 실패:", err);
+                alert("서버 전송에 실패했습니다. 다시 시도해주세요.");
+            } finally {
+                setLoading(false);
+            }
+        }
+    };
 
     return (
-        <>
-            <form onSubmit={handleSubmit}>
-                <input type="text"
-                    value={value}
-                    placeholder={placeholder ?? "입력하세요"}
-                    onChange={(e) => setValue(e.target.value)} />
-                <Button toWhere="#" onClick={handleSubmit}>
-                    {loading ? "로딩 중" : "제출 완료"}
-                </Button>
-            </form>
-
-        </>
+        <form onSubmit={handleSubmit}>
+            <input
+                type="text"
+                value={value}
+                placeholder={placeholder ?? "입력하세요"}
+                onChange={(e) => setValue(e.target.value)}
+            />
+            <Button toWhere="#" onClick={handleSubmit}>
+                {loading ? "로딩 중" : "제출 완료"}
+            </Button>
+        </form>
     );
 }
 

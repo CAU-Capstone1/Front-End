@@ -1,4 +1,4 @@
-import Button from "../components/button";
+// import Button from "../components/button";
 import InputText from "../components/textInput";
 
 function What2() {
@@ -10,7 +10,7 @@ function What2() {
                 nextPath="/musicResult"
                 type="mood"
             />
-            <Button toWhere="/musicResult">다음으로</Button>
+            {/* <Button toWhere="/musicResult">다음으로</Button> */}
         </>
     );
 }

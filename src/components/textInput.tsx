@@ -61,17 +61,18 @@ function InputText({ placeholder, postUrl, nextPath, type }: InputProps) {
     };
 
     return (
-        <form onSubmit={handleSubmit}>
+        < form onSubmit={handleSubmit} className="flex flex-col items-center justify-center gap-10" >
             <input
                 type="text"
                 value={value}
                 placeholder={placeholder ?? "입력하세요"}
                 onChange={(e) => setValue(e.target.value)}
+                className=""
             />
             <Button toWhere="#" onClick={handleSubmit}>
-                {loading ? "로딩 중" : "제출 완료"}
+                {loading ? "로딩 중" : "제출하기"}
             </Button>
-        </form>
+        </form >
     );
 }
 

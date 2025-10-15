@@ -93,7 +93,7 @@ function InputText({ placeholder, postUrl, nextPath, type }: InputProps) {
         "
             />
 
-            <Button toWhere="#" type="submit">
+            <Button toWhere="#" onClick={handleSubmit}>
                 {loading ? "로딩 중" : "제출하기"}
             </Button>
         </form>

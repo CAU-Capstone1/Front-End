@@ -45,6 +45,52 @@ body {
     transition: all 0.2s ease;
 }
 
+@keyframes floatUp {
+    0% {
+        transform: translateY(0);
+        opacity: 0.9;
+    }
+    50% {
+        transform: translateY(-24px);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 0.9;
+    }
+}
+
+@keyframes sparkle {
+    0%, 100% {
+        transform: scale(0.5) rotate(0deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.25) rotate(35deg);
+        opacity: 1;
+    }
+}
+
+@keyframes logoBounce {
+    0%, 100% {
+        transform: translateY(1px);
+    }
+    50% {
+        transform: translateY(-24px) scale(1.03);
+    }
+}
+
+.sparkle-star {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    pointer-events: none;
+    background: radial-gradient(circle, #ffffff 45%, rgba(255, 255, 255, 0.05) 70%);
+    clip-path: polygon(50% 0%, 62% 35%, 100% 38%, 72% 60%, 82% 100%, 50% 78%, 18% 100%, 28% 60%, 0% 38%, 38% 35%);
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.75));
+    animation: sparkle 2.8s linear infinite;
+}
+
 .retro-input::placeholder {
     color: rgba(46, 31, 39, 0.4);
 }

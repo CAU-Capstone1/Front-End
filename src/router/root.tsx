@@ -4,20 +4,29 @@ import { createBrowserRouter } from "react-router";
 import { lazy, Suspense } from "react";
 
 const Loading = () => <div>로딩 중.........</div>;
-const Main = lazy(() => import("../pages/A_mainPage.tsx"));
-const VisualUpload = lazy(() => import("../pages/B_visualUploadPage.tsx"));
-const What1 = lazy(() => import("../pages/C_whatPage1.tsx"));
-const What2 = lazy(() => import("../pages/D_whatPage2.tsx"));
-const InstrumentPage = lazy(() => import("../pages/E_instrumentPage.tsx"));
-const KeyPage = lazy(() => import("../pages/F_keyPage.tsx"));
-const LengthPage = lazy(() => import("../pages/G_lengthPage.tsx"));
-const TempoPage = lazy(() => import("../pages/H_tempoPage.tsx"));
+const Start = lazy(() => import("../pages/A_startPage.tsx"));
+const Main = lazy(() => import("../pages/B_mainPage.tsx"));
+const VisualUpload = lazy(() => import("../pages/C_visualUploadPage.tsx"));
+const What1 = lazy(() => import("../pages/D_whatPage1.tsx"));
+const What2 = lazy(() => import("../pages/E_whatPage2.tsx"));
+const InstrumentPage = lazy(() => import("../pages/F_instrumentPage.tsx"));
+const KeyPage = lazy(() => import("../pages/G_keyPage.tsx"));
+const LengthPage = lazy(() => import("../pages/H_lengthPage.tsx"));
+const TempoPage = lazy(() => import("../pages/K_tempoPage.tsx"));
 const ReviewPage = lazy(() => import("../pages/I_reviewPage.tsx"));
 const MusicResult = lazy(() => import("../pages/J_musicResultPage.tsx"));
 
 const router = createBrowserRouter([
     {
         path: "",
+        element: (
+            <Suspense fallback={<Loading />}>
+                <Start />
+            </Suspense>
+        ),
+    },
+    {
+        path: "main",
         element: (
             <Suspense fallback={<Loading />}>
                 <Main />

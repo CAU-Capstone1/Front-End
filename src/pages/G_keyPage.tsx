@@ -61,7 +61,7 @@ function KeyPage() {
             stepLabel="04 / 06"
             onBack={() => navigate(-1)}
             onSkip={handleSkip}
-            primaryAction={{ label: "다음", onClick: handleNext, disabled: !selectedKey }}
+            primaryAction={{ label: "다음", onClick: handleNext, disabled: !selectedKey, variant: "rainbow" }}
         >
             <div className="space-y-6">
                 {KEY_GROUPS.map((group) => (

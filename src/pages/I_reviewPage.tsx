@@ -122,7 +122,7 @@ function ReviewPage() {
                                     {item.value}
                                 </p>
                             </div>
-                            <Button variant="ghost" className="px-4" onClick={() => navigate(item.route)}>
+                            <Button variant="outline" className="px-4" onClick={() => navigate(item.route)}>
                                 수정하기
                             </Button>
                         </div>
@@ -145,6 +145,7 @@ function ReviewPage() {
                     <Button
                         onClick={handleConfirm}
                         disabled={isSubmitting}
+                        variant="rainbow"
                         className="px-12 py-4 text-lg"
                     >
                         {isSubmitting ? "음악 생성 중..." : "음악 생성하기"}

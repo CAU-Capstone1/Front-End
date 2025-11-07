@@ -65,14 +65,16 @@ export default function VisualUploader() {
             </div>
 
             <div className="mt-8 flex flex-col items-center gap-4">
-                <button
-                    type="button"
-                    onClick={() => inputRef.current?.click()}
-                    className="flex h-48 w-full max-w-md flex-col items-center justify-center gap-3 rounded-[2rem] border-2 border-dashed border-[var(--accent-amber)] bg-white/80 text-center text-[var(--text-primary)] shadow-[0_14px_0_rgba(246,190,95,0.2)] transition hover:-translate-y-[2px]"
-                >
-                    <span className="text-sm font-semibold text-[var(--accent-amber)]">이미지 · 영상 선택</span>
-                    <span className="text-xs text-[var(--text-muted)]">최대 {MAX_IMAGE_SIZE_MB}MB (JPG / PNG / MP4 등)</span>
-                </button>
+                {!displayName && (
+                    <button
+                        type="button"
+                        onClick={() => inputRef.current?.click()}
+                        className="flex h-48 w-full max-w-md flex-col items-center justify-center gap-3 rounded-[2rem] border-2 border-dashed border-[var(--accent-amber)] bg-white/80 text-center text-[var(--text-primary)] shadow-[0_14px_0_rgba(246,190,95,0.2)] transition hover:-translate-y-[2px]"
+                    >
+                        <span className="text-sm font-semibold text-[var(--accent-amber)]">이미지 · 영상 선택</span>
+                        <span className="text-xs text-[var(--text-muted)]">최대 {MAX_IMAGE_SIZE_MB}MB (JPG / PNG / MP4 등)</span>
+                    </button>
+                )}
 
                 {displayName && (
                     <div className="w-full max-w-md space-y-3 rounded-[1.8rem] border border-black/10 bg-white/80 p-4 text-sm text-[var(--text-primary)] shadow-[0_12px_0_rgba(46,31,39,0.08)]">
@@ -88,7 +90,7 @@ export default function VisualUploader() {
                         )}
                         <div className="flex flex-wrap gap-2">
                             <Button variant="ghost" onClick={reset}>
-                                비우기
+                                삭제하기
                             </Button>
                         </div>
                         {status && <p className="text-xs font-semibold text-[var(--accent-amber)]">{status}</p>}

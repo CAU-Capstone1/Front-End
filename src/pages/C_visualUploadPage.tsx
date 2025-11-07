@@ -37,11 +37,8 @@ function VisualUploadPage() {
                 <VisualUploader />
 
                 <div className="flex flex-wrap justify-center gap-4">
-                    <Button toWhere="/" variant="ghost" className="px-10">
-                        처음으로
-                    </Button>
-                    <Button onClick={handleNext} className="px-12 py-4 text-lg">
-                        다음 질문으로 이동하기
+                    <Button onClick={handleNext} variant="rainbow" className="px-12 py-4 text-lg">
+                        다음
                     </Button>
                 </div>
             </div>

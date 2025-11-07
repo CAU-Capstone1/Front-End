@@ -4,75 +4,73 @@ import OptionCard from "../components/optionCard";
 import QuestionLayout from "../components/questionLayout";
 import { getAnswer, removeAnswer, setAnswer } from "../utils/compositionSession";
 
-const MOOD_OPTIONS = [
+const INSTRUMENT_OPTIONS = [
     {
-        label: "평화로운",
-        value: "peaceful",
-        imageUrl: "https://i.pinimg.com/736x/a8/4e/22/a84e227c33d5e3e6a0f1295bb74f2f3e.jpg",
+        label: "바이올린",
+        value: "violin",
+        imageUrl: "https://i.pinimg.com/1200x/cb/a8/d1/cba8d11e7c7b44e8145d99583ec6bbab.jpg",
     },
     {
-        label: "슬픈",
-        value: "sad",
-        imageUrl: "https://i.pinimg.com/736x/62/19/93/6219934aea211d826e58509e8979fa1f.jpg",
+        label: "피아노",
+        value: "piano",
+        imageUrl: "https://i.pinimg.com/1200x/99/38/d3/9938d308c797d53cb4e0d2258ab89a1d.jpg",
     },
     {
-        label: "신나는",
-        value: "exciting",
-        imageUrl: "https://i.pinimg.com/originals/ee/6f/73/ee6f733e3ef99b3f16ce3c512c7b9442.gif",
+        label: "기타",
+        value: "guitar",
+        imageUrl: "https://i.pinimg.com/736x/38/a7/36/38a73608ecb1cdb70439a424ae3c6c20.jpg",
     },
     {
-        label: "긴박한",
-        value: "intense",
-        imageUrl: "https://i.pinimg.com/736x/73/0e/a5/730ea54905b57dfa59981fc9825badd2.jpg",
+        label: "드럼",
+        value: "drum",
+        imageUrl: "https://i.pinimg.com/736x/a8/12/47/a81247532b53804438528daa6ed87bac.jpg",
     },
 ];
 
-function What2() {
+function InstrumentPage() {
     const navigate = useNavigate();
     const [selected, setSelected] = useState<string>("");
     const [customValue, setCustomValue] = useState<string>("");
 
     useEffect(() => {
-        const cached = getAnswer("mood");
+        const cached = getAnswer("instrument");
         if (cached) {
             setSelected(cached);
-            setCustomValue(MOOD_OPTIONS.some((opt) => opt.value === cached) ? "" : cached);
+            setCustomValue(INSTRUMENT_OPTIONS.some((opt) => opt.value === cached) ? "" : cached);
         }
     }, []);
 
-    const handleSelect = (value: string) => {
-        setSelected(value);
-        setCustomValue("");
-    };
-
     const handleNext = () => {
         if (!selected.trim()) return;
-        setAnswer("mood", selected.trim());
-        navigate("/instrument");
+        setAnswer("instrument", selected.trim());
+        navigate("/key");
     };
 
     const handleSkip = () => {
-        removeAnswer("mood");
-        navigate("/instrument");
+        removeAnswer("instrument");
+        navigate("/key");
     };
 
     return (
         <QuestionLayout
-            title="어떤 분위기의 음악을 만들고 싶으신가요?"
-            description="느끼고 싶은 무드를 선택하거나 직접 입력하세요."
-            stepLabel="02 / 06"
+            title="어떤 악기를 원하시나요?"
+            description="대표 악기를 선택하면 그 질감을 중심으로 구성해드려요."
+            stepLabel="03 / 06"
             onBack={() => navigate(-1)}
             onSkip={handleSkip}
-            primaryAction={{ label: "다음", onClick: handleNext, disabled: !selected.trim() }}
+            primaryAction={{ label: "다음", onClick: handleNext, disabled: !selected.trim(), variant: "rainbow" }}
         >
             <div className="grid gap-4 sm:grid-cols-2">
-                {MOOD_OPTIONS.map((option) => (
+                {INSTRUMENT_OPTIONS.map((option) => (
                     <OptionCard
                         key={option.value}
                         label={option.label}
                         value={option.value}
                         imageUrl={option.imageUrl}
-                        onClick={handleSelect}
+                        onClick={(value) => {
+                            setSelected(value);
+                            setCustomValue("");
+                        }}
                         selected={selected === option.value}
                     />
                 ))}
@@ -94,5 +92,5 @@ function What2() {
     );
 }
 
-export default What2;
+export default InstrumentPage;
 

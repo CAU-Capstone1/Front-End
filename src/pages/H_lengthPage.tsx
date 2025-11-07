@@ -30,7 +30,7 @@ function LengthPage() {
             stepLabel="05 / 06"
             onBack={() => navigate(-1)}
             onSkip={handleSkip}
-            primaryAction={{ label: "다음", onClick: handleNext, disabled: !seconds.trim() }}
+            primaryAction={{ label: "다음", onClick: handleNext, disabled: !seconds.trim(), variant: "rainbow" }}
         >
             <div className="flex flex-col items-center gap-4">
                 <div className="flex w-full max-w-md items-center gap-4 rounded-[2rem] border-4 border-black/10 bg-white/85 px-8 py-5 shadow-[0_16px_0_rgba(46,31,39,0.08)]">

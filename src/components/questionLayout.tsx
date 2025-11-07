@@ -12,6 +12,7 @@ type QuestionLayoutProps = {
         label: string;
         onClick: () => void;
         disabled?: boolean;
+        variant?: "primary" | "secondary" | "ghost" | "outline" | "rainbow";
     };
 };
 
@@ -51,6 +52,7 @@ function QuestionLayout({ title, description, children, onBack, onSkip, stepLabe
                             <Button
                                 onClick={primaryAction.onClick}
                                 disabled={primaryAction.disabled}
+                            variant={primaryAction.variant ?? "primary"}
                                 className="px-12 py-4 text-lg"
                             >
                                 {primaryAction.label}

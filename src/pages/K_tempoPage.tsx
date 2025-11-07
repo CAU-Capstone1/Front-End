@@ -38,7 +38,7 @@ function TempoPage() {
             stepLabel="06 / 06"
             onBack={() => navigate(-1)}
             onSkip={handleSkip}
-            primaryAction={{ label: "확인하기", onClick: handleNext, disabled: !selected }}
+            primaryAction={{ label: "확인하기", onClick: handleNext, disabled: !selected, variant: "rainbow" }}
         >
             <div className="space-y-3">
                 {TEMPO_OPTIONS.map((option) => {

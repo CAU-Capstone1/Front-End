@@ -62,7 +62,7 @@ function What1() {
             description="느낌에 가장 가까운 장르를 선택하거나 직접 입력할 수 있어요."
             stepLabel="01 / 06"
             onSkip={handleSkip}
-            primaryAction={{ label: "다음", onClick: handleNext, disabled: !selected.trim() }}
+            primaryAction={{ label: "다음", onClick: handleNext, disabled: !selected.trim(), variant: "rainbow" }}
         >
             <div className="grid gap-4 sm:grid-cols-2">
                 {GENRE_OPTIONS.map((option) => (

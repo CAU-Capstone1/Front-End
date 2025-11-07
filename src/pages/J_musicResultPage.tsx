@@ -76,11 +76,13 @@ function MusicResultPage() {
                                 ▶
                             </button>
                             <div className="flex flex-wrap justify-center gap-3">
-                                <Button variant="secondary" className="px-6">
+                                <Button variant="rainbow" className="px-6">
                                     음악 이름 짓기
                                 </Button>
-                                <Button className="px-6">내 보관함</Button>
-                                <Button className="px-6" variant="ghost">
+                                <Button variant="rainbow" className="px-6">
+                                    내 보관함
+                                </Button>
+                                <Button variant="rainbow" className="px-6">
                                     2차 가공
                                 </Button>
                             </div>
@@ -116,10 +118,10 @@ function MusicResultPage() {
                 )}
 
                 <div className="flex flex-wrap justify-center gap-4">
-                    <Button toWhere="/" className="px-10" onClick={() => resetAnswers()}>
+                    <Button toWhere="/" variant="rainbow" className="px-10" onClick={() => resetAnswers()}>
                         처음으로 돌아가기
                     </Button>
-                    <Button variant="ghost" className="px-10" onClick={() => window.location.reload()}>
+                    <Button variant="rainbow" className="px-10" onClick={() => window.location.reload()}>
                         다시 생성하기
                     </Button>
                 </div>

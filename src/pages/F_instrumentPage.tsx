@@ -4,74 +4,73 @@ import OptionCard from "../components/optionCard";
 import QuestionLayout from "../components/questionLayout";
 import { getAnswer, removeAnswer, setAnswer } from "../utils/compositionSession";
 
-const GENRE_OPTIONS = [
+const INSTRUMENT_OPTIONS = [
     {
-        label: "오케스트라",
-        value: "orchestra",
-        imageUrl: "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=800&q=80",
+        label: "바이올린",
+        value: "violin",
+        imageUrl: "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?auto=format&fit=crop&w=800&q=80",
     },
     {
-        label: "힙합",
-        value: "hiphop",
-        imageUrl: "https://images.unsplash.com/photo-1526470608268-f674ce90ebd4?auto=format&fit=crop&w=800&q=80",
+        label: "피아노",
+        value: "piano",
+        imageUrl: "https://images.unsplash.com/photo-1513885304081-18c924180ca0?auto=format&fit=crop&w=800&q=80",
     },
     {
-        label: "lofi",
-        value: "lofi",
-        imageUrl: "https://images.unsplash.com/photo-1525393839361-6d283da97579?auto=format&fit=crop&w=800&q=80",
+        label: "기타",
+        value: "guitar",
+        imageUrl: "https://images.unsplash.com/photo-1517154421773-0529f29ea451?auto=format&fit=crop&w=800&q=80",
     },
     {
-        label: "사극풍",
-        value: "sageuk",
-        imageUrl: "https://images.unsplash.com/photo-1598965402089-897ce52e8355?auto=format&fit=crop&w=800&q=80",
+        label: "드럼",
+        value: "drum",
+        imageUrl: "https://images.unsplash.com/photo-1507832321772-e86d67b45ebf?auto=format&fit=crop&w=800&q=80",
     },
 ];
 
-function What1() {
+function InstrumentPage() {
     const navigate = useNavigate();
     const [selected, setSelected] = useState<string>("");
     const [customValue, setCustomValue] = useState<string>("");
 
     useEffect(() => {
-        const cached = getAnswer("style");
+        const cached = getAnswer("instrument");
         if (cached) {
             setSelected(cached);
-            setCustomValue(GENRE_OPTIONS.some((opt) => opt.value === cached) ? "" : cached);
+            setCustomValue(INSTRUMENT_OPTIONS.some((opt) => opt.value === cached) ? "" : cached);
         }
     }, []);
 
-    const handleSelect = (value: string) => {
-        setSelected(value);
-        setCustomValue("");
-    };
-
     const handleNext = () => {
         if (!selected.trim()) return;
-        setAnswer("style", selected.trim());
-        navigate("/what2");
+        setAnswer("instrument", selected.trim());
+        navigate("/tempo");
     };
 
     const handleSkip = () => {
-        removeAnswer("style");
-        navigate("/what2");
+        removeAnswer("instrument");
+        navigate("/tempo");
     };
 
     return (
         <QuestionLayout
-            title="어떤 장르의 음악을 만들고 싶으신가요?"
-            description="느낌에 가장 가까운 장르를 선택하거나 직접 입력할 수 있어요."
-            stepLabel="01 / 06"
+            title="어떤 악기를 원하시나요?"
+            description="대표 악기를 선택하면 그 질감을 중심으로 구성해드려요."
+            stepLabel="05 / 06"
+            onBack={() => navigate(-1)}
             onSkip={handleSkip}
             primaryAction={{ label: "다음", onClick: handleNext, disabled: !selected.trim() }}
         >
             <div className="grid gap-4 sm:grid-cols-2">
-                {GENRE_OPTIONS.map((option) => (
+                {INSTRUMENT_OPTIONS.map((option) => (
                     <OptionCard
                         key={option.value}
                         label={option.label}
                         value={option.value}
                         imageUrl={option.imageUrl}
-                        onClick={handleSelect}
+                        onClick={(value) => {
+                            setSelected(value);
+                            setCustomValue("");
+                        }}
                         selected={selected === option.value}
                     />
                 ))}
@@ -93,4 +92,5 @@ function What1() {
     );
 }
 
-export default What1;
+export default InstrumentPage;
+

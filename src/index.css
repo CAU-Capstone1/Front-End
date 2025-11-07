@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+:root {
+    color-scheme: light;
+}
+
 body {
-    @apply flex items-center justify-center min-h-screen text-center;
+    margin: 0;
+    font-family: "Pretendard Variable", "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    @apply min-h-screen bg-[#FBFBFA] text-gray-900 antialiased;
+}
+
+#root {
+    @apply min-h-screen;
 }

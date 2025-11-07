@@ -37,9 +37,6 @@ function MainPage() {
                 <AudioFileUploader />
 
                 <div className="flex flex-col items-center gap-4 text-center">
-                    <p className="text-base text-[var(--text-muted)]">
-                        이미지를 먼저 올리고 싶다면 아래 버튼을 눌러주세요.
-                    </p>
                     <div className="flex flex-wrap justify-center gap-3">
                         <Button toWhere="/visual" variant="outline" className="px-10">
                         이미지 업로드하기

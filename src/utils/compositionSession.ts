@@ -13,11 +13,14 @@ getAllAnswers()로 현재까지 입력한 장르·무드·허밍 경로 등을 �
 export const STORAGE_KEYS = {
     style: "compose:style",
     mood: "compose:mood",
+    instrument: "compose:instrument",
     key: "compose:key",
     duration: "compose:duration",
-    instrument: "compose:instrument",
     tempo: "compose:tempo",
-    hummingPath: "compose:hummingPath",
+    hummingStart: "compose:hummingStart",
+    hummingMain: "compose:hummingMain",
+    hummingEnd: "compose:hummingEnd",
+    referenceVisual: "compose:referenceVisual",
 } as const;
 
 export type CompositionAnswerKey = keyof typeof STORAGE_KEYS;
@@ -33,9 +36,10 @@ export function setAnswer(key: CompositionAnswerKey, value: string) {
     const trimmed = value.trim();
     if (trimmed) {
         storage.setItem(STORAGE_KEYS[key], trimmed);
-      } else {
+    } else {
         storage.removeItem(STORAGE_KEYS[key]);
-      }}
+    }
+}
 
 export function getAnswer(key: CompositionAnswerKey) {
     if (!storage) return null;

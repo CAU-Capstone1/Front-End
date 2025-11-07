@@ -14,17 +14,24 @@ function MusicResultPage() {
 
     useEffect(() => {
         const answers = getAllAnswers();
+        const displayValue = (value: string | null | undefined, suffix?: string) => {
+            const formatted = formatAnswerValue(value ?? null, suffix);
+            return formatted === "-" ? "선택하지 않음" : formatted;
+        };
         const items: SummaryItem[] = [
-            { label: "허밍 파일", value: formatAnswerValue(answers.hummingPath ?? null) },
-            { label: "장르", value: formatAnswerValue(answers.style ?? null) },
-            { label: "무드", value: formatAnswerValue(answers.mood ?? null) },
-            { label: "키", value: formatAnswerValue(answers.key ?? null) },
+            { label: "시작 멜로디", value: displayValue(answers.hummingStart) },
+            { label: "메인 멜로디", value: displayValue(answers.hummingMain) },
+            { label: "끝 멜로디", value: displayValue(answers.hummingEnd) },
+            { label: "참고 이미지 / 영상", value: displayValue(answers.referenceVisual) },
+            { label: "장르", value: displayValue(answers.style) },
+            { label: "무드", value: displayValue(answers.mood) },
+            { label: "키", value: displayValue(answers.key) },
             {
                 label: "길이",
-                value: formatAnswerValue(answers.duration ?? null, "초"),
+                value: displayValue(answers.duration, "초"),
             },
-            { label: "악기", value: formatAnswerValue(answers.instrument ?? null) },
-            { label: "템포", value: formatAnswerValue(answers.tempo ?? null) },
+            { label: "악기", value: displayValue(answers.instrument) },
+            { label: "템포", value: displayValue(answers.tempo) },
         ];
         setSummary(items);
 
@@ -39,7 +46,10 @@ function MusicResultPage() {
         }
     }, []);
 
-    const hasData = useMemo(() => summary.some((item) => item.value !== "-"), [summary]);
+    const hasData = useMemo(
+        () => summary.some((item) => item.value && item.value !== "선택하지 않음"),
+        [summary],
+    );
 
     return (
         <div className="relative min-h-screen w-full overflow-hidden px-4 py-16 sm:px-10">

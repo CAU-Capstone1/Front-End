@@ -1,21 +1,70 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import Button from "./button";
 import { uploadAudio } from "../api/uploadAudio";
-import { removeAnswer, setAnswer } from "../utils/compositionSession";
+import { getAnswer, removeAnswer, setAnswer } from "../utils/compositionSession";
+import type { CompositionAnswerKey } from "../utils/compositionSession";
 
 const MAX_AUDIO_SIZE_MB = 50;
-const MAX_IMAGE_SIZE_MB = 20;
+
+const AUDIO_SEGMENTS = [
+    { id: "start", label: "시작 멜로디", helper: "도입부나 전주 느낌" },
+    { id: "main", label: "메인 멜로디", helper: "코러스, 후렴 등 핵심" },
+    { id: "end", label: "끝 멜로디", helper: "아웃트로, 마무리" },
+] as const;
+
+type SegmentId = typeof AUDIO_SEGMENTS[number]["id"];
+
+type SegmentState = {
+    file: File | null;
+    previewURL: string | null;
+    isUploading: boolean;
+    status: string;
+    storedName: string | null;
+};
+
+const SEGMENT_KEY_MAP: Record<SegmentId, CompositionAnswerKey> = {
+    start: "hummingStart",
+    main: "hummingMain",
+    end: "hummingEnd",
+};
 
 export default function AudioFileUploader() {
-    const [audioFile, setAudioFile] = useState<File | null>(null);
-    const [imageFile, setImageFile] = useState<File | null>(null);
-    const [audioURL, setAudioURL] = useState<string | null>(null);
-    const [imageURL, setImageURL] = useState<string | null>(null);
-    const [status, setStatus] = useState<string>("");
-    const [isUploading, setIsUploading] = useState(false);
+    const [segmentState, setSegmentState] = useState<Record<SegmentId, SegmentState>>(() => ({
+        start: {
+            file: null,
+            previewURL: null,
+            isUploading: false,
+            status: "",
+            storedName: getAnswer("hummingStart") ?? null,
+        },
+        main: {
+            file: null,
+            previewURL: null,
+            isUploading: false,
+            status: "",
+            storedName: getAnswer("hummingMain") ?? null,
+        },
+        end: {
+            file: null,
+            previewURL: null,
+            isUploading: false,
+            status: "",
+            storedName: getAnswer("hummingEnd") ?? null,
+        },
+    }));
 
-    const audioInputRef = useRef<HTMLInputElement | null>(null);
-    const imageInputRef = useRef<HTMLInputElement | null>(null);
+    const startInputRef = useRef<HTMLInputElement | null>(null);
+    const mainInputRef = useRef<HTMLInputElement | null>(null);
+    const endInputRef = useRef<HTMLInputElement | null>(null);
+
+    const segmentInputRefs = useMemo(
+        () => ({
+            start: startInputRef,
+            main: mainInputRef,
+            end: endInputRef,
+        }),
+        [],
+    );
 
     const validateFile = (file: File, maxSize: number, typePrefix: string) => {
         if (!file.type.startsWith(typePrefix)) {
@@ -31,175 +80,157 @@ export default function AudioFileUploader() {
         return true;
     };
 
-    const handleAudioFiles = useCallback((files: FileList | null) => {
-        if (!files?.length) return;
-        const candidate = files[0];
-        if (!validateFile(candidate, MAX_AUDIO_SIZE_MB, "audio")) return;
+    const handleSegmentFiles = useCallback(
+        (segmentId: SegmentId, files: FileList | null) => {
+            if (!files?.length) return;
+            const candidate = files[0];
+            if (!validateFile(candidate, MAX_AUDIO_SIZE_MB, "audio")) return;
 
-        setAudioFile(candidate);
-        setAudioURL(URL.createObjectURL(candidate));
-        setStatus("");
-    }, []);
+            setSegmentState((prev) => {
+                const previousPreview = prev[segmentId].previewURL;
+                if (previousPreview) URL.revokeObjectURL(previousPreview);
 
-    const handleImageFiles = useCallback((files: FileList | null) => {
-        if (!files?.length) return;
-        const candidate = files[0];
-        if (!validateFile(candidate, MAX_IMAGE_SIZE_MB, "image")) return;
+                return {
+                    ...prev,
+                    [segmentId]: {
+                        ...prev[segmentId],
+                        file: candidate,
+                        previewURL: URL.createObjectURL(candidate),
+                        status: "",
+                    },
+                };
+            });
+        },
+        [],
+    );
 
-        setImageFile(candidate);
-        setImageURL(URL.createObjectURL(candidate));
-        setStatus("");
-    }, []);
+    const uploadSegment = async (segmentId: SegmentId) => {
+        const current = segmentState[segmentId];
+        if (!current.file) return;
 
-    const uploadAudioFile = async () => {
-        if (!audioFile) return;
-        setIsUploading(true);
-        setStatus("허밍 업로드 중...");
+        setSegmentState((prev) => ({
+            ...prev,
+            [segmentId]: {
+                ...prev[segmentId],
+                isUploading: true,
+                status: "업로드 중...",
+            },
+        }));
 
         try {
-            const result = await uploadAudio(audioFile, audioFile.name);
-            setStatus("허밍 업로드 완료 ✅");
-            setAnswer("hummingPath", audioFile.name);
-            console.log("🎵 Audio uploaded", result);
+            await uploadAudio(current.file, `${segmentId}-${current.file.name}`);
+            setAnswer(SEGMENT_KEY_MAP[segmentId], current.file.name);
+            setSegmentState((prev) => ({
+                ...prev,
+                [segmentId]: {
+                    ...prev[segmentId],
+                    isUploading: false,
+                    status: "업로드 완료 ✅",
+                    storedName: current.file?.name ?? prev[segmentId].storedName,
+                },
+            }));
         } catch (error) {
             console.error(error);
-            setStatus("허밍 업로드 실패 ❌ 다시 시도해주세요.");
-        } finally {
-            setIsUploading(false);
+            setSegmentState((prev) => ({
+                ...prev,
+                [segmentId]: {
+                    ...prev[segmentId],
+                    isUploading: false,
+                    status: "업로드 실패 ❌ 다시 시도해주세요.",
+                },
+            }));
         }
     };
 
+    const resetSegment = (segmentId: SegmentId) => {
+        setSegmentState((prev) => {
+            const previousPreview = prev[segmentId].previewURL;
+            if (previousPreview) URL.revokeObjectURL(previousPreview);
+            return {
+                ...prev,
+                [segmentId]: {
+                    file: null,
+                    previewURL: null,
+                    isUploading: false,
+                    status: "",
+                    storedName: null,
+                },
+            };
+        });
+        removeAnswer(SEGMENT_KEY_MAP[segmentId]);
+    };
+
     return (
-        <section className="w-full max-w-5xl mx-auto rounded-[2.5rem] border-4 border-black/10 bg-gradient-to-br from-[var(--bg-secondary)] via-white to-[#fce4ef] px-8 py-12 shadow-[0_25px_0_rgba(46,31,39,0.08)] sm:px-12 sm:py-16">
-            <div className="flex flex-col gap-12">
-                <header className="flex flex-col-reverse gap-8 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="space-y-3 text-left">
-                        <p className="text-sm uppercase tracking-[0.4em] text-[var(--accent-rose)]">welcome</p>
-                        <p className="text-3xl sm:text-[2.8rem] font-bold leading-tight text-[var(--text-primary)]">
-                            지금부터 음악을<br />만들어 볼까요?
-                        </p>
-                        <p className="text-base text-[var(--text-muted)]">
-                            허밍이나 레퍼런스 이미지를 업로드하면 AI가 당신만의 음악을 만들어드릴게요.
-                        </p>
-                    </div>
-
-                    <Button variant="outline" className="self-end sm:self-start text-sm">
-                        로그인
-                    </Button>
-                </header>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                    <button
-                        type="button"
-                        onClick={() => audioInputRef.current?.click()}
-                        className="group relative flex h-48 w-full flex-col justify-between rounded-[2rem] border-2 border-[var(--accent-rose)] bg-white p-6 text-left shadow-[0_12px_0_rgba(242,137,130,0.15)] transition hover:-translate-y-1 hover:shadow-[0_18px_0_rgba(242,137,130,0.24)]"
-                    >
-                        <div className="space-y-1">
-                            <p className="text-sm font-semibold uppercase tracking-[0.35em] text-[var(--accent-rose)]">step 1</p>
-                            <h2 className="text-3xl font-bold text-[var(--text-primary)]">허밍 업로드</h2>
-                        </div>
-                        <p className="text-sm text-[var(--text-muted)]">
-                            잠깐 허밍만 해도 좋아요. 최대 {MAX_AUDIO_SIZE_MB}MB까지 지원해요.
-                        </p>
-                        <span className="absolute right-6 bottom-6 text-sm font-semibold text-[var(--accent-rose)] group-hover:translate-x-1 transition-transform">
-                            파일 선택 →
-                        </span>
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={() => imageInputRef.current?.click()}
-                        className="group relative flex h-48 w-full flex-col justify-between rounded-[2rem] border-2 border-dashed border-[var(--accent-amber)] bg-[#fffaf0] p-6 text-left shadow-[0_12px_0_rgba(246,190,95,0.2)] transition hover:-translate-y-1 hover:shadow-[0_18px_0_rgba(246,190,95,0.28)]"
-                    >
-                        <div className="space-y-1">
-                            <p className="text-sm font-semibold uppercase tracking-[0.35em] text-[var(--accent-amber)]">optional</p>
-                            <h2 className="text-3xl font-bold text-[var(--text-primary)]">이미지 / 영상 업로드</h2>
-                        </div>
-                        <p className="text-sm text-[var(--text-muted)]">
-                            뮤직비디오 레퍼런스나 분위기를 담은 이미지도 함께 업로드해보세요.
-                        </p>
-                        <span className="absolute right-6 bottom-6 text-sm font-semibold text-[var(--accent-amber)] group-hover:translate-x-1 transition-transform">
-                            파일 선택 →
-                        </span>
-                    </button>
+        <section className="w-full">
+            <div className="rounded-[2.5rem] border-4 border-black/10 bg-gradient-to-bl from-white via-[var(--bg-secondary)] to-[#ffe9f2] px-8 py-10 shadow-[0_25px_0_rgba(46,31,39,0.08)] sm:px-12">
+                <div className="space-y-3 text-left">
+                    <p className="text-sm uppercase tracking-[0.35em] text-[var(--accent-amber)]">melody kit</p>
+                    <h2 className="text-[2.2rem] font-semibold text-[var(--text-primary)] leading-tight">
+                        필요한 구간만 골라 허밍을 업로드해요
+                    </h2>
+                    <p className="text-sm text-[var(--text-muted)]">
+                        시작 · 메인 · 끝 멜로디 중 필요한 만큼만 선택해서 올릴 수 있어요. 업로드하지 않은 구간은 비워두면 됩니다.
+                    </p>
                 </div>
 
-                <input
-                    ref={audioInputRef}
-                    type="file"
-                    accept="audio/*"
-                    className="hidden"
-                    onChange={(event) => handleAudioFiles(event.target.files)}
-                />
-                <input
-                    ref={imageInputRef}
-                    type="file"
-                    accept="image/*,video/*"
-                    className="hidden"
-                    onChange={(event) => handleImageFiles(event.target.files)}
-                />
+                <div className="mt-10 grid gap-5 sm:grid-cols-3">
+                    {AUDIO_SEGMENTS.map((segment) => {
+                        const state = segmentState[segment.id];
+                        return (
+                            <div
+                                key={segment.id}
+                                className={`flex h-full flex-col gap-4 rounded-[1.8rem] border-2 px-5 py-6 text-center shadow-[0_12px_0_rgba(46,31,39,0.08)] transition ${
+                                    state.file || state.storedName
+                                        ? "border-[var(--accent-amber)] bg-white"
+                                        : "border-black/10 bg-white/70"
+                                }`}
+                            >
+                                <div className="space-y-1">
+                                    <h3 className="text-lg font-semibold text-[var(--text-primary)]">{segment.label}</h3>
+                                    <p className="text-xs text-[var(--text-muted)]">{segment.helper}</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => segmentInputRefs[segment.id].current?.click()}
+                                    className="rounded-[1.2rem] border-2 border-dashed border-[var(--accent-rose)] bg-white px-3 py-3 text-sm font-semibold text-[var(--accent-rose)] shadow-[0_8px_0_rgba(242,137,130,0.18)] transition hover:-translate-y-[2px]"
+                                >
+                                    파일 선택
+                                </button>
 
-                {(audioFile || imageFile) && (
-                    <div className="grid gap-6 rounded-[2rem] border-2 border-black/10 bg-white/70 p-6 shadow-[0_18px_0_rgba(46,31,39,0.08)] sm:grid-cols-2">
-                        {audioFile && (
-                            <div className="space-y-3">
-                                <div>
-                                    <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[var(--accent-rose)]">허밍</p>
-                                    <p className="text-lg font-semibold text-[var(--text-primary)]">{audioFile.name}</p>
-                                    <p className="text-sm text-[var(--text-muted)]">{(audioFile.size / 1024 / 1024).toFixed(2)} MB</p>
-                                </div>
-                                {audioURL && <audio src={audioURL} controls className="w-full" />}
-                                <div className="flex flex-wrap gap-2">
-                                    <Button onClick={uploadAudioFile} disabled={isUploading}>
-                                        {isUploading ? "업로드 중..." : "허밍 업로드"}
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        onClick={() => {
-                                            setAudioFile(null);
-                                            setAudioURL(null);
-                                            removeAnswer("hummingPath");
-                                        }}
-                                    >
-                                        다시 선택
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
-
-                        {imageFile && (
-                            <div className="space-y-3">
-                                <div>
-                                    <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[var(--accent-rose)]">이미지 · 영상</p>
-                                    <p className="text-lg font-semibold text-[var(--text-primary)]">{imageFile.name}</p>
-                                    <p className="text-sm text-[var(--text-muted)]">{(imageFile.size / 1024 / 1024).toFixed(2)} MB</p>
-                                </div>
-                                {imageURL && (
-                                    <div className="overflow-hidden rounded-2xl border border-black/10">
-                                        {imageFile.type.startsWith("image/") ? (
-                                            <img src={imageURL} alt="업로드 미리보기" className="h-48 w-full object-cover" />
-                                        ) : (
-                                            <video src={imageURL} controls className="h-48 w-full object-cover" />
+                                {(state.file || state.storedName) && (
+                                    <div className="space-y-2 text-sm">
+                                        <p className="font-semibold text-[var(--text-primary)]">
+                                            {(state.file && state.file.name) || state.storedName}
+                                        </p>
+                                        {state.file && state.previewURL && (
+                                            <audio src={state.previewURL} controls className="mx-auto w-full" />
                                         )}
                                     </div>
                                 )}
-                                <div className="flex flex-wrap gap-2">
-                                    <Button
-                                        variant="ghost"
-                                        onClick={() => {
-                                            setImageFile(null);
-                                            setImageURL(null);
-                                        }}
-                                    >
-                                        다시 선택
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
 
-                {status && <p className="text-sm font-semibold text-[var(--accent-rose)]">{status}</p>}
+                                <div className="flex flex-col gap-2">
+                                    <Button onClick={() => uploadSegment(segment.id)} disabled={!state.file || state.isUploading}>
+                                        {state.isUploading ? "업로드 중..." : "업로드하기"}
+                                    </Button>
+                                    <Button variant="ghost" onClick={() => resetSegment(segment.id)}>
+                                        비우기
+                                    </Button>
+                                    {state.status && (
+                                        <p className="text-xs font-semibold text-[var(--accent-rose)]">{state.status}</p>
+                                    )}
+                                </div>
+
+                                <input
+                                    ref={segmentInputRefs[segment.id]}
+                                    type="file"
+                                    accept="audio/*"
+                                    className="hidden"
+                                    onChange={(event) => handleSegmentFiles(segment.id, event.target.files)}
+                                />
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
         </section>
     );

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import Button from "./button";
+import { getAnswer, getAllAnswers, setAnswer } from "../utils/compositionSession";
+import { buildCompositionBody } from "../api/createComposition";
 
 type InputProps = {
     placeholder?: string;
@@ -25,27 +27,32 @@ function InputText({ placeholder, postUrl, nextPath, type }: InputProps) {
         if (taRef.current) autoResize(taRef.current);
     }, [value]);
 
+    useEffect(() => {
+        if (type === "style") {
+            const saved = getAnswer("style");
+            if (saved) setValue(saved);
+        } else if (type === "mood") {
+            const saved = getAnswer("mood");
+            if (saved) setValue(saved);
+        }
+    }, [type]);
+
     const handleSubmit = async (e?: React.FormEvent) => {
         e?.preventDefault();
         if (value.trim() === "" || loading) return;
 
         if (type === "style") {
-            // 페이지2: 스타일 입력 — 저장만
-            sessionStorage.setItem("style", value.trim());
+            setAnswer("style", value.trim());
             navigate(nextPath);
             return;
         }
 
         if (type === "mood" && postUrl) {
-            // 페이지3: 무드 입력 — 스타일+무드 합쳐서 전송
             try {
                 setLoading(true);
+                setAnswer("mood", value.trim());
 
-                const style = sessionStorage.getItem("style");
-                const hummingPath =
-                    sessionStorage.getItem("hummingPath") || "storage/hm_1234.webm";
-
-                const body = { hummingPath, mood: value.trim(), style };
+                const body = buildCompositionBody(getAllAnswers());
 
                 const response = await fetch(postUrl, {
                     method: "POST",

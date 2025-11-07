@@ -3,11 +3,14 @@ import type { CompositionAnswers } from "../utils/compositionSession";
 export type CompositionRequestBody = {
     style?: string | null;
     mood?: string | null;
+    instrument?: string | null;
     key?: string | null;
     duration?: string | null;
-    instrument?: string | null;
     tempo?: string | null;
-    hummingPath?: string | null;
+    hummingStart?: string | null;
+    hummingMain?: string | null;
+    hummingEnd?: string | null;
+    referenceVisual?: string | null;
 };
 
 export async function createComposition(body: CompositionRequestBody) {
@@ -29,11 +32,14 @@ export function buildCompositionBody(answers: CompositionAnswers): CompositionRe
     return {
         style: answers.style ?? null,
         mood: answers.mood ?? null,
+        instrument: answers.instrument ?? null,
         key: answers.key ?? null,
         duration: answers.duration ?? null,
-        instrument: answers.instrument ?? null,
         tempo: answers.tempo ?? null,
-        hummingPath: answers.hummingPath ?? null,
+        hummingStart: answers.hummingStart ?? null,
+        hummingMain: answers.hummingMain ?? null,
+        hummingEnd: answers.hummingEnd ?? null,
+        referenceVisual: answers.referenceVisual ?? null,
     };
 }
 

@@ -15,18 +15,25 @@ type ReviewItem = {
 };
 
 const REVIEW_ITEMS: Array<Omit<ReviewItem, "value" | "rawValue">> = [
-    { key: "hummingPath", label: "허밍 파일", route: "/" },
+    { key: "hummingStart", label: "시작 멜로디", route: "/" },
+    { key: "hummingMain", label: "메인 멜로디", route: "/" },
+    { key: "hummingEnd", label: "끝 멜로디", route: "/" },
+    { key: "referenceVisual", label: "참고 이미지 / 영상", route: "/visual" },
     { key: "style", label: "장르", route: "/what1" },
     { key: "mood", label: "무드", route: "/what2" },
+    { key: "instrument", label: "악기", route: "/instrument" },
     { key: "key", label: "키", route: "/key" },
     { key: "duration", label: "길이", route: "/length" },
-    { key: "instrument", label: "악기", route: "/instrument" },
     { key: "tempo", label: "템포", route: "/tempo" },
 ];
 
 function buildHighlightText(answers: Record<string, string | null | undefined>) {
     const parts: string[] = [];
 
+    if (answers.hummingStart) parts.push("시작 멜로디 업로드 완료");
+    if (answers.hummingMain) parts.push("메인 멜로디 업로드 완료");
+    if (answers.hummingEnd) parts.push("끝 멜로디 업로드 완료");
+    if (answers.referenceVisual) parts.push("참고 비주얼 첨부");
     if (answers.mood) parts.push(`${formatAnswerValue(answers.mood)} 분위기`);
     if (answers.instrument) parts.push(formatAnswerValue(answers.instrument));
     if (answers.tempo) parts.push(formatAnswerValue(answers.tempo));
@@ -140,10 +147,7 @@ function ReviewPage() {
                         disabled={isSubmitting}
                         className="px-12 py-4 text-lg"
                     >
-                        {isSubmitting ? "음악 생성 중..." : "그대로 만들기"}
-                    </Button>
-                    <Button variant="ghost" className="px-12 py-4 text-lg" onClick={() => navigate(-1)}>
-                        뒤로 가기
+                        {isSubmitting ? "음악 생성 중..." : "음악 생성하기"}
                     </Button>
                 </div>
             </div>

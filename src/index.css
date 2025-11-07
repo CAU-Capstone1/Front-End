@@ -1,15 +1,56 @@
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
 :root {
     color-scheme: light;
+    --bg-primary: #f5e5dd;
+    --bg-secondary: #fef6dd;
+    --accent-amber: #f6be5f;
+    --accent-rose: #f28982;
+    --accent-mint: #9cc9b5;
+    --text-primary: #2e1f27;
+    --text-muted: #6b4d57;
+    --card-shadow: 0 18px 35px rgba(46, 31, 39, 0.12);
 }
 
 body {
     margin: 0;
-    font-family: "Pretendard Variable", "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    @apply min-h-screen bg-[#FBFBFA] text-gray-900 antialiased;
+    font-family: "Fredoka", "Pretendard Variable", "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: radial-gradient(circle at 15% 20%, rgba(242, 137, 130, 0.18), transparent 45%),
+        radial-gradient(circle at 80% 10%, rgba(79, 189, 181, 0.18), transparent 48%),
+        radial-gradient(circle at 20% 85%, rgba(246, 190, 95, 0.22), transparent 52%),
+        var(--bg-primary);
+    color: var(--text-primary);
+    @apply min-h-screen antialiased;
 }
 
 #root {
     @apply min-h-screen;
+}
+
+::selection {
+    background: rgba(242, 137, 130, 0.55);
+    color: var(--text-primary);
+}
+
+.retro-input {
+    border-radius: 1.5rem;
+    border: 2px solid rgba(46, 31, 39, 0.1);
+    background: rgba(255, 255, 255, 0.85);
+    padding: 0.9rem 1.5rem;
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    box-shadow: 0 10px 0 rgba(46, 31, 39, 0.06);
+    transition: all 0.2s ease;
+}
+
+.retro-input::placeholder {
+    color: rgba(46, 31, 39, 0.4);
+}
+
+.retro-input:focus {
+    outline: none;
+    /* border-color: var(--accent-amber); */
+    box-shadow: 0 14px 0 rgba(78, 74, 200, 0.1), 0 0 0 6px rgba(78, 74, 200, 0.12);
 }

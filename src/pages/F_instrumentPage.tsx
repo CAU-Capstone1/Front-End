@@ -8,22 +8,22 @@ const INSTRUMENT_OPTIONS = [
     {
         label: "바이올린",
         value: "violin",
-        imageUrl: "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?auto=format&fit=crop&w=800&q=80",
+        imageUrl: "https://i.pinimg.com/1200x/cb/a8/d1/cba8d11e7c7b44e8145d99583ec6bbab.jpg",
     },
     {
         label: "피아노",
         value: "piano",
-        imageUrl: "https://images.unsplash.com/photo-1513885304081-18c924180ca0?auto=format&fit=crop&w=800&q=80",
+        imageUrl: "https://i.pinimg.com/1200x/99/38/d3/9938d308c797d53cb4e0d2258ab89a1d.jpg",
     },
     {
         label: "기타",
         value: "guitar",
-        imageUrl: "https://images.unsplash.com/photo-1517154421773-0529f29ea451?auto=format&fit=crop&w=800&q=80",
+        imageUrl: "https://i.pinimg.com/736x/38/a7/36/38a73608ecb1cdb70439a424ae3c6c20.jpg",
     },
     {
         label: "드럼",
         value: "drum",
-        imageUrl: "https://images.unsplash.com/photo-1507832321772-e86d67b45ebf?auto=format&fit=crop&w=800&q=80",
+        imageUrl: "https://i.pinimg.com/736x/a8/12/47/a81247532b53804438528daa6ed87bac.jpg",
     },
 ];
 
@@ -43,19 +43,19 @@ function InstrumentPage() {
     const handleNext = () => {
         if (!selected.trim()) return;
         setAnswer("instrument", selected.trim());
-        navigate("/tempo");
+        navigate("/key");
     };
 
     const handleSkip = () => {
         removeAnswer("instrument");
-        navigate("/tempo");
+        navigate("/key");
     };
 
     return (
         <QuestionLayout
             title="어떤 악기를 원하시나요?"
             description="대표 악기를 선택하면 그 질감을 중심으로 구성해드려요."
-            stepLabel="05 / 06"
+            stepLabel="03 / 06"
             onBack={() => navigate(-1)}
             onSkip={handleSkip}
             primaryAction={{ label: "다음", onClick: handleNext, disabled: !selected.trim() }}
@@ -85,7 +85,7 @@ function InstrumentPage() {
                         setSelected(e.target.value);
                     }}
                     placeholder="직접 입력하기"
-                    className="w-full max-w-md rounded-2xl border border-gray-300 bg-white px-5 py-3 text-center text-base shadow-sm focus:border-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-200"
+                    className="retro-input w-full max-w-md text-center"
                 />
             </div>
         </QuestionLayout>

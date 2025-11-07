@@ -8,22 +8,22 @@ const GENRE_OPTIONS = [
     {
         label: "오케스트라",
         value: "orchestra",
-        imageUrl: "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=800&q=80",
+        imageUrl: "https://www.knso.or.kr/resources/images/sub/img_intro3.jpg",
     },
     {
         label: "힙합",
         value: "hiphop",
-        imageUrl: "https://images.unsplash.com/photo-1526470608268-f674ce90ebd4?auto=format&fit=crop&w=800&q=80",
+        imageUrl: "https://i.namu.wiki/i/Jz224Csh4AhvZ53rujh-eqK_GKO_x7jxsNbsBV5FyoM2aEF36Y0ScvTUKunhDR1-fKej9wXzVyASyCdtGY8H6w.webp",
     },
     {
         label: "lofi",
         value: "lofi",
-        imageUrl: "https://images.unsplash.com/photo-1525393839361-6d283da97579?auto=format&fit=crop&w=800&q=80",
+        imageUrl: "https://img1.daumcdn.net/thumb/R1280x0.fwebp/?fname=http://t1.daumcdn.net/brunch/service/user/3XvV/image/Vp2Idqu3LI8_4_fC2To-0o5ovHU.JPG",
     },
     {
         label: "사극풍",
         value: "sageuk",
-        imageUrl: "https://images.unsplash.com/photo-1598965402089-897ce52e8355?auto=format&fit=crop&w=800&q=80",
+        imageUrl: "https://img.segye.com/content/image/2023/04/25/20230425518948.jpg",
     },
 ];
 
@@ -86,7 +86,7 @@ function What1() {
                         setSelected(e.target.value);
                     }}
                     placeholder="직접 입력하기"
-                    className="w-full max-w-md rounded-2xl border border-gray-300 bg-white px-5 py-3 text-center text-base shadow-sm focus:border-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-200"
+                    className="retro-input w-full max-w-md text-center"
                 />
             </div>
         </QuestionLayout>

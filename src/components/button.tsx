@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { NavLink } from "react-router";
 
-type Variant = "primary" | "secondary" | "ghost";
+type Variant = "primary" | "secondary" | "ghost" | "outline";
 
 type ButtonProps = {
     toWhere?: string;
@@ -13,12 +13,13 @@ type ButtonProps = {
     disabled?: boolean;
 };
 
-const baseClass = "inline-flex items-center justify-center rounded-xl px-6 py-3 font-semibold transition duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
+const baseClass = "inline-flex items-center justify-center rounded-full px-7 py-3 text-base font-semibold tracking-wide transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
 
 const variantClassMap: Record<Variant, string> = {
-    primary: "bg-yellow-400 text-gray-900 hover:bg-yellow-300 focus-visible:ring-yellow-500",
-    secondary: "bg-gray-900 text-white hover:bg-gray-800 focus-visible:ring-gray-900",
-    ghost: "bg-transparent text-gray-700 hover:bg-gray-100 focus-visible:ring-gray-300",
+    primary: "bg-[var(--accent-amber)] text-[var(--text-primary)] shadow-[0_10px_0_rgba(46,31,39,0.2)] hover:translate-y-[2px] hover:shadow-[0_6px_0_rgba(46,31,39,0.18)] focus-visible:ring-[var(--accent-amber)]",
+    secondary: "bg-[var(--accent-amber)] text-white shadow-[0_10px_0_rgba(46,31,39,0.22)] hover:translate-y-[2px] hover:shadow-[0_6px_0_rgba(46,31,39,0.2)] focus-visible:ring-[var(--accent-amber)]",
+    ghost: "bg-transparent text-[var(--text-muted)] hover:bg-white/70 focus-visible:ring-[var(--accent-amber)]",
+    outline: "border-2 border-[var(--accent-amber)] bg-white text-[var(--text-primary)] shadow-[0_8px_0_rgba(242,137,130,0.32)] hover:bg-[var(--accent-amber)]/10 focus-visible:ring-[var(--accent-amber)]",
 };
 
 function mergeClasses(...classes: (string | undefined | false)[]) {
@@ -49,7 +50,7 @@ function Button({
                 className={({ isActive }) =>
                     mergeClasses(
                         composedClass,
-                        isActive && variant === "ghost" && "bg-gray-200",
+                        isActive && variant === "ghost" && "bg-white/80 text-[var(--accent-amber)]",
                     )
                 }
             >

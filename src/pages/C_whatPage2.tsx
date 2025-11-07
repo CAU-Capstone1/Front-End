@@ -8,22 +8,22 @@ const MOOD_OPTIONS = [
     {
         label: "평화로운",
         value: "peaceful",
-        imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80",
+        imageUrl: "https://i.pinimg.com/736x/a8/4e/22/a84e227c33d5e3e6a0f1295bb74f2f3e.jpg",
     },
     {
-        label: "몽환적인",
-        value: "dreamy",
-        imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80&sat=-50",
+        label: "슬픈",
+        value: "sad",
+        imageUrl: "https://i.pinimg.com/736x/62/19/93/6219934aea211d826e58509e8979fa1f.jpg",
     },
     {
         label: "신나는",
         value: "exciting",
-        imageUrl: "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=800&q=80",
+        imageUrl: "https://i.pinimg.com/originals/ee/6f/73/ee6f733e3ef99b3f16ce3c512c7b9442.gif",
     },
     {
         label: "긴박한",
         value: "intense",
-        imageUrl: "https://images.unsplash.com/photo-1517263904808-5dc91e3e7044?auto=format&fit=crop&w=800&q=80",
+        imageUrl: "https://i.pinimg.com/736x/73/0e/a5/730ea54905b57dfa59981fc9825badd2.jpg",
     },
 ];
 
@@ -48,12 +48,12 @@ function What2() {
     const handleNext = () => {
         if (!selected.trim()) return;
         setAnswer("mood", selected.trim());
-        navigate("/key");
+        navigate("/instrument");
     };
 
     const handleSkip = () => {
         removeAnswer("mood");
-        navigate("/key");
+        navigate("/instrument");
     };
 
     return (
@@ -87,7 +87,7 @@ function What2() {
                         setSelected(e.target.value);
                     }}
                     placeholder="직접 입력하기"
-                    className="w-full max-w-md rounded-2xl border border-gray-300 bg-white px-5 py-3 text-center text-base shadow-sm focus:border-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-200"
+                    className="retro-input w-full max-w-md text-center"
                 />
             </div>
         </QuestionLayout>

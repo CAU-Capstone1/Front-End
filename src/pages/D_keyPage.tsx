@@ -58,7 +58,7 @@ function KeyPage() {
         <QuestionLayout
             title="어떤 키를 원하시나요?"
             description="원하는 분위기의 음계를 골라보세요."
-            stepLabel="03 / 06"
+            stepLabel="04 / 06"
             onBack={() => navigate(-1)}
             onSkip={handleSkip}
             primaryAction={{ label: "다음", onClick: handleNext, disabled: !selectedKey }}

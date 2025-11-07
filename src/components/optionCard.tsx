@@ -12,23 +12,23 @@ function OptionCard({ label, value, onClick, selected, imageUrl, helperText }: O
         <button
             type="button"
             onClick={() => onClick(value)}
-            className={`relative flex h-full min-h-[17rem] flex-col overflow-hidden rounded-3xl border-2 p-5 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
+            className={`relative flex h-full min-h-[18rem] flex-col overflow-hidden rounded-[2rem] border-4 p-6 text-left transition-transform duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-rose)] focus-visible:ring-offset-2 ${
                 selected
-                    ? "border-yellow-500 bg-yellow-400/20 shadow-lg"
-                    : "border-gray-200 bg-white hover:border-yellow-400"
+                    ? "border-[var(--accent-amber)] bg-[var(--accent-amber)]/10 shadow-[0_16px_0_rgba(78,74,200,0.2)] -translate-y-1"
+                    : "border-black/10 bg-white/85 shadow-[0_14px_0_rgba(46,31,39,0.08)] hover:-translate-y-1 hover:shadow-[0_18px_0_rgba(46,31,39,0.12)]"
             }`}
         >
             {imageUrl && (
-                <div className="mb-6 h-40 w-full overflow-hidden rounded-2xl bg-gray-100">
+                <div className="mb-6 h-40 w-full overflow-hidden rounded-[1.6rem] border-2 border-black/10 bg-[#fff6dc]">
                     <img src={imageUrl} alt={label} className="h-full w-full object-cover" loading="lazy" />
                 </div>
             )}
             <div className="space-y-1">
-                <p className="text-lg font-semibold text-gray-900">{label}</p>
-                {helperText && <p className="text-sm text-gray-500">{helperText}</p>}
+                <p className="text-xl font-semibold text-[var(--text-primary)]">{label}</p>
+                {helperText && <p className="text-sm text-[var(--text-muted)]">{helperText}</p>}
             </div>
             {selected && (
-                <span className="absolute right-4 top-4 rounded-full bg-yellow-400 px-3 py-1 text-xs font-semibold text-gray-900">
+                <span className="absolute right-4 top-4 rounded-full bg-[var(--accent-amber)] px-3 py-1 text-xs font-semibold text-[var(--text-primary)] shadow-[0_6px_0_rgba(46,31,39,0.15)]">
                     선택됨
                 </span>
             )}

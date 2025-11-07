@@ -17,45 +17,55 @@ type QuestionLayoutProps = {
 
 function QuestionLayout({ title, description, children, onBack, onSkip, stepLabel, primaryAction }: QuestionLayoutProps) {
     return (
-        <div className="min-h-screen w-full bg-[#FBFBFA] px-4 py-12 sm:px-8">
-            <div className="mx-auto flex w-full max-w-4xl flex-col gap-12">
+        <div className="relative min-h-screen w-full overflow-hidden px-4 py-16 sm:px-10">
+            <div className="pointer-events-none absolute -left-24 top-24 h-56 w-56 rounded-full bg-[var(--accent-rose)]/25 blur-3xl" />
+            <div className="pointer-events-none absolute -right-16 top-10 h-72 w-72 rounded-full bg-[var(--accent-amber)]/35 blur-3xl" />
+            <div className="pointer-events-none absolute left-1/2 top-1/2 h-80 w-80 -translate-x-1/2 rounded-[40%] bg-[var(--accent-mint)]/20 blur-3xl" />
+
+            <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-10">
                 <header className="flex items-center justify-between">
                     {onBack ? (
-                        <Button variant="ghost" onClick={onBack} className="text-sm text-gray-500">
+                        <Button variant="ghost" onClick={onBack} className="text-sm text-[var(--text-muted)]">
                             ← 이전으로
                         </Button>
                     ) : (
                         <span />
                     )}
-                    <span className="text-sm font-medium text-gray-400">{stepLabel ?? ""}</span>
+                    {stepLabel && (
+                        <span className="rounded-full bg-white/80 px-4 py-1 text-sm font-semibold uppercase tracking-[0.3em] text-[var(--text-muted)] shadow-[0_6px_0_rgba(46,31,39,0.08)]">
+                            {stepLabel}
+                        </span>
+                    )}
                 </header>
 
-                <div className="space-y-4 text-center">
-                    <h1 className="text-3xl font-semibold text-gray-900">{title}</h1>
-                    {description && <p className="text-base text-gray-500">{description}</p>}
-                </div>
+                <div className="rounded-[2.5rem] border-4 border-black/10 bg-white/80 px-8 py-12 shadow-[0_25px_0_rgba(46,31,39,0.08)] sm:px-12">
+                    <div className="mx-auto max-w-3xl space-y-4 text-center">
+                        <h1 className="text-[2.5rem] font-semibold leading-tight text-[var(--text-primary)]">{title}</h1>
+                        {description && <p className="text-base text-[var(--text-muted)]">{description}</p>}
+                    </div>
 
-                <div className="w-full">{children}</div>
+                    <div className="mt-10 w-full">{children}</div>
 
-                <div className="flex flex-col items-center gap-4">
-                    {primaryAction && (
-                        <Button
-                            onClick={primaryAction.onClick}
-                            disabled={primaryAction.disabled}
-                            className="px-10 py-4 text-lg"
-                        >
-                            {primaryAction.label}
-                        </Button>
-                    )}
-                    {onSkip && (
-                        <button
-                            type="button"
-                            onClick={onSkip}
-                            className="text-sm font-semibold text-yellow-500 hover:text-yellow-600"
-                        >
-                            건너뛰기
-                        </button>
-                    )}
+                    <div className="mt-12 flex flex-col items-center gap-4">
+                        {primaryAction && (
+                            <Button
+                                onClick={primaryAction.onClick}
+                                disabled={primaryAction.disabled}
+                                className="px-12 py-4 text-lg"
+                            >
+                                {primaryAction.label}
+                            </Button>
+                        )}
+                        {onSkip && (
+                            <button
+                                type="button"
+                                onClick={onSkip}
+                                className="text-sm font-semibold text-[var(--accent-rose)] hover:text-[var(--accent-rose)]"
+                            >
+                                선택 안할래요
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

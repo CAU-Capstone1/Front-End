@@ -70,18 +70,20 @@ export default function AudioFileUploader() {
     };
 
     return (
-        <section className="w-full max-w-5xl mx-auto bg-white border border-gray-200 rounded-3xl shadow-sm px-8 py-12 sm:px-12 sm:py-16">
+        <section className="w-full max-w-5xl mx-auto rounded-[2.5rem] border-4 border-black/10 bg-gradient-to-br from-[var(--bg-secondary)] via-white to-[#fce4ef] px-8 py-12 shadow-[0_25px_0_rgba(46,31,39,0.08)] sm:px-12 sm:py-16">
             <div className="flex flex-col gap-12">
                 <header className="flex flex-col-reverse gap-8 sm:flex-row sm:items-start sm:justify-between">
                     <div className="space-y-3 text-left">
-                        <p className="text-2xl sm:text-3xl font-semibold text-gray-900">어서오세요</p>
-                        <p className="text-2xl sm:text-3xl font-semibold text-gray-900">지금부터 음악을 만들어볼까요?</p>
-                        <p className="text-base text-gray-500">
+                        <p className="text-sm uppercase tracking-[0.4em] text-[var(--accent-rose)]">welcome</p>
+                        <p className="text-3xl sm:text-[2.8rem] font-bold leading-tight text-[var(--text-primary)]">
+                            지금부터 음악을<br />만들어 볼까요?
+                        </p>
+                        <p className="text-base text-[var(--text-muted)]">
                             허밍이나 레퍼런스 이미지를 업로드하면 AI가 당신만의 음악을 만들어드릴게요.
                         </p>
                     </div>
 
-                    <Button variant="ghost" className="self-end sm:self-start border border-gray-200 text-sm font-medium px-4 py-2 rounded-xl">
+                    <Button variant="outline" className="self-end sm:self-start text-sm">
                         로그인
                     </Button>
                 </header>
@@ -90,16 +92,16 @@ export default function AudioFileUploader() {
                     <button
                         type="button"
                         onClick={() => audioInputRef.current?.click()}
-                        className="group relative flex h-44 w-full flex-col justify-between rounded-3xl border-2 border-yellow-400 bg-yellow-300/20 p-6 text-left transition hover:bg-yellow-300/40"
+                        className="group relative flex h-48 w-full flex-col justify-between rounded-[2rem] border-2 border-[var(--accent-rose)] bg-white p-6 text-left shadow-[0_12px_0_rgba(242,137,130,0.15)] transition hover:-translate-y-1 hover:shadow-[0_18px_0_rgba(242,137,130,0.24)]"
                     >
                         <div className="space-y-1">
-                            <p className="text-sm font-medium text-yellow-700">STEP 1</p>
-                            <h2 className="text-2xl font-semibold text-gray-900">허밍 업로드</h2>
+                            <p className="text-sm font-semibold uppercase tracking-[0.35em] text-[var(--accent-rose)]">step 1</p>
+                            <h2 className="text-3xl font-bold text-[var(--text-primary)]">허밍 업로드</h2>
                         </div>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-[var(--text-muted)]">
                             잠깐 허밍만 해도 좋아요. 최대 {MAX_AUDIO_SIZE_MB}MB까지 지원해요.
                         </p>
-                        <span className="absolute right-6 bottom-6 text-sm font-semibold text-yellow-700 group-hover:translate-x-1 transition-transform">
+                        <span className="absolute right-6 bottom-6 text-sm font-semibold text-[var(--accent-rose)] group-hover:translate-x-1 transition-transform">
                             파일 선택 →
                         </span>
                     </button>
@@ -107,16 +109,16 @@ export default function AudioFileUploader() {
                     <button
                         type="button"
                         onClick={() => imageInputRef.current?.click()}
-                        className="group relative flex h-44 w-full flex-col justify-between rounded-3xl border border-dashed border-gray-300 bg-gray-50 p-6 text-left transition hover:border-yellow-400 hover:bg-yellow-50"
+                        className="group relative flex h-48 w-full flex-col justify-between rounded-[2rem] border-2 border-dashed border-[var(--accent-amber)] bg-[#fffaf0] p-6 text-left shadow-[0_12px_0_rgba(246,190,95,0.2)] transition hover:-translate-y-1 hover:shadow-[0_18px_0_rgba(246,190,95,0.28)]"
                     >
                         <div className="space-y-1">
-                            <p className="text-sm font-medium text-gray-500">선택</p>
-                            <h2 className="text-2xl font-semibold text-gray-900">이미지 (가능하면 영상까지) 업로드</h2>
+                            <p className="text-sm font-semibold uppercase tracking-[0.35em] text-[var(--accent-amber)]">optional</p>
+                            <h2 className="text-3xl font-bold text-[var(--text-primary)]">이미지 / 영상 업로드</h2>
                         </div>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-[var(--text-muted)]">
                             뮤직비디오 레퍼런스나 분위기를 담은 이미지도 함께 업로드해보세요.
                         </p>
-                        <span className="absolute right-6 bottom-6 text-sm font-semibold text-gray-500 group-hover:text-yellow-700 group-hover:translate-x-1 transition">
+                        <span className="absolute right-6 bottom-6 text-sm font-semibold text-[var(--accent-amber)] group-hover:translate-x-1 transition-transform">
                             파일 선택 →
                         </span>
                     </button>
@@ -138,13 +140,13 @@ export default function AudioFileUploader() {
                 />
 
                 {(audioFile || imageFile) && (
-                    <div className="grid gap-6 rounded-3xl border border-gray-100 bg-gray-50/60 p-6 sm:grid-cols-2">
+                    <div className="grid gap-6 rounded-[2rem] border-2 border-black/10 bg-white/70 p-6 shadow-[0_18px_0_rgba(46,31,39,0.08)] sm:grid-cols-2">
                         {audioFile && (
                             <div className="space-y-3">
                                 <div>
-                                    <p className="text-sm font-medium text-gray-500">선택된 허밍</p>
-                                    <p className="text-base font-semibold text-gray-900">{audioFile.name}</p>
-                                    <p className="text-sm text-gray-500">{(audioFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                                    <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[var(--accent-rose)]">허밍</p>
+                                    <p className="text-lg font-semibold text-[var(--text-primary)]">{audioFile.name}</p>
+                                    <p className="text-sm text-[var(--text-muted)]">{(audioFile.size / 1024 / 1024).toFixed(2)} MB</p>
                                 </div>
                                 {audioURL && <audio src={audioURL} controls className="w-full" />}
                                 <div className="flex flex-wrap gap-2">
@@ -168,12 +170,12 @@ export default function AudioFileUploader() {
                         {imageFile && (
                             <div className="space-y-3">
                                 <div>
-                                    <p className="text-sm font-medium text-gray-500">선택된 이미지 / 영상</p>
-                                    <p className="text-base font-semibold text-gray-900">{imageFile.name}</p>
-                                    <p className="text-sm text-gray-500">{(imageFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                                    <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[var(--accent-rose)]">이미지 · 영상</p>
+                                    <p className="text-lg font-semibold text-[var(--text-primary)]">{imageFile.name}</p>
+                                    <p className="text-sm text-[var(--text-muted)]">{(imageFile.size / 1024 / 1024).toFixed(2)} MB</p>
                                 </div>
                                 {imageURL && (
-                                    <div className="overflow-hidden rounded-2xl border border-gray-200">
+                                    <div className="overflow-hidden rounded-2xl border border-black/10">
                                         {imageFile.type.startsWith("image/") ? (
                                             <img src={imageURL} alt="업로드 미리보기" className="h-48 w-full object-cover" />
                                         ) : (
@@ -197,7 +199,7 @@ export default function AudioFileUploader() {
                     </div>
                 )}
 
-                {status && <p className="text-sm font-medium text-yellow-700">{status}</p>}
+                {status && <p className="text-sm font-semibold text-[var(--accent-rose)]">{status}</p>}
             </div>
         </section>
     );

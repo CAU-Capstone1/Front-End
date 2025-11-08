@@ -43,7 +43,7 @@ function MainPage() {
                             바로 다음 단계로
                         </Button>
                     </div>
-                    <p className="text-xs font-semibold text-[var(--text-muted)]">
+                    <p className="text-s font-semibold text-[var(--text-muted)]">
                         메인 멜로디 허밍이 업로드되어야 다음 단계로 진행할 수 있어요.
                     </p>
                 </div>

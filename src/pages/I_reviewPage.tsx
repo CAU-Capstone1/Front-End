@@ -104,11 +104,11 @@ function ReviewPage() {
                     {highlightText}
                 </div>
 
-                <section className="space-y-4">
+                <section className="grid gap-5 md:grid-cols-2">
                     {items.map((item) => (
                         <div
                             key={item.key}
-                            className="flex flex-wrap items-center justify-between gap-4 rounded-[2rem] border-4 border-black/10 bg-white/85 px-6 py-6 shadow-[0_16px_0_rgba(46,31,39,0.08)]"
+                            className="flex h-full flex-col justify-between gap-6 rounded-[2rem] border-4 border-black/10 bg-white/85 px-6 py-6 shadow-[0_16px_0_rgba(46,31,39,0.08)]"
                         >
                             <div>
                                 <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[var(--accent-rose)]">{item.label}</p>
@@ -122,7 +122,7 @@ function ReviewPage() {
                                     {item.value}
                                 </p>
                             </div>
-                            <Button variant="outline" className="px-4" onClick={() => navigate(item.route)}>
+                            <Button variant="outline" className="self-end px-4" onClick={() => navigate(item.route)}>
                                 수정하기
                             </Button>
                         </div>

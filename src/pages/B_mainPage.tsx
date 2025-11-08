@@ -6,12 +6,22 @@ import { getAnswer } from "../utils/compositionSession";
 function MainPage() {
     const navigate = useNavigate();
 
-    const handleSkip = () => {
+    const requireMainMelody = () => {
         const mainMelody = getAnswer("hummingMain");
         if (!mainMelody) {
             alert("메인 멜로디 허밍을 먼저 업로드해주세요.");
-            return;
+            return false;
         }
+        return true;
+    };
+
+    const handleGoVisual = () => {
+        if (!requireMainMelody()) return;
+        navigate("/visual");
+    };
+
+    const handleSkip = () => {
+        if (!requireMainMelody()) return;
         navigate("/what1");
     };
 
@@ -26,10 +36,16 @@ function MainPage() {
 
                 <div className="flex flex-col items-center gap-4 text-center">
                     <div className="flex flex-wrap justify-center gap-3">
+                        <Button onClick={handleGoVisual} variant="rainbow" className="px-12 py-4 text-lg">
+                            이미지 · 영상 업로드하기
+                        </Button>
                         <Button onClick={handleSkip} variant="rainbow" className="px-12 py-4 text-lg">
-                            다음
+                            바로 다음 단계로
                         </Button>
                     </div>
+                    <p className="text-xs font-semibold text-[var(--text-muted)]">
+                        메인 멜로디 허밍이 업로드되어야 다음 단계로 진행할 수 있어요.
+                    </p>
                 </div>
             </div>
         </div>

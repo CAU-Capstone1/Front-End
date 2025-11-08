@@ -9,12 +9,18 @@ function LengthPage() {
 
     useEffect(() => {
         const cached = getAnswer("duration");
-        if (cached) setSeconds(cached);
+        if (!cached) return;
+        const sanitized = cached.replace(/[^0-9]/g, "");
+        if (!sanitized) return;
+        const numeric = Math.min(Number(sanitized), 180);
+        setSeconds(numeric ? String(numeric) : "");
     }, []);
 
     const handleNext = () => {
-        if (!seconds.trim()) return;
-        setAnswer("duration", seconds.trim());
+        const trimmed = seconds.trim();
+        if (!trimmed) return;
+        const numeric = Math.min(Number(trimmed), 180);
+        setAnswer("duration", String(numeric));
         navigate("/tempo");
     };
 
@@ -37,15 +43,22 @@ function LengthPage() {
                     <input
                         value={seconds}
                         onChange={(e) => {
-                            const value = e.target.value.replace(/[^0-9]/g, "");
-                            setSeconds(value);
+                            const raw = e.target.value.replace(/[^0-9]/g, "");
+                            if (!raw) {
+                                setSeconds("");
+                                return;
+                            }
+                            const numeric = Math.min(Number(raw), 180);
+                            setSeconds(String(numeric));
                         }}
                         placeholder="예: 120"
                         className="flex-1 border-none bg-transparent text-center text-3xl font-semibold text-[var(--text-primary)] outline-none"
                     />
                     <span className="text-lg font-semibold text-[var(--accent-rose)]">초</span>
                 </div>
-                <p className="text-sm font-medium text-[var(--text-muted)]">기본값은 120초 (2분) 정도예요. 원하는 길이가 있다면 입력해주세요.</p>
+                <p className="text-sm font-medium text-[var(--text-muted)]">
+                최대 180초(3분)까지만 입력할 수 있어요.
+                </p>
             </div>
         </QuestionLayout>
     );

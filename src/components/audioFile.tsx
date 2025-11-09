@@ -164,18 +164,18 @@ export default function AudioFileUploader() {
         <section className="w-full">
             <div className="rounded-[2.5rem] border-4 border-black/10 bg-gradient-to-bl from-white via-[var(--bg-secondary)] to-[#ffe9f2] px-8 py-10 shadow-[0_25px_0_rgba(46,31,39,0.08)] sm:px-12">
                 <div className="space-y-3 text-left">
-                    <p className="text-sm uppercase tracking-[0.35em] text-[var(--accent-amber)]">melody kit</p>
+                    <p className="text-m uppercase tracking-[0.35em] text-[var(--accent-amber)]">melody kit</p>
                     <h2 className="text-[2.2rem] font-semibold text-[var(--text-primary)] leading-tight">
                         필요한 구간만 골라 허밍을 업로드해요
                     </h2>
-                    <p className="text-sm text-[var(--text-muted)]">
-                        시작 · 메인 · 끝 멜로디 중 필요한 만큼만 선택해서 올릴 수 있어요. 업로드하지 않은 구간은 비워두면 됩니다.
+                    <p className="text-m text-[var(--text-muted)]">
+                        메인 멜로디는 필수로 올려야 음악이 만들어져요. 시작, 끝 멜로디는 올리고 싶은 것 만 올려요.
                     </p>
                 </div>
 
                 <div className="mt-10 grid gap-5 sm:grid-cols-3">
                     {AUDIO_SEGMENTS.map((segment) => {
-                        const state = segmentState[segment.id];
+                        const state = segmentState[segment.id]
                         return (
                             <div
                                 key={segment.id}

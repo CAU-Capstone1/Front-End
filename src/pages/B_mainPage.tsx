@@ -35,17 +35,15 @@ function MainPage() {
                 <AudioFileUploader />
 
                 <div className="flex flex-col items-center gap-4 text-center">
-                    <div className="flex flex-wrap justify-center gap-3">
+                    <div className="flex flex-wrap justify-center gap-10">
                         <Button onClick={handleGoVisual} variant="rainbow" className="px-12 py-4 text-lg">
-                            이미지 · 영상 업로드하기
+                            이미지 업로드하기
                         </Button>
                         <Button onClick={handleSkip} variant="rainbow" className="px-12 py-4 text-lg">
-                            바로 다음 단계로
+                             바로 다음 단계로 
                         </Button>
                     </div>
-                    <p className="text-s font-semibold text-[var(--text-muted)]">
-                        메인 멜로디 허밍이 업로드되어야 다음 단계로 진행할 수 있어요.
-                    </p>
+                    
                 </div>
             </div>
         </div>

@@ -32,6 +32,11 @@ function InstrumentPage() {
     const [selected, setSelected] = useState<string>("");
     const [customValue, setCustomValue] = useState<string>("");
 
+    const OPTION_GRID_CLASS = "grid grid-cols-1 gap-4 sm:grid-cols-2";
+    const CUSTOM_INPUT_WRAPPER_CLASS = "mt-10 flex flex-col items-center gap-3";
+    const OR_TEXT_CLASS = "mt-2 mb-2 text-sm font-semibold text-gray-400";
+    const INPUT_CLASS = "retro-input w-full max-w-md text-center";
+
     useEffect(() => {
         const cached = getAnswer("instrument");
         if (cached) {
@@ -60,7 +65,7 @@ function InstrumentPage() {
             onSkip={handleSkip}
             primaryAction={{ label: "다음", onClick: handleNext, disabled: !selected.trim(), variant: "rainbow" }}
         >
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className={OPTION_GRID_CLASS}>
                 {INSTRUMENT_OPTIONS.map((option) => (
                     <OptionCard
                         key={option.value}
@@ -76,8 +81,8 @@ function InstrumentPage() {
                 ))}
             </div>
 
-            <div className="mt-10 flex flex-col items-center gap-3">
-                <span className="text-sm font-semibold text-gray-400">또는</span>
+            <div className={CUSTOM_INPUT_WRAPPER_CLASS}>
+                <span className={OR_TEXT_CLASS}>또는</span>
                 <input
                     value={customValue}
                     onChange={(e) => {
@@ -85,7 +90,7 @@ function InstrumentPage() {
                         setSelected(e.target.value);
                     }}
                     placeholder="직접 입력하기"
-                    className="retro-input w-full max-w-md text-center"
+                    className={INPUT_CLASS}
                 />
             </div>
         </QuestionLayout>

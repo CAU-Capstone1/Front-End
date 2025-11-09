@@ -47,13 +47,13 @@ function QuestionLayout({ title, description, children, onBack, onSkip, stepLabe
 
                     <div className="mt-10 w-full">{children}</div>
 
-                    <div className="mt-12 flex flex-col items-center gap-4">
+                    <div className="mt-12 flex flex-col items-center gap-6">
                         {primaryAction && (
                             <Button
                                 onClick={primaryAction.onClick}
                                 disabled={primaryAction.disabled}
                             variant={primaryAction.variant ?? "primary"}
-                                className="px-12 py-4 text-lg"
+                                className="px-20 py-4 text-lg"
                             >
                                 {primaryAction.label}
                             </Button>

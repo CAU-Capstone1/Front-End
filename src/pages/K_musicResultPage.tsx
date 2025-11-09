@@ -59,8 +59,9 @@ function MusicResultPage() {
 
             <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-12">
                 <header className="text-center space-y-3">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-sm font-semibold uppercase tracking-[0.3em] text-[var(--accent-rose)] shadow-[0_10px_0_rgba(46,31,39,0.08)]">
-                        ai result
+                    <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-6 py-2 text-sm font-semibold uppercase
+                    tracking-[0.3em] text-[var(--accent-rose)] shadow-[0_10px_0_rgba(46,31,39,0.08)] mb-10 ">
+                    ai result
                     </span>
                     <h1 className="text-[2.6rem] font-semibold leading-tight text-[var(--text-primary)]">음악이 완성되었습니다</h1>
                     <p className="text-base text-[var(--text-muted)]">지금 바로 재생해보고, 원하는 이름과 보관 장소를 선택해보세요.</p>
@@ -68,31 +69,32 @@ function MusicResultPage() {
 
                 <section className="grid gap-10 lg:grid-cols-[1.2fr_1fr]">
                     <div className="rounded-[2.5rem] border-4 border-black/10 bg-gradient-to-tr from-[#fff6da] via-white to-[#fce4ef] p-10 shadow-[0_25px_0_rgba(46,31,39,0.08)]">
-                        <div className="flex flex-col items-center gap-8">
-                            <button
-                                type="button"
-                                className="flex h-44 w-44 items-center justify-center rounded-full border-4 border-black/20 bg-[var(--accent-amber)] text-4xl font-bold text-[var(--text-primary)] shadow-[0_18px_0_rgba(46,31,39,0.12)] transition hover:-translate-y-1 hover:shadow-[0_24px_0_rgba(46,31,39,0.16)]"
-                            >
-                                ▶
-                            </button>
-                            <div className="flex flex-wrap justify-center gap-3">
-                                <Button variant="soft" className="w-50 py-5 text-m font-semibold hover:cursor-pointer">
-                                    음악 이름 짓기
-                                </Button>
-                                <Button variant="soft" className="w-50 py-5 text-m font-semibold hover:cursor-pointer">
-                                    내 보관함
-                                </Button>
+                        <div className="flex flex-col items-center justify-center gap-8">
+                                <button type="button" className="play-button">
+                                    <span className="play-button-core">
+                                        <svg viewBox="0 0 24 24" className="play-button-icon">
+                                            <path d="M8 5.5v13l10-6.5z" />
+                                        </svg>
+                                    </span>
+                                </button>
+                                <div className="flex flex-wrap justify-center gap-3">
+                                    <Button variant="soft" className="w-50 py-5 text-m font-semibold hover:cursor-pointer">
+                                        음악 이름 짓기
+                                    </Button>
+                                    <Button variant="soft" className="w-50 py-5 text-m font-semibold hover:cursor-pointer">
+                                        내 보관함
+                                    </Button>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
                     <div className="rounded-[2.5rem] border-4 border-black/10 bg-white/85 p-10 shadow-[0_22px_0_rgba(46,31,39,0.08)]">
-                        <h2 className="text-xl font-semibold text-[var(--text-primary)]">요청 요약</h2>
+                        <h2 className="text-xl ml-3 font-semibold text-[var(--text-primary)]">요청 요약</h2>
                         <div className="mt-6 space-y-4">
                             {summary.map((item) => (
                                 <div key={item.label} className="flex items-center justify-between rounded-[1.5rem] bg-[var(--bg-secondary)] px-5 py-4 text-[var(--text-primary)]">
-                                    <span className="text-sm font-semibold uppercase tracking-[0.25em] text-[var(--accent-rose)]">{item.label}</span>
-                                    <span className="text-base font-semibold">{item.value}</span>
+                                    <span className="text-m font-semibold uppercase tracking-[0.25em] text-[var(--accent-rose)]">{item.label}</span>
+                                    <span className="text-m ">{item.value}</span>
                                 </div>
                             ))}
                         </div>

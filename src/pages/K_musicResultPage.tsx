@@ -22,16 +22,16 @@ function MusicResultPage() {
             { label: "시작 멜로디", value: displayValue(answers.hummingStart) },
             { label: "메인 멜로디", value: displayValue(answers.hummingMain) },
             { label: "끝 멜로디", value: displayValue(answers.hummingEnd) },
-            { label: "참고 이미지 / 영상", value: displayValue(answers.referenceVisual) },
+            { label: "참고 이미지", value: displayValue(answers.referenceVisual) },
             { label: "장르", value: displayValue(answers.style) },
             { label: "무드", value: displayValue(answers.mood) },
+            { label: "악기", value: displayValue(answers.instrument) },
             { label: "키", value: displayValue(answers.key) },
+            { label: "빠르기", value: displayValue(answers.tempo) },
             {
                 label: "길이",
                 value: displayValue(answers.duration, "초"),
             },
-            { label: "악기", value: displayValue(answers.instrument) },
-            { label: "템포", value: displayValue(answers.tempo) },
         ];
         setSummary(items);
 
@@ -76,14 +76,11 @@ function MusicResultPage() {
                                 ▶
                             </button>
                             <div className="flex flex-wrap justify-center gap-3">
-                                <Button variant="rainbow" className="px-6">
+                                <Button variant="soft" className="w-50 py-5 text-m font-semibold hover:cursor-pointer">
                                     음악 이름 짓기
                                 </Button>
-                                <Button variant="rainbow" className="px-6">
+                                <Button variant="soft" className="w-50 py-5 text-m font-semibold hover:cursor-pointer">
                                     내 보관함
-                                </Button>
-                                <Button variant="rainbow" className="px-6">
-                                    2차 가공
                                 </Button>
                             </div>
                         </div>
@@ -117,11 +114,11 @@ function MusicResultPage() {
                     </div>
                 )}
 
-                <div className="flex flex-wrap justify-center gap-4">
-                    <Button toWhere="/" variant="rainbow" className="px-10" onClick={() => resetAnswers()}>
+                <div className="flex flex-wrap justify-center gap-6">
+                    <Button toWhere="/" variant="rainbow" className="w-55 py-5" onClick={() => resetAnswers()}>
                         처음으로 돌아가기
                     </Button>
-                    <Button variant="rainbow" className="px-10" onClick={() => window.location.reload()}>
+                    <Button variant="rainbow" className="w-55 py-5" onClick={() => window.location.reload()}>
                         다시 생성하기
                     </Button>
                 </div>

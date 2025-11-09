@@ -11,10 +11,10 @@ const What1 = lazy(() => import("../pages/D_whatPage1.tsx"));
 const What2 = lazy(() => import("../pages/E_whatPage2.tsx"));
 const InstrumentPage = lazy(() => import("../pages/F_instrumentPage.tsx"));
 const KeyPage = lazy(() => import("../pages/G_keyPage.tsx"));
-const LengthPage = lazy(() => import("../pages/H_lengthPage.tsx"));
-const TempoPage = lazy(() => import("../pages/K_tempoPage.tsx"));
-const ReviewPage = lazy(() => import("../pages/I_reviewPage.tsx"));
-const MusicResult = lazy(() => import("../pages/J_musicResultPage.tsx"));
+const LengthPage = lazy(() => import("../pages/I_lengthPage.tsx"));
+const TempoPage = lazy(() => import("../pages/H_tempoPage.tsx"));
+const ReviewPage = lazy(() => import("../pages/J_reviewPage.tsx"));
+const MusicResult = lazy(() => import("../pages/K_musicResultPage.tsx"));
 
 const router = createBrowserRouter([
     {

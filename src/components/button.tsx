@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { NavLink } from "react-router";
 
-type Variant = "primary" | "secondary" | "ghost" | "outline" | "rainbow" | "danger";
+type Variant = "primary" | "secondary" | "ghost" | "outline" | "rainbow" | "danger" | "soft";
 
 type ButtonProps = {
     toWhere?: string;
@@ -22,6 +22,7 @@ const variantClassMap: Record<Variant, string> = {
     outline: "border-2 border-[var(--accent-amber)] bg-white text-[var(--text-primary)] shadow-[0_8px_0_rgba(242,137,130,0.32)] hover:bg-[var(--accent-amber)]/10 focus-visible:ring-[var(--accent-amber)]",
     rainbow: "bg-[linear-gradient(120deg,#ffd1dc,#fceabb,#d3f8e2,#a6e3e9,#f7d6ff)] text-[var(--text-primary)] shadow-[0_16px_0_rgba(246,190,95,0.25)] hover:-translate-y-[2px] hover:shadow-[0_12px_0_rgba(246,190,95,0.22)] focus-visible:ring-[var(--accent-amber)]",
     danger: "border-2 border-[#f28982] bg-white text-[var(--text-primary)] shadow-[0_10px_0_rgba(242,137,130,0.25)] hover:translate-y-[1px] hover:shadow-[0_6px_0_rgba(242,137,130,0.2)] focus-visible:ring-[#f28982]",
+    soft: "border-2 border-[var(--accent-amber)] bg-white text-[var(--text-primary)] shadow-[0_10px_0_rgba(246,190,95,0.18)] hover:-translate-y-[1px] hover:shadow-[0_6px_0_rgba(246,190,95,0.15)] focus-visible:ring-[var(--accent-amber)]",
 };
 
 function mergeClasses(...classes: (string | undefined | false)[]) {
@@ -40,7 +41,7 @@ function Button({
     const composedClass = mergeClasses(
         baseClass,
         variantClassMap[variant],
-        disabled && "opacity-60 cursor-not-allowed",
+        disabled && "opacity-60 cursor-auto",
         className,
     );
 

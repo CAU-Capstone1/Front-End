@@ -108,10 +108,10 @@ function ReviewPage() {
                     {items.map((item) => (
                         <div
                             key={item.key}
-                            className="flex h-full flex-col justify-between gap-6 rounded-[2rem] border-4 border-black/10 bg-white/85 px-6 py-6 shadow-[0_16px_0_rgba(46,31,39,0.08)]"
+                            className="flex h-full flex-col justify-between gap-4 rounded-[2rem] border-4 border-black/10 bg-white/85 px-6 py-6 shadow-[0_16px_0_rgba(46,31,39,0.08)]"
                         >
                             <div>
-                                <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[var(--accent-rose)]">{item.label}</p>
+                                <p className="text-2xl font-semibold uppercase tracking-[0.25em] text-[var(--accent-rose)] mb-2">{item.label}</p>
                                 <p
                                     className={`text-lg font-semibold ${
                                         item.value === "선택하지 않음"

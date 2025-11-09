@@ -48,8 +48,8 @@ function TempoPage() {
                             key={option.value}
                             className={`flex cursor-pointer items-center justify-between rounded-2xl border-2 px-5 py-4 transition ${
                                 isSelected
-                                    ? "border-yellow-500 bg-white shadow"
-                                    : "border-gray-200 bg-white hover:border-yellow-400"
+                                    ? "border-[var(--accent-amber)] bg-white shadow-[0_14px_0_rgba(246,190,95,0.18)]"
+                                    : "border-black/10 bg-white hover:border-[var(--accent-amber)]"
                             }`}
                         >
                             <div className="flex items-center gap-3">
@@ -59,7 +59,7 @@ function TempoPage() {
                                     value={option.value}
                                     checked={isSelected}
                                     onChange={() => setSelected(option.value)}
-                                    className="h-5 w-5 text-yellow-500 focus:ring-yellow-500"
+                                    className="tempo-radio-star"
                                 />
                                 <div>
                                     <p className="text-base font-semibold text-gray-900">{option.label}</p>

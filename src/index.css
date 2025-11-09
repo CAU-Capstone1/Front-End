@@ -91,6 +91,12 @@ body {
     animation: sparkle 2.8s linear infinite;
 }
 
+.start-gradient-bg {
+    background: linear-gradient(270deg, #ffd6e0 0%, #ffe8ba 12%, #d2f7c1 32%, #aeeff8 52%, #7fc0ff 72%, #d4c4ff 88%, #ffd6e0 100%);
+    background-size: 900% 900%;
+    animation: startGradientMove 9s ease-in-out infinite;
+}
+
 .start-title {
     background: linear-gradient(90deg, #ffd1dc 0%, #fce4b5 25%, #d8f8c8 50%, #b7e8ff 75%, #ffd1dc 100%);
     background-size: 300% 300%;
@@ -106,6 +112,18 @@ body {
     }
     100% {
         background-position: 100% 50%;
+    }
+}
+
+@keyframes startGradientMove {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
     }
 }
 

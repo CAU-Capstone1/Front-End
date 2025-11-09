@@ -4,7 +4,7 @@ const SPARKLES = Array.from({ length: 30 }).map((_, idx) => idx);
 
 function StartPage() {
     return (
-        <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden px-4 py-20 sm:px-10">
+        <div className="start-gradient-bg relative flex min-h-screen w-full items-center justify-center overflow-hidden px-4 py-20 sm:px-10">
             <div className="pointer-events-none absolute -left-24 top-24 h-64 w-64 animate-[floatUp_9s_ease-in-out_infinite] rounded-full bg-[var(--accent-rose)]/30 blur-3xl" />
             <div className="pointer-events-none absolute right-10 top-16 h-56 w-56 animate-[floatUp_13s_ease-in-out_infinite] rounded-full bg-[var(--accent-mint)]/30 blur-3xl" />
             <div className="pointer-events-none absolute left-1/2 bottom-[-3rem] h-72 w-72 -translate-x-1/2 animate-[floatUp_11s_ease-in-out_infinite] rounded-full bg-[var(--accent-amber)]/35 blur-3xl" />

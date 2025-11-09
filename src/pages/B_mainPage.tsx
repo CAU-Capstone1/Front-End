@@ -36,10 +36,10 @@ function MainPage() {
 
                 <div className="flex flex-col items-center gap-4 text-center">
                     <div className="flex flex-wrap justify-center gap-10">
-                        <Button onClick={handleGoVisual} variant="rainbow" className="px-12 py-4 text-lg">
+                        <Button onClick={handleGoVisual} variant="rainbow" className="px-12 py-5 text-lg">
                             이미지 업로드하기
                         </Button>
-                        <Button onClick={handleSkip} variant="rainbow" className="px-12 py-4 text-lg">
+                        <Button onClick={handleSkip} variant="rainbow" className="px-12 py-5 text-lg">
                              바로 다음 단계로 
                         </Button>
                     </div>

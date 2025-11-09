@@ -91,13 +91,13 @@ function ReviewPage() {
 
             <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-10">
                 <header className="text-center space-y-2">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-sm font-semibold uppercase tracking-[0.3em] text-[var(--accent-rose)] shadow-[0_10px_0_rgba(46,31,39,0.08)]">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-6 py-2 text-sm font-semibold uppercase tracking-[0.3em] text-[var(--accent-rose)] shadow-[0_10px_0_rgba(46,31,39,0.08)] mb-10">
                         review
                     </span>
-                    <h1 className="text-[2.6rem] font-semibold leading-tight text-[var(--text-primary)]">
+                    <h1 className="text-[2.6rem] font-semibold leading-tight text-[var(--text-primary)] mb-2">
                         현재 설정을 한번 더 확인해요
                     </h1>
-                    <p className="text-base text-[var(--text-muted)]">필요한 부분을 수정한 뒤 그대로 음악 생성을 진행할 수 있어요.</p>
+                    <p className="text-base text-[var(--text-muted)] mb-3">필요한 부분을 수정한 뒤 그대로 음악 생성을 진행할 수 있어요.</p>
                 </header>
 
                 <div className="rounded-[2.5rem] border-4 border-black/10 bg-gradient-to-r from-[var(--bg-secondary)] via-white to-[#fce4ef] px-8 py-12 text-center text-2xl font-semibold text-[var(--text-primary)] shadow-[0_25px_0_rgba(46,31,39,0.08)] sm:px-12">
@@ -146,11 +146,12 @@ function ReviewPage() {
                         onClick={handleConfirm}
                         disabled={isSubmitting}
                         variant="rainbow"
-                        className="px-12 py-4 text-lg"
+                        className="px-16 py-5 text-lg mt-10"
                     >
                         {isSubmitting ? "음악 생성 중..." : "음악 생성하기"}
                     </Button>
                 </div>
+                    <div className="flex flex-wrap justify-center py-10"/>
             </div>
         </div>
     );

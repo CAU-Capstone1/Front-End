@@ -193,7 +193,7 @@ export default function AudioFileUploader() {
                                     <button
                                         type="button"
                                         onClick={() => segmentInputRefs[segment.id].current?.click()}
-                                        className="rounded-[1.2rem] border-2 border-dashed border-[var(--accent-rose)] bg-white px-3 py-3 text-sm font-semibold text-[var(--accent-rose)] shadow-[0_8px_0_rgba(242,137,130,0.18)] transition hover:-translate-y-[2px]"
+                                        className="my-btn rounded-[1.2rem] border-2 border-dashed border-[var(--accent-rose)] bg-white px-3 py-3 text-sm font-semibold text-[var(--accent-rose)] shadow-[0_8px_0_rgba(242,137,130,0.18)] transition hover:-translate-y-[2px]"
                                     >
                                         파일 선택
                                     </button>
@@ -215,7 +215,7 @@ export default function AudioFileUploader() {
                                         <Button onClick={() => uploadSegment(segment.id)} disabled={!state.file || state.isUploading}>
                                             {state.isUploading ? "업로드 중..." : "업로드하기"}
                                         </Button>
-                                        <Button variant="ghost" onClick={() => resetSegment(segment.id)}>
+                                        <Button variant="danger" onClick={() => resetSegment(segment.id)}>
                                             삭제하기
                                         </Button>
                                         {state.status && (

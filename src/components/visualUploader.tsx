@@ -32,7 +32,7 @@ export default function VisualUploader() {
         if (!validateFile(candidate)) return;
 
         setFile(candidate);
-        setStatus("선택 완료");
+        setStatus("참고 비주얼 준비 완료");
         setAnswer("referenceVisual", candidate.name);
         setStoredName(candidate.name);
         setPreviewURL((prev) => {
@@ -69,7 +69,7 @@ export default function VisualUploader() {
                     <button
                         type="button"
                         onClick={() => inputRef.current?.click()}
-                        className="flex h-48 w-full max-w-md flex-col items-center justify-center gap-3 rounded-[2rem] border-2 border-dashed border-[var(--accent-amber)] bg-white/80 text-center text-[var(--text-primary)] shadow-[0_14px_0_rgba(246,190,95,0.2)] transition hover:-translate-y-[2px]"
+                        className="my-btn flex h-48 w-full max-w-md flex-col items-center justify-center gap-3 rounded-[2rem] border-2 border-dashed border-[var(--accent-amber)] bg-white/80 text-center text-[var(--text-primary)] shadow-[0_14px_0_rgba(246,190,95,0.2)] transition hover:-translate-y-[2px]"
                     >
                         <span className="text-sm font-semibold text-[var(--accent-amber)]">이미지 · 영상 선택</span>
                         <span className="text-xs text-[var(--text-muted)]">최대 {MAX_IMAGE_SIZE_MB}MB (JPG / PNG / MP4 등)</span>
@@ -88,12 +88,16 @@ export default function VisualUploader() {
                                 )}
                             </div>
                         )}
-                        <div className="flex flex-wrap gap-2">
-                            <Button variant="ghost" onClick={reset}>
+                        <div className="flex flex-wrap items-center justify-center gap-2">
+                            <Button variant="danger" onClick={reset}>
                                 삭제하기
                             </Button>
                         </div>
-                        {status && <p className="text-xs font-semibold text-[var(--accent-amber)]">{status}</p>}
+                        {status && (
+                            <p className="text-xs font-semibold text-[var(--accent-amber)] text-center">
+                                {status}
+                            </p>
+                        )}
                     </div>
                 )}
             </div>

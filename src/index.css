@@ -91,6 +91,24 @@ body {
     animation: sparkle 2.8s linear infinite;
 }
 
+.start-title {
+    background: linear-gradient(90deg, #ffd1dc 0%, #fce4b5 25%, #d8f8c8 50%, #b7e8ff 75%, #ffd1dc 100%);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: gradientTextFlow 8s ease-in-out infinite;
+}
+
+@keyframes gradientTextFlow {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 100% 50%;
+    }
+}
+
 .retro-input::placeholder {
     color: rgba(46, 31, 39, 0.4);
 }

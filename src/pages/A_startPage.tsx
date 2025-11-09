@@ -30,6 +30,9 @@ function StartPage() {
                         alt="Humming Bird"
                         className="w-full max-w-4xl animate-[logoBounce_6s_ease-in-out_infinite] drop-shadow-[0_25px_55px_rgba(246,190,95,0.35)]"
                     />
+                    {/* <h1 className="start-title text-4xl font-bold tracking-[0.3em] uppercase sm:text-5xl">
+                        Humming Bird
+                    </h1> */}
                 </header>
 
                 <div className="flex flex-col items-center gap-6">

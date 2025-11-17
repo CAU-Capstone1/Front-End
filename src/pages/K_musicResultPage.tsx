@@ -180,6 +180,43 @@ function MusicResultPage() {
         }
     };
 
+    // 음악 다운로드 처리 (로그인 불필요)
+    const handleDownload = async () => {
+        if (!musicUrl) {
+            alert("다운로드할 음악이 없습니다.");
+            return;
+        }
+
+        try {
+            // 음악 파일 다운로드
+            const response = await fetch(musicUrl);
+            if (!response.ok) {
+                throw new Error("다운로드 실패");
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            
+            // 파일명 생성 (음악 이름이 있으면 사용, 없으면 기본값)
+            const fileName = musicName.trim() 
+                ? `${musicName.trim()}.mp3` 
+                : `music-${Date.now()}.mp3`;
+            a.download = fileName;
+            
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            alert("다운로드가 완료되었습니다!");
+        } catch (error) {
+            console.error("다운로드 실패:", error);
+            alert("다운로드 중 오류가 발생했습니다.");
+        }
+    };
+
     // 컴포넌트 언마운트 시 정리
     useEffect(() => {
         return () => {
@@ -238,6 +275,17 @@ function MusicResultPage() {
                                     </p>
                                 )}
                                 <div className="flex flex-wrap justify-center gap-3">
+                                    <Button 
+                                        variant="soft" 
+                                        className="w-50 py-5 text-m font-semibold hover:cursor-pointer flex items-center justify-center gap-2"
+                                        onClick={handleDownload}
+                                        disabled={!musicUrl}
+                                    >
+                                        <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
+                                            <path d="M12 15.5L7.5 11h3V3h3v8h3L12 15.5zM5 19h14v2H5v-2z" />
+                                        </svg>
+                                        다운로드
+                                    </Button>
                                     <Button 
                                         variant="soft" 
                                         className="w-50 py-5 text-m font-semibold hover:cursor-pointer"

@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router";
 import Button from "../components/button";
 import { getAllAnswers, resetAnswers } from "../utils/compositionSession";
 import { formatAnswerValue } from "../utils/valueLabels";
+import { saveMusic } from "../utils/musicStorage";
+import { isLoggedIn } from "../utils/auth";
 
 type SummaryItem = {
     label: string;
@@ -9,8 +12,12 @@ type SummaryItem = {
 };
 
 function MusicResultPage() {
+    const navigate = useNavigate();
     const [summary, setSummary] = useState<SummaryItem[]>([]);
     const [composeResponseJson, setComposeResponseJson] = useState<string | null>(null);
+    const [showNameModal, setShowNameModal] = useState(false);
+    const [musicName, setMusicName] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         const answers = getAllAnswers();
@@ -51,6 +58,61 @@ function MusicResultPage() {
         [summary],
     );
 
+    const handleSaveToArchive = () => {
+        if (!isLoggedIn()) {
+            if (confirm("음악을 저장하려면 로그인이 필요합니다. 로그인 페이지로 이동하시겠습니까?")) {
+                navigate("/login");
+            }
+            return;
+        }
+        setShowNameModal(true);
+    };
+
+    const handleNameSubmit = () => {
+        if (!musicName.trim()) {
+            alert("음악 이름을 입력해주세요.");
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            const answers = getAllAnswers();
+            const rawResponse = sessionStorage.getItem("compose:lastResponse");
+
+            saveMusic({
+                name: musicName.trim(),
+                compositionData: {
+                    style: answers.style,
+                    mood: answers.mood,
+                    instrument: answers.instrument,
+                    key: answers.key,
+                    duration: answers.duration,
+                    tempo: answers.tempo,
+                    hummingStart: answers.hummingStart,
+                    hummingMain: answers.hummingMain,
+                    hummingEnd: answers.hummingEnd,
+                    referenceVisual: answers.referenceVisual,
+                },
+                composeResponse: rawResponse,
+            });
+
+            alert("음악이 보관함에 저장되었습니다!");
+            setShowNameModal(false);
+            setMusicName("");
+            navigate("/myPage");
+        } catch (error) {
+            console.error("저장 실패:", error);
+            alert("저장 중 오류가 발생했습니다.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleNameCancel = () => {
+        setShowNameModal(false);
+        setMusicName("");
+    };
+
     return (
         <div className="relative min-h-screen w-full overflow-hidden px-4 py-16 sm:px-10">
             <div className="pointer-events-none absolute -left-24 top-20 h-64 w-64 rounded-full bg-[var(--accent-rose)]/18 blur-3xl" />
@@ -78,10 +140,18 @@ function MusicResultPage() {
                                     </span>
                                 </button>
                                 <div className="flex flex-wrap justify-center gap-3">
-                                    <Button variant="soft" className="w-50 py-5 text-m font-semibold hover:cursor-pointer">
+                                    <Button 
+                                        variant="soft" 
+                                        className="w-50 py-5 text-m font-semibold hover:cursor-pointer"
+                                        onClick={handleSaveToArchive}
+                                    >
                                         음악 이름 짓기
                                     </Button>
-                                    <Button variant="soft" className="w-50 py-5 text-m font-semibold hover:cursor-pointer">
+                                    <Button 
+                                        variant="soft" 
+                                        className="w-50 py-5 text-m font-semibold hover:cursor-pointer"
+                                        onClick={handleSaveToArchive}
+                                    >
                                         내 보관함
                                     </Button>
                                 </div>
@@ -125,6 +195,48 @@ function MusicResultPage() {
                     </Button>
                 </div>
             </div>
+
+            {/* 음악 이름 입력 모달 */}
+            {showNameModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="relative w-full max-w-md rounded-[2.5rem] border-4 border-black/10 bg-gradient-to-tr from-[#fff6da] via-white to-[#fce4ef] p-8 shadow-[0_25px_0_rgba(46,31,39,0.08)]">
+                        <h2 className="text-2xl font-semibold text-[var(--text-primary)] mb-4">음악 이름을 지어주세요</h2>
+                        <input
+                            type="text"
+                            value={musicName}
+                            onChange={(e) => setMusicName(e.target.value)}
+                            placeholder="예: 윤수현 생일 노래"
+                            className="retro-input w-full mb-6"
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    handleNameSubmit();
+                                } else if (e.key === "Escape") {
+                                    handleNameCancel();
+                                }
+                            }}
+                            autoFocus
+                        />
+                        <div className="flex gap-3 justify-end">
+                            <Button
+                                variant="outline"
+                                onClick={handleNameCancel}
+                                disabled={isSaving}
+                                className="px-6 py-3"
+                            >
+                                취소
+                            </Button>
+                            <Button
+                                variant="rainbow"
+                                onClick={handleNameSubmit}
+                                disabled={isSaving || !musicName.trim()}
+                                className="px-6 py-3"
+                            >
+                                {isSaving ? "저장 중..." : "저장하기"}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

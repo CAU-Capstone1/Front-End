@@ -15,6 +15,9 @@ const LengthPage = lazy(() => import("../pages/I_lengthPage.tsx"));
 const TempoPage = lazy(() => import("../pages/H_tempoPage.tsx"));
 const ReviewPage = lazy(() => import("../pages/J_reviewPage.tsx"));
 const MusicResult = lazy(() => import("../pages/K_musicResultPage.tsx"));
+const MyPage = lazy(() => import("../pages/L_myPage.tsx"));
+const LoginPage = lazy(() => import("../pages/M_loginPage.tsx"));
+const SignupPage = lazy(() => import("../pages/N_signupPage.tsx"));
 
 const router = createBrowserRouter([
     {
@@ -102,6 +105,30 @@ const router = createBrowserRouter([
         element: (
             <Suspense fallback={<Loading />}>
                 <MusicResult />
+            </Suspense>
+        ),
+    },
+    {
+        path: "myPage",
+        element: (
+            <Suspense fallback={<Loading />}>
+                <MyPage />
+            </Suspense>
+        ),
+    },
+    {
+        path: "login",
+        element: (
+            <Suspense fallback={<Loading />}>
+                <LoginPage />
+            </Suspense>
+        ),
+    },
+    {
+        path: "signup",
+        element: (
+            <Suspense fallback={<Loading />}>
+                <SignupPage />
             </Suspense>
         ),
     },

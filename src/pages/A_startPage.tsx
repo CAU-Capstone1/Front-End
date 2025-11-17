@@ -39,6 +39,14 @@ function StartPage() {
                     <Button toWhere="/main" variant="rainbow" className="px-16 py-5 text-lg">
                         시작하기
                     </Button>
+                    <div className="flex gap-4 mt-4">
+                        <Button toWhere="/login" variant="outline" className="px-8 py-3">
+                            로그인
+                        </Button>
+                        <Button toWhere="/signup" variant="outline" className="px-8 py-3">
+                            회원가입
+                        </Button>
+                    </div>
                 </div>
             </main>
         </div>

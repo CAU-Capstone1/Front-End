@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router";
 import Button from "../components/button";
 import { getAllAnswers, resetAnswers } from "../utils/compositionSession";
@@ -18,6 +18,12 @@ function MusicResultPage() {
     const [showNameModal, setShowNameModal] = useState(false);
     const [musicName, setMusicName] = useState("");
     const [isSaving, setIsSaving] = useState(false);
+    
+    // 음악 재생 관련 상태
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [musicUrl, setMusicUrl] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         const answers = getAllAnswers();
@@ -47,6 +53,13 @@ function MusicResultPage() {
             try {
                 const parsed = JSON.parse(rawResponse);
                 setComposeResponseJson(JSON.stringify(parsed, null, 2));
+                
+                // 음악 파일 URL 추출 (서버 응답 형식에 따라 수정 필요)
+                // 일반적인 필드명: audioUrl, musicUrl, fileUrl, url 등
+                const url = parsed.audioUrl || parsed.musicUrl || parsed.fileUrl || parsed.url || parsed.audio_url || parsed.music_url;
+                if (url) {
+                    setMusicUrl(url);
+                }
             } catch (error) {
                 console.warn("Failed to parse compose response", error);
             }
@@ -113,6 +126,70 @@ function MusicResultPage() {
         setMusicName("");
     };
 
+    // 음악 재생/일시정지 처리
+    const handlePlayPause = async () => {
+        if (!musicUrl) {
+            alert("재생할 음악이 없습니다.");
+            return;
+        }
+
+        // Audio 객체가 없으면 생성
+        if (!audioRef.current) {
+            audioRef.current = new Audio(musicUrl);
+            
+            // 재생 이벤트 리스너
+            audioRef.current.addEventListener("play", () => {
+                setIsPlaying(true);
+                setIsLoading(false);
+            });
+            
+            audioRef.current.addEventListener("pause", () => {
+                setIsPlaying(false);
+            });
+            
+            audioRef.current.addEventListener("ended", () => {
+                setIsPlaying(false);
+            });
+            
+            audioRef.current.addEventListener("error", (e) => {
+                console.error("음악 재생 오류:", e);
+                setIsPlaying(false);
+                setIsLoading(false);
+                alert("음악 재생 중 오류가 발생했습니다.");
+            });
+            
+            audioRef.current.addEventListener("loadstart", () => {
+                setIsLoading(true);
+            });
+        }
+
+        const audio = audioRef.current;
+
+        try {
+            if (isPlaying) {
+                // 일시정지
+                audio.pause();
+            } else {
+                // 재생
+                await audio.play();
+            }
+        } catch (error) {
+            console.error("재생 실패:", error);
+            setIsLoading(false);
+            alert("음악 재생에 실패했습니다.");
+        }
+    };
+
+    // 컴포넌트 언마운트 시 정리
+    useEffect(() => {
+        return () => {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current = null;
+            }
+        };
+    }, []);
+
     return (
         <div className="relative min-h-screen w-full overflow-hidden px-4 py-16 sm:px-10">
             <div className="pointer-events-none absolute -left-24 top-20 h-64 w-64 rounded-full bg-[var(--accent-rose)]/18 blur-3xl" />
@@ -132,13 +209,34 @@ function MusicResultPage() {
                 <section className="grid gap-10 lg:grid-cols-[1.2fr_1fr]">
                     <div className="rounded-[2.5rem] border-4 border-black/10 bg-gradient-to-tr from-[#fff6da] via-white to-[#fce4ef] p-10 shadow-[0_25px_0_rgba(46,31,39,0.08)]">
                         <div className="flex flex-col items-center justify-center gap-8">
-                                <button type="button" className="play-button">
+                                <button 
+                                    type="button" 
+                                    className="play-button"
+                                    onClick={handlePlayPause}
+                                    disabled={!musicUrl || isLoading}
+                                >
                                     <span className="play-button-core">
-                                        <svg viewBox="0 0 24 24" className="play-button-icon">
-                                            <path d="M8 5.5v13l10-6.5z" />
-                                        </svg>
+                                        {isLoading ? (
+                                            <svg viewBox="0 0 24 24" className="play-button-icon" style={{ animation: "spin 1s linear infinite" }}>
+                                                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.3" />
+                                                <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
+                                            </svg>
+                                        ) : isPlaying ? (
+                                            <svg viewBox="0 0 24 24" className="play-button-icon">
+                                                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                                            </svg>
+                                        ) : (
+                                            <svg viewBox="0 0 24 24" className="play-button-icon">
+                                                <path d="M8 5.5v13l10-6.5z" />
+                                            </svg>
+                                        )}
                                     </span>
                                 </button>
+                                {musicUrl && (
+                                    <p className="text-sm text-[var(--text-muted)]">
+                                        {isPlaying ? "재생 중..." : isLoading ? "로딩 중..." : "재생할 준비가 되었습니다"}
+                                    </p>
+                                )}
                                 <div className="flex flex-wrap justify-center gap-3">
                                     <Button 
                                         variant="soft" 

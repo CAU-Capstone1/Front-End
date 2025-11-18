@@ -14,8 +14,9 @@ import { signUpApi, loginApi, getCurrentUserApi, logoutApi, type User, type Auth
 
 const STORAGE_KEY_USER = "auth:currentUser";
 const STORAGE_KEY_TOKEN = "auth:token";
-const STORAGE_KEY_REFRESH_TOKEN = "auth:refreshToken"; // 리프레시 토큰 (선택사항)
+const STORAGE_KEY_REFRESH_TOKEN = "auth:refreshToken"; 
 
+// localStorage 사용 가능 여부 확인 (브라우저 환경 체크)
 const storage = typeof window !== "undefined" ? window.localStorage : undefined;
 
 // 토큰 가져오기
@@ -32,8 +33,15 @@ export function getRefreshToken(): string | null {
 
 // 토큰 저장
 function setToken(token: string, refreshToken?: string): void {
-    if (!storage) return;
-    storage.setItem(STORAGE_KEY_TOKEN, token);
+    if (!storage) {
+        console.error("Error: localStorage is not available for token storage.");
+        return;
+    }
+    
+    // 토큰이 실제로 존재하는지 확인 후 저장
+    if (token) {
+        storage.setItem(STORAGE_KEY_TOKEN, token);
+    }
     if (refreshToken) {
         storage.setItem(STORAGE_KEY_REFRESH_TOKEN, refreshToken);
     }
@@ -57,11 +65,23 @@ export async function signUp(email: string, password: string, name: string): Pro
             email: email.trim(),
             password: password,
             name: name.trim(),
+            username: email.trim(), // email을 username 필드로 사용
         });
+        
+        // 🚨 수정: accessToken만 사용하도록 명확히 함.
+        const tokenToSave = response.accessToken; 
 
+        // 런타임 검사 추가
+        if (!tokenToSave) {
+            throw new Error("회원가입 성공 후 토큰을 받지 못했습니다.");
+        }
+        
         // 토큰과 사용자 정보 저장
-        setToken(response.token, response.refreshToken);
-        storage.setItem(STORAGE_KEY_USER, JSON.stringify(response.user));
+        setToken(tokenToSave, response.refreshToken);
+        if (storage) {
+            // response.user는 이제 User 타입이며, null이 아님 (백엔드 수정 완료)
+            storage.setItem(STORAGE_KEY_USER, JSON.stringify(response.user));
+        }
 
         return response.user;
     } catch (error) {
@@ -72,7 +92,7 @@ export async function signUp(email: string, password: string, name: string): Pro
 }
 
 // 로그인
-export async function login(email: string, password: string): Promise<User> {
+export async function login(email: string, password: string): Promise<AuthResponse> { 
     if (!storage) {
         throw new Error("localStorage is not available");
     }
@@ -83,11 +103,23 @@ export async function login(email: string, password: string): Promise<User> {
             password: password,
         });
 
-        // 토큰과 사용자 정보 저장
-        setToken(response.token, response.refreshToken);
-        storage.setItem(STORAGE_KEY_USER, JSON.stringify(response.user));
+        // 🚨 수정: accessToken만 사용하도록 명확히 함.
+        const tokenToSave = response.accessToken;
+        
+        // 런타임 검사 추가
+        if (!tokenToSave) {
+            throw new Error("로그인 성공 후 토큰을 받지 못했습니다.");
+        }
+        
+        // 핵심: 토큰과 사용자 정보 저장
+        setToken(tokenToSave, response.refreshToken);
+        
+        if (storage) {
+             // response.user는 이제 User 타입이며, null이 아님 (백엔드 수정 완료)
+             storage.setItem(STORAGE_KEY_USER, JSON.stringify(response.user));
+        }
 
-        return response.user;
+        return response; 
     } catch (error) {
         // 에러 메시지 추출
         const errorMessage = error instanceof Error ? error.message : "로그인에 실패했습니다.";
@@ -170,4 +202,3 @@ export function getAuthHeaders(): Record<string, string> {
         Authorization: `Bearer ${token}`,
     };
 }
-

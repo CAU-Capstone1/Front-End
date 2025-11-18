@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router";
 import Button from "../components/button";
-import { login } from "../utils/auth";
+import { login } from "../utils/auth"; // login 함수는 AuthResponse 객체를 반환해야 함
 
 function LoginPage() {
     const navigate = useNavigate();
@@ -21,7 +21,14 @@ function LoginPage() {
 
         setLoading(true);
         try {
-            await login(email, password);
+            const response = await login(email, password); 
+            
+            // 🚨 핵심 수정: JWT 토큰을 localStorage에 저장 🚨
+            // 백엔드가 반환한 토큰을 클라이언트가 저장하여 세션 유지에 사용합니다.
+            if (response && response.token) {
+                localStorage.setItem("accessToken", response.token);
+            }
+            
             alert("로그인 성공!");
             navigate("/myPage");
         } catch (err) {
@@ -122,4 +129,3 @@ function LoginPage() {
 }
 
 export default LoginPage;
-

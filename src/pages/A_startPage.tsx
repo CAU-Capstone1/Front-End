@@ -35,7 +35,7 @@ function StartPage() {
                     </h1> */}
                 </header>
 
-                <div className="flex flex-col items-center gap-6">
+                <div className="flex flex-col items-center mt-6">
                     <Button toWhere="/main" variant="rainbow" className="px-16 py-5 text-lg">
                         시작하기
                     </Button>

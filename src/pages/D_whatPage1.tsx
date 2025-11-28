@@ -6,7 +6,7 @@ import { getAnswer, removeAnswer, setAnswer } from "../utils/compositionSession"
 
 const GENRE_OPTIONS = [
     {
-        label: "오케스트라",
+        label: "클래식",
         value: "orchestra",
         imageUrl: "https://www.knso.or.kr/resources/images/sub/img_intro3.jpg",
     },
@@ -16,12 +16,12 @@ const GENRE_OPTIONS = [
         imageUrl: "https://i.namu.wiki/i/Jz224Csh4AhvZ53rujh-eqK_GKO_x7jxsNbsBV5FyoM2aEF36Y0ScvTUKunhDR1-fKej9wXzVyASyCdtGY8H6w.webp",
     },
     {
-        label: "lofi",
+        label: "재즈",
         value: "lofi",
         imageUrl: "https://img1.daumcdn.net/thumb/R1280x0.fwebp/?fname=http://t1.daumcdn.net/brunch/service/user/3XvV/image/Vp2Idqu3LI8_4_fC2To-0o5ovHU.JPG",
     },
     {
-        label: "사극풍",
+        label: "록",
         value: "sageuk",
         imageUrl: "https://img.segye.com/content/image/2023/04/25/20230425518948.jpg",
     },

@@ -11,6 +11,7 @@
 */
 
 import { signUpApi, loginApi, getCurrentUserApi, logoutApi, type User, type AuthResponse } from "../api/authApi";
+import { resetAnswers } from "./compositionSession";
 
 const STORAGE_KEY_USER = "auth:currentUser";
 const STORAGE_KEY_TOKEN = "auth:token";
@@ -146,6 +147,9 @@ export async function logout(): Promise<void> {
     // 로컬 스토리지에서 토큰과 사용자 정보 삭제
     removeToken();
     storage.removeItem(STORAGE_KEY_USER);
+
+    // 세션 스토리지에서 작곡 관련 데이터 삭제 (오디오 파일 정보 포함)
+    resetAnswers();
 }
 
 // 현재 로그인된 사용자 가져오기

@@ -137,10 +137,10 @@ function MyPage() {
 
                 {savedMusicList.length === 0 ? (
                     <div className="rounded-2xl border-4 border-black/10 bg-white/85 p-12 text-center shadow-[0_22px_0_rgba(46,31,39,0.08)]">
-                        <p className="text-lg text-[var(--text-muted)] mb-6">아직 저장된 음악이 없습니다.</p>
-                        <Button toWhere="/main" variant="rainbow" className="px-8 py-4">
+                        <p className="text-lg text-[var(--text-muted)] m-6">아직 저장된 음악이 없습니다.</p>
+                        {/* <Button toWhere="/main" variant="rainbow" className="px-8 py-4">
                             음악 만들기
-                        </Button>
+                        </Button> */}
                     </div>
                 ) : (
                     <div className="space-y-4">
@@ -232,12 +232,12 @@ function MyPage() {
                 )}
 
                 <div className="flex justify-center gap-4">
-                    <Button toWhere="/" variant="outline" className="px-8 py-5 flex items-center gap-2">
+                    {/* <Button toWhere="/" variant="outline" className="px-8 py-5 flex items-center gap-2">
                         <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
                             <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
                         </svg>
                         홈으로
-                    </Button>
+                    </Button> */}
                     <Button toWhere="/main" variant="rainbow" className="px-12 py-5">
                         새 음악 만들기
                     </Button>

@@ -14,6 +14,7 @@ export type SignupRequest = {
     email: string;
     password: string;
     name: string;
+     username: string; // 백엔드 RegisterRequest DTO와 일치
 };
 
 export type LoginRequest = {
@@ -22,9 +23,10 @@ export type LoginRequest = {
 };
 
 export type AuthResponse = {
-    user: User;
-    token: string; // JWT 토큰 또는 액세스 토큰
+    user: User; // 백엔드 LoginResponse의 user 필드와 일치
+    accessToken: string; // 백엔드 LoginResponse의 accessToken 필드와 일치
     refreshToken?: string; // 리프레시 토큰 (선택사항)
+    token?: string;
 };
 
 export type ApiError = {
@@ -62,7 +64,8 @@ async function handleResponse<T>(response: Response): Promise<T> {
 
 // 회원가입 API
 export async function signUpApi(data: SignupRequest): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+    // [수정 완료]: 백엔드 AuthController의 @PostMapping("/register")와 일치시킵니다.
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -130,4 +133,3 @@ export async function refreshTokenApi(refreshToken: string): Promise<AuthRespons
 
     return handleResponse<AuthResponse>(response);
 }
-

@@ -1,4 +1,5 @@
-import type { CompositionAnswers } from "../utils/compositionSession";
+import { getAuthHeaders } from "../utils/auth"; // 인증 헤더를 가져오기 위한 import
+import type { CompositionAnswers } from "../utils/compositionSession"; // 로컬 유틸리티 타입 import
 
 export type CompositionRequestBody = {
     style?: string | null;
@@ -14,9 +15,17 @@ export type CompositionRequestBody = {
 };
 
 export async function createComposition(body: CompositionRequestBody) {
+    
+    // Authorization 헤더를 추가합니다.
+    const headers = { 
+        "Content-Type": "application/json",
+        // 로그인 성공 후 저장된 토큰을 읽어와 "Authorization: Bearer <token>" 형태로 추가
+        ...getAuthHeaders(), 
+    };
+
     const response = await fetch("/api/compose", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: headers, // 수정된 headers를 사용
         body: JSON.stringify(body),
     });
 
@@ -42,4 +51,3 @@ export function buildCompositionBody(answers: CompositionAnswers): CompositionRe
         referenceVisual: answers.referenceVisual ?? null,
     };
 }
-

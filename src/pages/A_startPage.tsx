@@ -1,8 +1,22 @@
+import { useState } from "react";
 import Button from "../components/button";
+import { isLoggedIn, logout } from "../utils/auth";
 
 const SPARKLES = Array.from({ length: 30 }).map((_, idx) => idx);
 
 function StartPage() {
+    const [loggedIn, setLoggedIn] = useState(isLoggedIn());
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            setLoggedIn(false);
+            window.location.reload(); // 상태 업데이트를 위해 페이지 새로고침
+        } catch (error) {
+            console.error("로그아웃 실패:", error);
+        }
+    };
+    
     return (
         <div className="start-gradient-bg relative flex min-h-screen w-full items-center justify-center overflow-hidden px-4 py-20 sm:px-10">
             <div className="pointer-events-none absolute -left-24 top-24 h-64 w-64 animate-[floatUp_9s_ease-in-out_infinite] rounded-full bg-[var(--accent-rose)]/30 blur-3xl" />
@@ -23,6 +37,13 @@ function StartPage() {
                 />
             ))}
 
+            {/* 임시: 로그인 상태 표시 (최종 사이트에서는 제거 예정) */}
+            {!loggedIn && (
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-black/50 text-white text-sm font-semibold">
+                    로그인 안됨
+                </div>
+            )}
+
             <main className="relative mx-auto flex w-full max-w-5xl flex-col items-center gap-14 text-center">
                 <header className="flex flex-col items-center gap-6">
                     <img
@@ -40,12 +61,24 @@ function StartPage() {
                         시작하기
                     </Button>
                     <div className="flex gap-4 mt-4">
-                        <Button toWhere="/login" variant="outline" className="px-8 py-3">
-                            로그인
-                        </Button>
-                        <Button toWhere="/signup" variant="outline" className="px-8 py-3">
-                            회원가입
-                        </Button>
+                        {loggedIn ? (
+                            <Button
+                                onClick={handleLogout}
+                                variant="outline"
+                                className="px-8 py-3"
+                            >
+                                로그아웃하기
+                            </Button>
+                        ) : (
+                            <>
+                                <Button toWhere="/login" variant="outline" className="px-8 py-3">
+                                    로그인
+                                </Button>
+                                <Button toWhere="/signup" variant="outline" className="px-8 py-3">
+                                    회원가입
+                                </Button>
+                            </>
+                        )}
                     </div>
                 </div>
             </main>

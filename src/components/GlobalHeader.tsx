@@ -51,16 +51,21 @@ export default function GlobalHeader() {
 
     return (
         <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4">
+            {/* 왼쪽: 홈 버튼 */}
+            <Button toWhere="/" variant="ghost" className="px-4 py-2 text-sm">
+                홈
+            </Button>
+
             {showLoginButtons ? (
-                // 시작 페이지에서 로그인하지 않은 경우: 양쪽 끝에 로그인/회원가입 버튼
-                <>
+                // 시작 페이지에서 로그인하지 않은 경우: 오른쪽에 로그인/회원가입 버튼
+                <div className="flex items-center gap-4 ml-auto">
                     <Button toWhere="/login" variant="outline" className="px-6 py-2 text-sm">
                         로그인
                     </Button>
                     <Button toWhere="/signup" variant="outline" className="px-6 py-2 text-sm">
                         회원가입
                     </Button>
-                </>
+                </div>
             ) : (
                 // 로그인된 경우 또는 다른 페이지: 오른쪽에 사용자 이름 (조건부로 로그아웃 버튼)
                 <div className="flex items-center gap-4 ml-auto">

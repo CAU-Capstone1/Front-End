@@ -158,6 +158,12 @@ export default function AudioFileUploader() {
             };
         });
         removeAnswer(SEGMENT_KEY_MAP[segmentId]);
+        
+        // input 요소의 value를 리셋하여 같은 파일을 다시 선택할 수 있도록 함
+        const inputRef = segmentInputRefs[segmentId].current;
+        if (inputRef) {
+            inputRef.value = "";
+        }
     };
 
     return (

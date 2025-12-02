@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router";
 import Button from "../components/button";
 import { getAllSavedMusic, deleteSavedMusic, updateMusicName, type SavedMusic } from "../utils/musicStorage";
 import { isLoggedIn, getCurrentUser, logout } from "../utils/auth";
+import { getS3AudioUrl } from "../utils/s3Utils";
 
 function MyPage() {
     const navigate = useNavigate();
@@ -75,17 +76,135 @@ function MyPage() {
         }
     };
 
-    const handlePlay = (music: SavedMusic) => {
-        // TODO: 실제 오디오 재생 기능 구현
-        console.log("재생:", music);
-        alert("재생 기능은 추후 구현 예정입니다.");
+    // 오디오 재생 관련 상태
+    const [playingMusicId, setPlayingMusicId] = useState<string | null>(null);
+    const [playingAudioUrl, setPlayingAudioUrl] = useState<string | null>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    // 최종 음악 파일 URL 추출 (composeResponse에서)
+    const getFinalMusicUrl = (music: SavedMusic): string | null => {
+        if (!music.composeResponse) return null;
+        
+        try {
+            const parsed = JSON.parse(music.composeResponse);
+            // 다양한 필드명 시도
+            const url = parsed.audioUrl || parsed.musicUrl || parsed.fileUrl || parsed.url || 
+                       parsed.audio_url || parsed.music_url || parsed.resultUrl || parsed.result_url;
+            return url || null;
+        } catch {
+            return null;
+        }
     };
 
-    const handleDownload = (music: SavedMusic) => {
-        // TODO: 실제 다운로드 기능 구현
-        console.log("다운로드:", music);
-        alert("다운로드 기능은 추후 구현 예정입니다.");
+    // 허밍 오디오 URL 추출 (우선순위: main > start > end)
+    const getHummingAudioUrl = (music: SavedMusic): string | null => {
+        const mainUrl = getS3AudioUrl(music.compositionData.hummingMain);
+        if (mainUrl) return mainUrl;
+        
+        const startUrl = getS3AudioUrl(music.compositionData.hummingStart);
+        if (startUrl) return startUrl;
+        
+        return getS3AudioUrl(music.compositionData.hummingEnd);
     };
+
+    const handlePlay = (music: SavedMusic) => {
+        // 최종 음악 파일이 있으면 우선 재생, 없으면 허밍 오디오 재생
+        const finalUrl = getFinalMusicUrl(music);
+        const hummingUrl = getHummingAudioUrl(music);
+        const audioUrl = finalUrl || hummingUrl;
+
+        if (!audioUrl) {
+            alert("재생할 오디오가 없습니다.");
+            return;
+        }
+
+        // 이미 재생 중인 음악이면 일시정지
+        if (playingMusicId === music.id && audioRef.current) {
+            audioRef.current.pause();
+            setPlayingMusicId(null);
+            setPlayingAudioUrl(null);
+            return;
+        }
+
+        // 새로운 음악 재생
+        if (audioRef.current) {
+            audioRef.current.pause();
+        }
+
+        const audio = new Audio(audioUrl);
+        audioRef.current = audio;
+        setPlayingMusicId(music.id);
+        setPlayingAudioUrl(audioUrl);
+
+        audio.addEventListener("ended", () => {
+            setPlayingMusicId(null);
+            setPlayingAudioUrl(null);
+        });
+
+        audio.addEventListener("error", () => {
+            alert("오디오 재생 중 오류가 발생했습니다.");
+            setPlayingMusicId(null);
+            setPlayingAudioUrl(null);
+        });
+
+        audio.play().catch((error) => {
+            console.error("재생 실패:", error);
+            alert("오디오 재생에 실패했습니다.");
+            setPlayingMusicId(null);
+            setPlayingAudioUrl(null);
+        });
+    };
+
+    const handleDownload = async (music: SavedMusic) => {
+        // 최종 음악 파일이 있으면 우선 다운로드, 없으면 허밍 오디오 다운로드
+        const finalUrl = getFinalMusicUrl(music);
+        const hummingUrl = getHummingAudioUrl(music);
+        const audioUrl = finalUrl || hummingUrl;
+
+        if (!audioUrl) {
+            alert("다운로드할 오디오가 없습니다.");
+            return;
+        }
+
+        try {
+            const response = await fetch(audioUrl);
+            if (!response.ok) {
+                throw new Error("다운로드 실패");
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            
+            // 파일명 생성
+            const extension = audioUrl.includes(".mp3") ? "mp3" : 
+                            audioUrl.includes(".wav") ? "wav" : 
+                            audioUrl.includes(".webm") ? "webm" : "mp3";
+            const fileName = `${music.name}.${extension}`;
+            a.download = fileName;
+            
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            alert("다운로드가 완료되었습니다!");
+        } catch (error) {
+            console.error("다운로드 실패:", error);
+            alert("다운로드 중 오류가 발생했습니다.");
+        }
+    };
+
+    // 컴포넌트 언마운트 시 오디오 정리
+    useEffect(() => {
+        return () => {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current = null;
+            }
+        };
+    }, []);
 
     return (
         <div className="relative min-h-screen w-full overflow-hidden px-4 py-16 sm:px-10">
@@ -199,12 +318,22 @@ function MyPage() {
                                     <div className="flex items-center gap-3">
                                         <button
                                             onClick={() => handlePlay(music)}
-                                            className="w-12 h-12 rounded-full bg-[var(--accent-amber)] text-[var(--text-primary)] flex items-center justify-center hover:bg-[var(--accent-amber)]/80 transition shadow-[0_6px_0_rgba(46,31,39,0.15)] hover:translate-y-[2px] hover:shadow-[0_4px_0_rgba(46,31,39,0.12)]"
-                                            title="재생"
+                                            className={`w-12 h-12 rounded-full flex items-center justify-center transition shadow-[0_6px_0_rgba(46,31,39,0.15)] hover:translate-y-[2px] hover:shadow-[0_4px_0_rgba(46,31,39,0.12)] ${
+                                                playingMusicId === music.id
+                                                    ? "bg-[var(--accent-rose)] text-white hover:bg-[var(--accent-rose)]/80"
+                                                    : "bg-[var(--accent-amber)] text-[var(--text-primary)] hover:bg-[var(--accent-amber)]/80"
+                                            }`}
+                                            title={playingMusicId === music.id ? "일시정지" : "재생"}
                                         >
-                                            <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current ml-0.5">
-                                                <path d="M8 5.5v13l10-6.5z" />
-                                            </svg>
+                                            {playingMusicId === music.id ? (
+                                                <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
+                                                    <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                                                </svg>
+                                            ) : (
+                                                <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current ml-0.5">
+                                                    <path d="M8 5.5v13l10-6.5z" />
+                                                </svg>
+                                            )}
                                         </button>
                                         <button
                                             onClick={() => handleDownload(music)}

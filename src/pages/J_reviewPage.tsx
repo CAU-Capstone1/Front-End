@@ -5,6 +5,7 @@ import { buildCompositionBody, createComposition } from "../api/createCompositio
 import { getAllAnswers } from "../utils/compositionSession";
 import { formatAnswerValue } from "../utils/valueLabels";
 import type { CompositionAnswerKey } from "../utils/compositionSession";
+import MusicGeneratingLoader from "../components/MusicGeneratingLoader";
 
 type ReviewItem = {
     key: CompositionAnswerKey;
@@ -71,17 +72,29 @@ function ReviewPage() {
         setIsSubmitting(true);
         setError(null);
         const answers = getAllAnswers();
+        const requestBody = buildCompositionBody(answers);
+
+        console.log("🎵 음악 생성 요청 시작");
+        console.log("📋 저장된 답변들:", answers);
+        console.log("📦 요청 본문:", requestBody);
 
         try {
-            const result = await createComposition(buildCompositionBody(answers));
+            const result = await createComposition(requestBody);
+            console.log("✅ 음악 생성 성공:", result);
             sessionStorage.setItem("compose:lastResponse", JSON.stringify(result));
             navigate("/musicResult");
         } catch (err) {
+            console.error("❌ 음악 생성 실패:", err);
             const message = err instanceof Error ? err.message : String(err);
             setError(message);
             setIsSubmitting(false);
         }
     };
+
+    // 로딩 화면 표시
+    if (isSubmitting) {
+        return <MusicGeneratingLoader />;
+    }
 
     return (
         <div className="relative min-h-screen w-full overflow-hidden px-4 py-16 sm:px-10">

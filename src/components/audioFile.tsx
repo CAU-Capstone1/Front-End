@@ -3,7 +3,6 @@ import Button from "./button";
 import { uploadAudio } from "../api/uploadAudio";
 import { getAnswer, removeAnswer, setAnswer } from "../utils/compositionSession";
 import type { CompositionAnswerKey } from "../utils/compositionSession";
-import { getS3AudioUrl } from "../utils/s3Utils";
 
 const MAX_AUDIO_SIZE_MB = 50;
 
@@ -118,37 +117,50 @@ export default function AudioFileUploader() {
             },
         }));
 
-       try {
-        // 1. 서버 응답을 받아옴
-        const uploadResponse = await uploadAudio(current.file, `${segmentId}-${current.file.name}`);
+        try {
+            // 1. 서버 응답을 받아옴
+            const uploadResponse = await uploadAudio(current.file, `${segmentId}-${current.file.name}`);
 
-        // 2. 서버 응답에서 filePath 추출 (백엔드 UploadResponse 형식: { filePath: string })
-        const filePath = (uploadResponse.data as { filePath?: string })?.filePath;
+            // 2. 서버 응답에서 S3 고유 키를 추출 (여러 가능한 필드명 확인)
+            const responseData = uploadResponse.data as Record<string, unknown>;
+            
+            // 가능한 필드명들을 순서대로 확인
+            const s3Key = 
+                (responseData?.s3Key as string) ||
+                (responseData?.key as string) ||
+                (responseData?.filePath as string) ||
+                (responseData?.fileName as string) ||
+                (responseData?.url as string);
 
-        if (!filePath) {
-            throw new Error("서버로부터 파일 경로를 받지 못했습니다.");
-        }
+            console.log("📤 업로드 응답:", uploadResponse);
+            console.log("🔑 추출된 키:", s3Key);
 
-        // 3. 추출한 S3 키(filePath)를 CompositionAnswers에 저장
-        setAnswer(SEGMENT_KEY_MAP[segmentId], filePath);
+            if (!s3Key) {
+                console.error("서버 응답 데이터:", responseData);
+                throw new Error(`서버로부터 파일 키를 받지 못했습니다. 응답: ${JSON.stringify(responseData)}`);
+            }
 
-        setSegmentState((prev) => ({
-            ...prev,
-            [segmentId]: {
-                ...prev[segmentId],
-                isUploading: false,
-                status: "업로드 완료 ✅",
-                storedName: filePath, 
-            },
-        }));
-    }catch (error) {
-            console.error(error);
+            // 3. 추출한 S3 고유 키를 CompositionAnswers에 저장
+            setAnswer(SEGMENT_KEY_MAP[segmentId], s3Key);
+
             setSegmentState((prev) => ({
                 ...prev,
                 [segmentId]: {
                     ...prev[segmentId],
                     isUploading: false,
-                    status: "업로드 실패 ❌ 다시 시도해주세요.",
+                    status: "업로드 완료 ✅",
+                    storedName: s3Key,
+                },
+            }));
+        } catch (error) {
+            console.error("❌ 업로드 오류:", error);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            setSegmentState((prev) => ({
+                ...prev,
+                [segmentId]: {
+                    ...prev[segmentId],
+                    isUploading: false,
+                    status: `업로드 실패 ❌ ${errorMessage.length > 50 ? errorMessage.substring(0, 50) + "..." : errorMessage}`,
                 },
             }));
         }
@@ -222,11 +234,9 @@ export default function AudioFileUploader() {
                                         <p className="font-semibold text-[var(--text-primary)]">
                                             {(state.file && state.file.name) || state.storedName}
                                         </p>
-                                        {state.file && state.previewURL ? (
+                                        {state.file && state.previewURL && (
                                             <audio src={state.previewURL} controls className="mx-auto w-full" />
-                                        ) : state.storedName ? (
-                                            <audio src={getS3AudioUrl(state.storedName) || undefined} controls className="mx-auto w-full" />
-                                        ) : null}
+                                        )}
                                     </div>
                                 )}
 

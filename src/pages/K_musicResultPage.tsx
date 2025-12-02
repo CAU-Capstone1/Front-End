@@ -5,6 +5,7 @@ import { getAllAnswers, resetAnswers } from "../utils/compositionSession";
 import { formatAnswerValue } from "../utils/valueLabels";
 import { saveMusic } from "../utils/musicStorage";
 import { isLoggedIn } from "../utils/auth";
+import { checkJobStatus, type JobStatusResponse } from "../api/checkJobStatus";
 
 type SummaryItem = {
     label: string;
@@ -24,6 +25,11 @@ function MusicResultPage() {
     const [isPlaying, setIsPlaying] = useState(false);
     const [musicUrl, setMusicUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    
+    // Job 상태 확인 관련
+    const [jobId, setJobId] = useState<string | null>(null);
+    const [isCheckingJob, setIsCheckingJob] = useState(false);
+    const [jobStatus, setJobStatus] = useState<string | null>(null);
 
     useEffect(() => {
         const answers = getAllAnswers();
@@ -49,16 +55,32 @@ function MusicResultPage() {
         setSummary(items);
 
         const rawResponse = sessionStorage.getItem("compose:lastResponse");
+        const storedJobId = sessionStorage.getItem("compose:jobId");
+        
+        if (storedJobId) {
+            setJobId(storedJobId);
+        }
+        
         if (rawResponse) {
             try {
                 const parsed = JSON.parse(rawResponse);
                 setComposeResponseJson(JSON.stringify(parsed, null, 2));
+                
+                // Job ID 추출
+                const parsedJobId = parsed.PublicJobId || parsed.jobId || parsed.id;
+                if (parsedJobId && !storedJobId) {
+                    setJobId(parsedJobId);
+                    sessionStorage.setItem("compose:jobId", parsedJobId);
+                }
                 
                 // 음악 파일 URL 추출 (서버 응답 형식에 따라 수정 필요)
                 // 일반적인 필드명: audioUrl, musicUrl, fileUrl, url 등
                 const url = parsed.audioUrl || parsed.musicUrl || parsed.fileUrl || parsed.url || parsed.audio_url || parsed.music_url;
                 if (url) {
                     setMusicUrl(url);
+                } else if (parsed.status === "QUEUED" || parsed.status === "PROCESSING") {
+                    // 아직 생성 중인 경우
+                    setJobStatus(parsed.status);
                 }
             } catch (error) {
                 console.warn("Failed to parse compose response", error);
@@ -217,6 +239,37 @@ function MusicResultPage() {
         }
     };
 
+    // Job 상태 수동 확인
+    const handleCheckJobStatus = async () => {
+        if (!jobId) return;
+        
+        setIsCheckingJob(true);
+        setJobStatus(null);
+        
+        try {
+            const status = await checkJobStatus(jobId);
+            console.log("📊 Job 상태 확인 결과:", status);
+            
+            setJobStatus(status.status || "알 수 없음");
+            
+            // 완료되었고 음악 URL이 있으면 업데이트
+            const url = status.audioUrl || status.musicUrl || status.fileUrl || status.url || status.audio_url || status.music_url;
+            if (url) {
+                setMusicUrl(url);
+                // 응답 업데이트
+                const updatedResponse = { ...JSON.parse(composeResponseJson || "{}"), ...status };
+                setComposeResponseJson(JSON.stringify(updatedResponse, null, 2));
+                sessionStorage.setItem("compose:lastResponse", JSON.stringify(updatedResponse));
+            }
+        } catch (error) {
+            console.error("❌ Job 상태 확인 실패:", error);
+            setJobStatus("확인 실패");
+            alert(`Job 상태 확인 실패: ${error instanceof Error ? error.message : String(error)}\n\n서버에 Job 상태 확인 API가 없거나 다른 경로를 사용하는 것 같습니다.`);
+        } finally {
+            setIsCheckingJob(false);
+        }
+    };
+
     // 컴포넌트 언마운트 시 정리
     useEffect(() => {
         return () => {
@@ -320,6 +373,31 @@ function MusicResultPage() {
                 {!hasData && (
                     <div className="rounded-2xl border border-dashed border-[var(--accent-rose)] bg-[var(--accent-rose)]/10 px-6 py-4 text-center text-sm font-semibold text-[var(--accent-rose)]">
                         아직 입력된 정보가 없어요. 처음으로 돌아가서 허밍을 업로드하거나 질문에 답해보세요.
+                    </div>
+                )}
+
+                {jobId && !musicUrl && (
+                    <div className="rounded-[2.5rem] border-4 border-black/10 bg-yellow-50/90 p-8 shadow-[0_22px_0_rgba(46,31,39,0.08)]">
+                        <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">음악 생성 중</h2>
+                        <p className="text-sm text-[var(--text-muted)] mb-4">
+                            Job ID: <code className="bg-white/50 px-2 py-1 rounded">{jobId}</code>
+                        </p>
+                        {jobStatus && (
+                            <p className="text-sm text-[var(--text-muted)] mb-4">
+                                현재 상태: <strong>{jobStatus}</strong>
+                            </p>
+                        )}
+                        <Button
+                            onClick={handleCheckJobStatus}
+                            disabled={isCheckingJob}
+                            variant="rainbow"
+                            className="px-6 py-3"
+                        >
+                            {isCheckingJob ? "확인 중..." : "결과 확인하기"}
+                        </Button>
+                        <p className="text-xs text-[var(--text-muted)] mt-4">
+                            💡 서버가 Job 상태 확인 API를 제공하지 않는 경우, 잠시 후 페이지를 새로고침하거나 서버 관리자에게 문의하세요.
+                        </p>
                     </div>
                 )}
 

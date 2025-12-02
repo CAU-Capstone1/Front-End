@@ -6,6 +6,7 @@ import { getAllAnswers } from "../utils/compositionSession";
 import { formatAnswerValue } from "../utils/valueLabels";
 import type { CompositionAnswerKey } from "../utils/compositionSession";
 import MusicGeneratingLoader from "../components/MusicGeneratingLoader";
+import { pollJobUntilComplete, type JobStatusResponse } from "../api/checkJobStatus";
 
 type ReviewItem = {
     key: CompositionAnswerKey;
@@ -80,9 +81,42 @@ function ReviewPage() {
 
         try {
             const result = await createComposition(requestBody);
-            console.log("✅ 음악 생성 성공:", result);
-            sessionStorage.setItem("compose:lastResponse", JSON.stringify(result));
-            navigate("/musicResult");
+            console.log("✅ 작곡 요청 응답:", result);
+
+            // Job ID가 있는지 확인 (비동기 작업)
+            const jobId = result.PublicJobId || result.jobId || result.id;
+            
+            if (jobId) {
+                console.log("🔄 Job ID 발견, 상태 확인 시작:", jobId);
+                
+                try {
+                    // Job 완료까지 폴링
+                    const finalResult = await pollJobUntilComplete(jobId, {
+                        intervalMs: 3000, // 3초마다 확인
+                        maxAttempts: 100, // 최대 5분
+                        onStatusUpdate: (status: JobStatusResponse) => {
+                            console.log("📊 Job 상태 업데이트:", status);
+                        },
+                    });
+
+                    console.log("✅ 음악 생성 완료:", finalResult);
+                    sessionStorage.setItem("compose:lastResponse", JSON.stringify(finalResult));
+                    navigate("/musicResult");
+                } catch (pollError) {
+                    // 폴링 실패 시, 초기 응답을 저장하고 결과 페이지로 이동
+                    console.warn("⚠️ Job 상태 확인 실패, 초기 응답 사용:", pollError);
+                    console.log("📝 초기 응답 저장:", result);
+                    sessionStorage.setItem("compose:lastResponse", JSON.stringify(result));
+                    sessionStorage.setItem("compose:jobId", jobId);
+                    // 결과 페이지로 이동 (결과 페이지에서 수동으로 확인할 수 있도록)
+                    navigate("/musicResult");
+                }
+            } else {
+                // 즉시 완료된 경우
+                console.log("✅ 음악 생성 즉시 완료:", result);
+                sessionStorage.setItem("compose:lastResponse", JSON.stringify(result));
+                navigate("/musicResult");
+            }
         } catch (err) {
             console.error("❌ 음악 생성 실패:", err);
             const message = err instanceof Error ? err.message : String(err);
@@ -149,9 +183,15 @@ function ReviewPage() {
                 )}
 
                 {error && (
-                    <p className="rounded-2xl border border-red-200 bg-red-50 px-6 py-4 text-center text-sm text-red-600">
-                        {error}
-                    </p>
+                    <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-4 text-sm text-red-600">
+                        <p className="font-semibold mb-2">❌ 오류가 발생했습니다</p>
+                        <pre className="whitespace-pre-wrap text-left text-xs bg-white/50 p-3 rounded-lg overflow-auto max-h-60">
+                            {error}
+                        </pre>
+                        <p className="mt-3 text-center text-xs text-red-500">
+                            문제가 계속되면 서버 관리자에게 문의하거나 잠시 후 다시 시도해주세요.
+                        </p>
+                    </div>
                 )}
 
                 <div className="flex flex-wrap justify-center gap-4">

@@ -27,10 +27,12 @@ export async function checkJobStatus(jobId: string): Promise<JobStatusResponse> 
     };
 
     console.log("🔍 Job 상태 확인:", jobId);
+코코    console.log("🔍 Job ID 타입:", typeof jobId, "길이:", jobId?.length);
 
     try {
         // Job ID 인코딩 (URL 안전하게 처리)
         const encodedJobId = encodeURIComponent(jobId);
+        console.log("🔍 인코딩된 Job ID:", encodedJobId);
         
         // 백엔드에서 제공하는 실제 API 경로를 우선 시도
         const possiblePaths = [
@@ -38,40 +40,60 @@ export async function checkJobStatus(jobId: string): Promise<JobStatusResponse> 
             `/api/compose/status/${encodedJobId}`, // ProcessController - 두 번째 시도
             `/api/jobs/${jobId}`,               // 인코딩 안 한 버전 (fallback)
             `/api/compose/status/${jobId}`,     // 인코딩 안 한 버전 (fallback)
-            `/api/compose/job/${encodedJobId}`, // 기타 가능한 경로
-            `/api/job/${encodedJobId}/status`, // 기타 가능한 경로
         ];
+        
+        console.log("🔍 시도할 경로 목록:", possiblePaths);
 
         let lastError: Error | null = null;
 
         for (const path of possiblePaths) {
             try {
+                const fullUrl = `${window.location.origin}${path}`;
                 console.log(`🔍 Job 상태 확인 시도: ${path}`);
+                console.log(`🔍 전체 URL: ${fullUrl}`);
+                console.log(`🔍 요청 헤더:`, headers);
+                
                 const response = await fetch(path, {
                     method: "GET",
                     headers: headers,
                 });
 
                 console.log(`📥 응답 상태: ${response.status} ${response.statusText} (${path})`);
+                console.log(`📥 응답 URL: ${response.url}`);
+                console.log(`📥 응답 헤더:`, Object.fromEntries(response.headers.entries()));
 
                 if (response.ok) {
                     const data = await response.json();
                     console.log(`✅ Job 상태 확인 성공 (${path}):`, data);
                     return data;
                 } else {
+                    // 응답 본문 확인
+                    let errorBody = "";
+                    try {
+                        errorBody = await response.text();
+                        console.log(`📥 오류 응답 본문 (${path}):`, errorBody);
+                    } catch (e) {
+                        console.log(`📥 응답 본문 읽기 실패:`, e);
+                    }
+                    
                     // 404나 405는 예상 가능한 오류 (해당 경로가 없을 수 있음)
                     if (response.status === 404 || response.status === 405) {
                         console.log(`ℹ️ ${path} - 해당 경로 없음 (${response.status})`);
+                        console.log(`ℹ️ 응답 본문:`, errorBody || "(비어있음)");
                         continue; // 다음 경로 시도
+                    } else if (response.status === 401 || response.status === 403) {
+                        // 인증 오류
+                        console.error(`❌ ${path} - 인증 오류 (${response.status}):`, errorBody);
+                        throw new Error(`인증이 필요합니다 (${response.status}): ${errorBody}`);
                     } else {
                         // 다른 오류는 로그에 기록
-                        const errorText = await response.text().catch(() => "");
-                        console.warn(`⚠️ ${path} - 오류 (${response.status}):`, errorText);
+                        console.warn(`⚠️ ${path} - 오류 (${response.status}):`, errorBody);
                     }
                 }
             } catch (error) {
                 lastError = error instanceof Error ? error : new Error(String(error));
                 console.warn(`⚠️ ${path} - 네트워크 오류:`, error);
+                console.warn(`⚠️ 오류 타입:`, error instanceof Error ? error.name : typeof error);
             }
         }
 

@@ -117,19 +117,32 @@ export default function AudioFileUploader() {
             },
         }));
 
-        try {
-            await uploadAudio(current.file, `${segmentId}-${current.file.name}`);
-            setAnswer(SEGMENT_KEY_MAP[segmentId], current.file.name);
-            setSegmentState((prev) => ({
-                ...prev,
-                [segmentId]: {
-                    ...prev[segmentId],
-                    isUploading: false,
-                    status: "업로드 완료 ✅",
-                    storedName: current.file?.name ?? prev[segmentId].storedName,
-                },
-            }));
-        } catch (error) {
+       try {
+        // 1. 서버 응답을 받아옴 (수정된 uploadAudio 함수는 이제 data 객체를 반환해야 함)
+const uploadResponse = await uploadAudio(current.file, `${segmentId}-${current.file.name}`);
+
+        // 2. 서버 응답에서 S3 고유 키를 추출 (서버 응답 필드명을 's3Key'로 가정)
+        // 만약 서버 응답 필드명이 다르다면 (예: 'key' 또는 'filePath'), 그에 맞게 수정해야 합니다.
+const s3Key = (uploadResponse as { s3Key?: string })?.s3Key;
+
+        if (!s3Key) {
+            throw new Error("서버로부터 S3 키를 받지 못했습니다.");
+        }
+
+        // 3. 추출한 S3 고유 키를 CompositionAnswers에 저장
+        setAnswer(SEGMENT_KEY_MAP[segmentId], s3Key); // <--- 🚨 단순 파일명 대신 고유 키 저장 🚨
+
+        setSegmentState((prev) => ({
+            ...prev,
+            [segmentId]: {
+                ...prev[segmentId],
+                isUploading: false,
+                status: "업로드 완료 ✅",
+                // storedName도 S3 고유 키로 설정하는 것이 좋습니다.
+                storedName: s3Key, 
+            },
+        }));
+    }catch (error) {
             console.error(error);
             setSegmentState((prev) => ({
                 ...prev,

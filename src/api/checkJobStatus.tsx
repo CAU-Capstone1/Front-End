@@ -27,7 +27,7 @@ export async function checkJobStatus(jobId: string): Promise<JobStatusResponse> 
     };
 
     console.log("🔍 Job 상태 확인:", jobId);
-코코    console.log("🔍 Job ID 타입:", typeof jobId, "길이:", jobId?.length);
+    console.log("🔍 Job ID 타입:", typeof jobId, "길이:", jobId?.length);
 
     try {
         // Job ID 인코딩 (URL 안전하게 처리)

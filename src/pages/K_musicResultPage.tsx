@@ -88,6 +88,38 @@ function MusicResultPage() {
         }
     }, [hasAutoSaved, savedMusicId]);
 
+    // Job 상태 확인 및 업데이트
+    const checkJobStatusAndUpdate = useCallback(async (id: string) => {
+        try {
+            setIsCheckingJob(true);
+            const status = await checkJobStatus(id);
+            
+            setJobStatus(status.status);
+            setJobProgress(status.progress);
+            
+            // musicUrl이 있으면 업데이트
+            if (status.musicUrl) {
+                setMusicUrl(status.musicUrl);
+                // 응답 업데이트
+                const currentResponse = sessionStorage.getItem("compose:lastResponse");
+                if (currentResponse) {
+                    try {
+                        const parsed = JSON.parse(currentResponse);
+                        const updated = { ...parsed, ...status };
+                        setComposeResponseJson(JSON.stringify(updated, null, 2));
+                        sessionStorage.setItem("compose:lastResponse", JSON.stringify(updated));
+                    } catch (e) {
+                        console.warn("Failed to update response", e);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("❌ Job 상태 확인 실패:", error);
+        } finally {
+            setIsCheckingJob(false);
+        }
+    }, []);
+
     useEffect(() => {
         const answers = getAllAnswers();
         const displayValue = (value: string | null | undefined, suffix?: string) => {
@@ -145,7 +177,7 @@ function MusicResultPage() {
                 console.warn("Failed to parse compose response", error);
             }
         }
-    }, [autoSaveMusic]);
+    }, [autoSaveMusic, checkJobStatusAndUpdate]);
 
     const hasData = useMemo(
         () => summary.some((item) => item.value && item.value !== "선택하지 않음"),
@@ -234,38 +266,6 @@ function MusicResultPage() {
     const handleNameCancel = () => {
         setShowNameModal(false);
         setMusicName("");
-    };
-
-    // Job 상태 확인 및 업데이트
-    const checkJobStatusAndUpdate = async (id: string) => {
-        try {
-            setIsCheckingJob(true);
-            const status = await checkJobStatus(id);
-            
-            setJobStatus(status.status);
-            setJobProgress(status.progress);
-            
-            // musicUrl이 있으면 업데이트
-            if (status.musicUrl) {
-                setMusicUrl(status.musicUrl);
-                // 응답 업데이트
-                const currentResponse = sessionStorage.getItem("compose:lastResponse");
-                if (currentResponse) {
-                    try {
-                        const parsed = JSON.parse(currentResponse);
-                        const updated = { ...parsed, ...status };
-                        setComposeResponseJson(JSON.stringify(updated, null, 2));
-                        sessionStorage.setItem("compose:lastResponse", JSON.stringify(updated));
-                    } catch (e) {
-                        console.warn("Failed to update response", e);
-                    }
-                }
-            }
-        } catch (error) {
-            console.error("❌ Job 상태 확인 실패:", error);
-        } finally {
-            setIsCheckingJob(false);
-        }
     };
 
     // Job 상태 수동 확인

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router";
 import Button from "../components/button";
 import { getAllSavedMusic, deleteSavedMusic, updateMusicName, type SavedMusic } from "../utils/musicStorage";
@@ -10,6 +10,8 @@ function MyPage() {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editingName, setEditingName] = useState<string>("");
     const [currentUser, setCurrentUser] = useState(getCurrentUser());
+    const [playingId, setPlayingId] = useState<string | null>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
 
     // 로그인 확인
     useEffect(() => {
@@ -34,6 +36,16 @@ function MyPage() {
 
     useEffect(() => {
         loadAndSortMusic();
+    }, []);
+
+    // 컴포넌트 언마운트 시 오디오 정리
+    useEffect(() => {
+        return () => {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current = null;
+            }
+        };
     }, []);
 
     const handleDelete = (id: string) => {
@@ -75,16 +87,115 @@ function MyPage() {
         }
     };
 
-    const handlePlay = (music: SavedMusic) => {
-        // TODO: 실제 오디오 재생 기능 구현
-        console.log("재생:", music);
-        alert("재생 기능은 추후 구현 예정입니다.");
+    const handlePlay = async (music: SavedMusic) => {
+        // composeResponse에서 musicUrl 추출
+        let musicUrl: string | null = null;
+        
+        if (music.composeResponse) {
+            try {
+                const parsed = typeof music.composeResponse === 'string' 
+                    ? JSON.parse(music.composeResponse) 
+                    : music.composeResponse;
+                musicUrl = parsed.musicUrl || parsed.audioUrl || parsed.fileUrl || parsed.url || parsed.audio_url || parsed.music_url;
+            } catch (error) {
+                console.error("응답 파싱 실패:", error);
+            }
+        }
+
+        if (!musicUrl) {
+            alert("재생할 음악 파일을 찾을 수 없습니다.");
+            return;
+        }
+
+        // 이미 재생 중인 음악이면 일시정지
+        if (playingId === music.id && audioRef.current) {
+            audioRef.current.pause();
+            setPlayingId(null);
+            return;
+        }
+
+        // 다른 음악이 재생 중이면 정지
+        if (audioRef.current) {
+            audioRef.current.pause();
+        }
+
+        try {
+            // 새 Audio 객체 생성
+            audioRef.current = new Audio(musicUrl);
+            
+            // 재생 이벤트 리스너
+            audioRef.current.addEventListener("play", () => {
+                setPlayingId(music.id);
+            });
+            
+            audioRef.current.addEventListener("pause", () => {
+                setPlayingId(null);
+            });
+            
+            audioRef.current.addEventListener("ended", () => {
+                setPlayingId(null);
+            });
+            
+            audioRef.current.addEventListener("error", (e) => {
+                console.error("음악 재생 오류:", e);
+                setPlayingId(null);
+                alert("음악 재생 중 오류가 발생했습니다.");
+            });
+
+            await audioRef.current.play();
+        } catch (error) {
+            console.error("재생 실패:", error);
+            alert("음악 재생에 실패했습니다.");
+            setPlayingId(null);
+        }
     };
 
-    const handleDownload = (music: SavedMusic) => {
-        // TODO: 실제 다운로드 기능 구현
-        console.log("다운로드:", music);
-        alert("다운로드 기능은 추후 구현 예정입니다.");
+    const handleDownload = async (music: SavedMusic) => {
+        // composeResponse에서 musicUrl 추출
+        let musicUrl: string | null = null;
+        
+        if (music.composeResponse) {
+            try {
+                const parsed = typeof music.composeResponse === 'string' 
+                    ? JSON.parse(music.composeResponse) 
+                    : music.composeResponse;
+                musicUrl = parsed.musicUrl || parsed.audioUrl || parsed.fileUrl || parsed.url || parsed.audio_url || parsed.music_url;
+            } catch (error) {
+                console.error("응답 파싱 실패:", error);
+            }
+        }
+
+        if (!musicUrl) {
+            alert("다운로드할 음악 파일을 찾을 수 없습니다.");
+            return;
+        }
+
+        try {
+            // 음악 파일 다운로드
+            const response = await fetch(musicUrl);
+            if (!response.ok) {
+                throw new Error("다운로드 실패");
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            
+            // 파일명 생성 (음악 이름 사용)
+            const fileName = `${music.name}.mp3`;
+            a.download = fileName;
+            
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            alert("다운로드가 완료되었습니다!");
+        } catch (error) {
+            console.error("다운로드 실패:", error);
+            alert("다운로드 중 오류가 발생했습니다.");
+        }
     };
 
     return (
@@ -200,11 +311,17 @@ function MyPage() {
                                         <button
                                             onClick={() => handlePlay(music)}
                                             className="w-12 h-12 rounded-full bg-[var(--accent-amber)] text-[var(--text-primary)] flex items-center justify-center hover:bg-[var(--accent-amber)]/80 transition shadow-[0_6px_0_rgba(46,31,39,0.15)] hover:translate-y-[2px] hover:shadow-[0_4px_0_rgba(46,31,39,0.12)]"
-                                            title="재생"
+                                            title={playingId === music.id ? "일시정지" : "재생"}
                                         >
-                                            <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current ml-0.5">
-                                                <path d="M8 5.5v13l10-6.5z" />
-                                            </svg>
+                                            {playingId === music.id ? (
+                                                <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
+                                                    <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                                                </svg>
+                                            ) : (
+                                                <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current ml-0.5">
+                                                    <path d="M8 5.5v13l10-6.5z" />
+                                                </svg>
+                                            )}
                                         </button>
                                         <button
                                             onClick={() => handleDownload(music)}

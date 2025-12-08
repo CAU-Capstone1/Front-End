@@ -66,16 +66,15 @@ function MusicResultPage() {
                 const parsed = JSON.parse(rawResponse);
                 setComposeResponseJson(JSON.stringify(parsed, null, 2));
                 
-                // Job ID 추출
-                const parsedJobId = parsed.PublicJobId || parsed.jobId || parsed.id;
+                // Job ID 추출 (백엔드 DTO의 jobId 필드를 우선 확인)
+                const parsedJobId = parsed.jobId || parsed.PublicJobId || parsed.id;
                 if (parsedJobId && !storedJobId) {
                     setJobId(parsedJobId);
                     sessionStorage.setItem("compose:jobId", parsedJobId);
                 }
                 
-                // 음악 파일 URL 추출 (서버 응답 형식에 따라 수정 필요)
-                // 일반적인 필드명: audioUrl, musicUrl, fileUrl, url 등
-                const url = parsed.audioUrl || parsed.musicUrl || parsed.fileUrl || parsed.url || parsed.audio_url || parsed.music_url;
+                // 음악 파일 URL 추출 (백엔드 DTO의 musicUrl 필드를 우선 확인)
+                const url = parsed.musicUrl || parsed.audioUrl || parsed.fileUrl || parsed.url || parsed.audio_url || parsed.music_url;
                 if (url) {
                     setMusicUrl(url);
                 } else if (parsed.status === "QUEUED" || parsed.status === "PROCESSING") {
@@ -252,8 +251,8 @@ function MusicResultPage() {
             
             setJobStatus(status.status || "알 수 없음");
             
-            // 완료되었고 음악 URL이 있으면 업데이트
-            const url = status.audioUrl || status.musicUrl || status.fileUrl || status.url || status.audio_url || status.music_url;
+            // 완료되었고 음악 URL이 있으면 업데이트 (백엔드 DTO의 musicUrl 필드를 우선 확인)
+            const url = status.musicUrl || status.audioUrl || status.fileUrl || status.url || status.audio_url || status.music_url;
             if (url) {
                 setMusicUrl(url);
                 // 응답 업데이트

@@ -87,8 +87,8 @@ function MyPage() {
         
         try {
             const parsed = JSON.parse(music.composeResponse);
-            // 다양한 필드명 시도
-            const url = parsed.audioUrl || parsed.musicUrl || parsed.fileUrl || parsed.url || 
+            // 음악 URL 추출 (백엔드 DTO의 musicUrl 필드를 우선 확인)
+            const url = parsed.musicUrl || parsed.audioUrl || parsed.fileUrl || parsed.url || 
                        parsed.audio_url || parsed.music_url || parsed.resultUrl || parsed.result_url;
             return url || null;
         } catch {

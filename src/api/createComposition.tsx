@@ -85,8 +85,8 @@ export async function createComposition(body: CompositionRequestBody) {
                     
                     // 정상 응답인 경우 (200, 201, 202 등)
                     if (response.ok) {
-                        // 202 Accepted이고 job ID가 있으면 비동기 작업
-                        if (response.status === 202 && (result.PublicJobId || result.jobId || result.id)) {
+                        // 202 Accepted이고 job ID가 있으면 비동기 작업 (백엔드 DTO의 jobId 필드를 우선 확인)
+                        if (response.status === 202 && (result.jobId || result.PublicJobId || result.id)) {
                             console.log("⏳ 비동기 작업 시작됨 (202 Accepted):", result);
                             // job ID를 포함한 결과 반환
                             return result;

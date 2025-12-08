@@ -83,8 +83,8 @@ function ReviewPage() {
             const result = await createComposition(requestBody);
             console.log("✅ 작곡 요청 응답:", result);
 
-            // Job ID가 있는지 확인 (비동기 작업)
-            const jobId = result.PublicJobId || result.jobId || result.id;
+            // Job ID가 있는지 확인 (비동기 작업, 백엔드 DTO의 jobId 필드를 우선 확인)
+            const jobId = result.jobId || result.PublicJobId || result.id;
             
             if (jobId) {
                 console.log("🔄 Job ID 발견, 상태 확인 시작:", jobId);

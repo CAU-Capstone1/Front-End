@@ -1,12 +1,18 @@
 import { getAuthHeaders } from "../utils/auth";
 
-export type JobStatus = "QUEUED" | "PROCESSING" | "COMPLETED" | "FAILED" | string;
+export type JobStatus = "QUEUED" | "PROCESSING" | "COMPLETED" | "FAILED" | "SUCCEEDED" | string;
 
 export type JobStatusResponse = {
+    // 백엔드 DTO 구조에 맞는 필수 필드
+    jobId?: string;           // 백엔드: String jobId
+    status?: JobStatus;       // 백엔드: JobStatus status
+    progress?: number;        // 백엔드: double progress
+    errorMessage?: string | null; // 백엔드: String errorMessage (null 가능)
+    musicUrl?: string | null; // 백엔드: String musicUrl (null 가능)
+    
+    // 하위 호환성을 위한 기존 필드들
     PublicJobId?: string;
-    status?: JobStatus;
     audioUrl?: string;
-    musicUrl?: string;
     fileUrl?: string;
     url?: string;
     audio_url?: string;
@@ -36,8 +42,10 @@ export async function checkJobStatus(jobId: string): Promise<JobStatusResponse> 
         
         // 백엔드에서 제공하는 실제 API 경로를 우선 시도
         const possiblePaths = [
-            `/api/jobs/${encodedJobId}`,        // JobController - 우선 시도
-            `/api/compose/status/${encodedJobId}`, // ProcessController - 두 번째 시도
+            `/api/job/${encodedJobId}`,         // 백엔드: GET /api/job/{jobId} (최우선)
+            `/api/job/${jobId}`,                // 인코딩 안 한 버전 (fallback)
+            `/api/jobs/${encodedJobId}`,        // JobController - 하위 호환성
+            `/api/compose/status/${encodedJobId}`, // ProcessController - 하위 호환성
             `/api/jobs/${jobId}`,               // 인코딩 안 한 버전 (fallback)
             `/api/compose/status/${jobId}`,     // 인코딩 안 한 버전 (fallback)
         ];
@@ -178,12 +186,13 @@ export async function pollJobUntilComplete(
             // 완료 상태 확인
             const jobStatus = status.status?.toUpperCase();
             
-            // 완료 상태 확인 (다양한 완료 상태 지원)
-            if (jobStatus === "COMPLETED" || jobStatus === "SUCCESS" || jobStatus === "DONE" || jobStatus === "FINISHED") {
+            // 완료 상태 확인 (다양한 완료 상태 지원, 백엔드 SUCCEEDED 포함)
+            if (jobStatus === "SUCCEEDED" || jobStatus === "COMPLETED" || jobStatus === "SUCCESS" || jobStatus === "DONE" || jobStatus === "FINISHED") {
                 console.log("✅ Job 완료!");
                 
                 // 완료되었지만 음악 URL이 없을 수 있음 (서버가 별도로 제공할 수 있음)
-                const hasMusicUrl = status.audioUrl || status.musicUrl || status.fileUrl || 
+                // 백엔드 DTO의 musicUrl 필드를 우선 확인
+                const hasMusicUrl = status.musicUrl || status.audioUrl || status.fileUrl || 
                                    status.url || status.audio_url || status.music_url;
                 
                 if (!hasMusicUrl) {
@@ -195,7 +204,8 @@ export async function pollJobUntilComplete(
 
             // 실패 상태 확인
             if (jobStatus === "FAILED" || jobStatus === "ERROR" || jobStatus === "FAILURE") {
-                const errorMessage = status.error || status.errorMessage || "Job이 실패했습니다.";
+                // 백엔드 DTO의 errorMessage 필드를 우선 확인
+                const errorMessage = status.errorMessage || status.error || "Job이 실패했습니다.";
                 throw new Error(`Job 실패: ${errorMessage}`);
             }
 

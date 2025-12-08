@@ -3,8 +3,9 @@ import { useNavigate } from "react-router";
 import Button from "../components/button";
 import { getAllAnswers, resetAnswers } from "../utils/compositionSession";
 import { formatAnswerValue } from "../utils/valueLabels";
-import { saveMusic } from "../utils/musicStorage";
+import { saveMusic, getAllSavedMusic, updateMusicName, type SavedMusic } from "../utils/musicStorage";
 import { isLoggedIn } from "../utils/auth";
+import { checkJobStatus, type JobStatusResponse } from "../api/checkJobStatus";
 
 type SummaryItem = {
     label: string;
@@ -24,6 +25,16 @@ function MusicResultPage() {
     const [isPlaying, setIsPlaying] = useState(false);
     const [musicUrl, setMusicUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    
+    // Job 상태 확인 관련
+    const [jobId, setJobId] = useState<string | null>(null);
+    const [isCheckingJob, setIsCheckingJob] = useState(false);
+    const [jobStatus, setJobStatus] = useState<string | null>(null);
+    const [jobProgress, setJobProgress] = useState<number | null>(null);
+    
+    // 자동 저장 관련
+    const [savedMusicId, setSavedMusicId] = useState<string | null>(null);
+    const [hasAutoSaved, setHasAutoSaved] = useState(false);
 
     useEffect(() => {
         const answers = getAllAnswers();
@@ -49,16 +60,34 @@ function MusicResultPage() {
         setSummary(items);
 
         const rawResponse = sessionStorage.getItem("compose:lastResponse");
+        const storedJobId = sessionStorage.getItem("compose:jobId");
+        
+        if (storedJobId) {
+            setJobId(storedJobId);
+        }
+        
         if (rawResponse) {
             try {
                 const parsed = JSON.parse(rawResponse);
                 setComposeResponseJson(JSON.stringify(parsed, null, 2));
                 
-                // 음악 파일 URL 추출 (서버 응답 형식에 따라 수정 필요)
-                // 일반적인 필드명: audioUrl, musicUrl, fileUrl, url 등
-                const url = parsed.audioUrl || parsed.musicUrl || parsed.fileUrl || parsed.url || parsed.audio_url || parsed.music_url;
+                // Job ID 추출 (백엔드 DTO의 jobId 필드를 우선 확인)
+                const parsedJobId = parsed.jobId || parsed.PublicJobId || parsed.id;
+                if (parsedJobId && !storedJobId) {
+                    setJobId(parsedJobId);
+                    sessionStorage.setItem("compose:jobId", parsedJobId);
+                }
+                
+                // 음악 파일 URL 추출 (백엔드 DTO의 musicUrl 필드를 우선 확인)
+                const url = parsed.musicUrl || parsed.audioUrl || parsed.fileUrl || parsed.url || parsed.audio_url || parsed.music_url;
                 if (url) {
                     setMusicUrl(url);
+                    // 음악이 완성되었으므로 자동 저장 시도
+                    autoSaveMusic(url, rawResponse);
+                } else if (parsedJobId && !url) {
+                    // jobId는 있지만 musicUrl이 없는 경우 (아직 처리 중)
+                    // 자동으로 상태 확인
+                    checkJobStatusAndUpdate(parsedJobId);
                 }
             } catch (error) {
                 console.warn("Failed to parse compose response", error);
@@ -71,29 +100,32 @@ function MusicResultPage() {
         [summary],
     );
 
-    const handleSaveToArchive = () => {
-        if (!isLoggedIn()) {
-            if (confirm("음악을 저장하려면 로그인이 필요합니다. 로그인 페이지로 이동하시겠습니까?")) {
-                navigate("/login");
-            }
-            return;
+    // 기본 음악 이름 생성 (저장된 음악 개수 기반)
+    const getDefaultMusicName = (): string => {
+        if (!isLoggedIn()) return "음악 1";
+        
+        try {
+            const savedMusics = getAllSavedMusic();
+            const count = savedMusics.length;
+            return `음악 ${count + 1}`;
+        } catch {
+            return "음악 1";
         }
-        setShowNameModal(true);
     };
 
-    const handleNameSubmit = () => {
-        if (!musicName.trim()) {
-            alert("음악 이름을 입력해주세요.");
-            return;
+    // 음악 자동 저장 함수
+    const autoSaveMusic = (url: string, responseJson: string | null): string | null => {
+        // 이미 저장했거나 로그인하지 않았으면 저장하지 않음
+        if (hasAutoSaved || !isLoggedIn() || !url) {
+            return savedMusicId;
         }
 
-        setIsSaving(true);
         try {
             const answers = getAllAnswers();
-            const rawResponse = sessionStorage.getItem("compose:lastResponse");
-
-            saveMusic({
-                name: musicName.trim(),
+            const defaultName = getDefaultMusicName();
+            
+            const savedMusic = saveMusic({
+                name: defaultName,
                 compositionData: {
                     style: answers.style,
                     mood: answers.mood,
@@ -106,15 +138,93 @@ function MusicResultPage() {
                     hummingEnd: answers.hummingEnd,
                     referenceVisual: answers.referenceVisual,
                 },
-                composeResponse: rawResponse,
+                composeResponse: responseJson,
             });
 
-            alert("음악이 보관함에 저장되었습니다!");
-            setShowNameModal(false);
-            setMusicName("");
-            navigate("/myPage");
+            setSavedMusicId(savedMusic.id);
+            setMusicName(defaultName);
+            setHasAutoSaved(true);
+            console.log("✅ 음악이 자동으로 내 보관함에 저장되었습니다:", defaultName);
+            return savedMusic.id;
         } catch (error) {
-            console.error("저장 실패:", error);
+            console.warn("⚠️ 자동 저장 실패 (로그인 필요할 수 있음):", error);
+            return null;
+        }
+    };
+
+    const handleSaveToArchive = () => {
+        if (!isLoggedIn()) {
+            if (confirm("음악을 저장하려면 로그인이 필요합니다. 로그인 페이지로 이동하시겠습니까?")) {
+                navigate("/login");
+            }
+            return;
+        }
+        
+        // 이미 저장된 음악이 있으면 이름 변경 모달, 없으면 저장 모달
+        if (savedMusicId) {
+            setShowNameModal(true);
+        } else if (musicUrl) {
+            // 아직 저장되지 않았으면 자동 저장 시도
+            const rawResponse = sessionStorage.getItem("compose:lastResponse");
+            const newSavedId = autoSaveMusic(musicUrl, rawResponse);
+            if (newSavedId) {
+                setShowNameModal(true);
+            } else {
+                // 저장 실패 시에도 모달 표시 (수동 저장)
+                setShowNameModal(true);
+            }
+        } else {
+            setShowNameModal(true);
+        }
+    };
+
+    const handleNameSubmit = () => {
+        if (!musicName.trim()) {
+            alert("음악 이름을 입력해주세요.");
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            // 이미 저장된 음악이 있으면 이름만 업데이트
+            if (savedMusicId) {
+                const success = updateMusicName(savedMusicId, musicName.trim());
+                if (success) {
+                    alert("음악 이름이 변경되었습니다!");
+                    setShowNameModal(false);
+                    // 마이페이지로 이동하지 않고 현재 페이지에 머무름
+                } else {
+                    throw new Error("이름 변경 실패");
+                }
+            } else {
+                // 아직 저장되지 않았으면 새로 저장
+                const answers = getAllAnswers();
+                const rawResponse = sessionStorage.getItem("compose:lastResponse");
+
+                const savedMusic = saveMusic({
+                    name: musicName.trim(),
+                    compositionData: {
+                        style: answers.style,
+                        mood: answers.mood,
+                        instrument: answers.instrument,
+                        key: answers.key,
+                        duration: answers.duration,
+                        tempo: answers.tempo,
+                        hummingStart: answers.hummingStart,
+                        hummingMain: answers.hummingMain,
+                        hummingEnd: answers.hummingEnd,
+                        referenceVisual: answers.referenceVisual,
+                    },
+                    composeResponse: rawResponse,
+                });
+
+                setSavedMusicId(savedMusic.id);
+                setHasAutoSaved(true);
+                alert("음악이 보관함에 저장되었습니다!");
+                setShowNameModal(false);
+            }
+        } catch (error) {
+            console.error("저장/변경 실패:", error);
             alert("저장 중 오류가 발생했습니다.");
         } finally {
             setIsSaving(false);
@@ -126,16 +236,101 @@ function MusicResultPage() {
         setMusicName("");
     };
 
+    // Job 상태 확인 및 업데이트
+    const checkJobStatusAndUpdate = async (id: string) => {
+        try {
+            setIsCheckingJob(true);
+            const status = await checkJobStatus(id);
+            
+            setJobStatus(status.status);
+            setJobProgress(status.progress);
+            
+            // musicUrl이 있으면 업데이트
+            if (status.musicUrl) {
+                setMusicUrl(status.musicUrl);
+                // 응답 업데이트
+                const currentResponse = sessionStorage.getItem("compose:lastResponse");
+                if (currentResponse) {
+                    try {
+                        const parsed = JSON.parse(currentResponse);
+                        const updated = { ...parsed, ...status };
+                        setComposeResponseJson(JSON.stringify(updated, null, 2));
+                        sessionStorage.setItem("compose:lastResponse", JSON.stringify(updated));
+                    } catch (e) {
+                        console.warn("Failed to update response", e);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("❌ Job 상태 확인 실패:", error);
+        } finally {
+            setIsCheckingJob(false);
+        }
+    };
+
+    // Job 상태 수동 확인
+    const handleCheckJobStatus = async () => {
+        if (!jobId) return;
+        await checkJobStatusAndUpdate(jobId);
+    };
+
     // 음악 재생/일시정지 처리
     const handlePlayPause = async () => {
-        if (!musicUrl) {
+        let urlToPlay = musicUrl;
+        
+        // musicUrl이 없고 jobId가 있으면 상태 확인 시도
+        if (!urlToPlay && jobId) {
+            try {
+                setIsLoading(true);
+                const status = await checkJobStatus(jobId);
+                
+                setJobStatus(status.status);
+                setJobProgress(status.progress);
+                
+            // musicUrl이 있으면 업데이트하고 재생
+            if (status.musicUrl) {
+                urlToPlay = status.musicUrl;
+                setMusicUrl(status.musicUrl);
+                // 응답 업데이트
+                const currentResponse = sessionStorage.getItem("compose:lastResponse");
+                let updatedResponse = currentResponse;
+                if (currentResponse) {
+                    try {
+                        const parsed = JSON.parse(currentResponse);
+                        const updated = { ...parsed, ...status };
+                        updatedResponse = JSON.stringify(updated, null, 2);
+                        setComposeResponseJson(updatedResponse);
+                        sessionStorage.setItem("compose:lastResponse", updatedResponse);
+                    } catch (e) {
+                        console.warn("Failed to update response", e);
+                    }
+                }
+                // 음악이 완성되었으므로 자동 저장 시도
+                autoSaveMusic(status.musicUrl, updatedResponse);
+                } else {
+                    alert(`음악이 아직 생성 중입니다. (상태: ${status.status}, 진행률: ${status.progress}%)\n잠시 후 다시 시도해주세요.`);
+                    setIsLoading(false);
+                    return;
+                }
+            } catch (error) {
+                console.error("❌ Job 상태 확인 실패:", error);
+                alert("음악 상태를 확인할 수 없습니다. 잠시 후 다시 시도해주세요.");
+                setIsLoading(false);
+                return;
+            }
+        }
+        
+        if (!urlToPlay) {
             alert("재생할 음악이 없습니다.");
             return;
         }
 
-        // Audio 객체가 없으면 생성
-        if (!audioRef.current) {
-            audioRef.current = new Audio(musicUrl);
+        // Audio 객체가 없거나 URL이 변경되었으면 새로 생성
+        if (!audioRef.current || audioRef.current.src !== urlToPlay) {
+            if (audioRef.current) {
+                audioRef.current.pause();
+            }
+            audioRef.current = new Audio(urlToPlay);
             
             // 재생 이벤트 리스너
             audioRef.current.addEventListener("play", () => {
@@ -274,10 +469,28 @@ function MusicResultPage() {
                                         {isPlaying ? "재생 중..." : isLoading ? "로딩 중..." : "재생할 준비가 되었습니다"}
                                     </p>
                                 )}
-                                <div className="flex flex-wrap justify-center gap-3">
+                                <div className="flex flex-col items-center gap-3 w-full">
+                                    {/* 상단 두 개의 버튼 */}
+                                    <div className="flex gap-3 w-full">
+                                        <Button 
+                                            variant="soft" 
+                                            className="flex-1 py-5 text-m font-semibold hover:cursor-pointer"
+                                            onClick={handleSaveToArchive}
+                                        >
+                                            내 보관함
+                                        </Button>
+                                        <Button 
+                                            variant="soft" 
+                                            className="flex-1 py-5 text-m font-semibold hover:cursor-pointer"
+                                            onClick={handleSaveToArchive}
+                                        >
+                                            음악 이름 짓기
+                                        </Button>
+                                    </div>
+                                    {/* 하단 큰 버튼 (다운로드) */}
                                     <Button 
                                         variant="soft" 
-                                        className="w-50 py-5 text-m font-semibold hover:cursor-pointer flex items-center justify-center gap-2"
+                                        className="w-full py-5 text-m font-semibold hover:cursor-pointer flex items-center justify-center gap-2"
                                         onClick={handleDownload}
                                         disabled={!musicUrl}
                                     >
@@ -285,20 +498,6 @@ function MusicResultPage() {
                                             <path d="M12 15.5L7.5 11h3V3h3v8h3L12 15.5zM5 19h14v2H5v-2z" />
                                         </svg>
                                         다운로드
-                                    </Button>
-                                    <Button 
-                                        variant="soft" 
-                                        className="w-50 py-5 text-m font-semibold hover:cursor-pointer"
-                                        onClick={handleSaveToArchive}
-                                    >
-                                        음악 이름 짓기
-                                    </Button>
-                                    <Button 
-                                        variant="soft" 
-                                        className="w-50 py-5 text-m font-semibold hover:cursor-pointer"
-                                        onClick={handleSaveToArchive}
-                                    >
-                                        내 보관함
                                     </Button>
                                 </div>
                             </div>
@@ -320,6 +519,36 @@ function MusicResultPage() {
                 {!hasData && (
                     <div className="rounded-2xl border border-dashed border-[var(--accent-rose)] bg-[var(--accent-rose)]/10 px-6 py-4 text-center text-sm font-semibold text-[var(--accent-rose)]">
                         아직 입력된 정보가 없어요. 처음으로 돌아가서 허밍을 업로드하거나 질문에 답해보세요.
+                    </div>
+                )}
+
+                {jobId && !musicUrl && (
+                    <div className="rounded-[2.5rem] border-4 border-black/10 bg-yellow-50/90 p-8 shadow-[0_22px_0_rgba(46,31,39,0.08)]">
+                        <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">음악 생성 중</h2>
+                        <p className="text-sm text-[var(--text-muted)] mb-4">
+                            Job ID: <code className="bg-white/50 px-2 py-1 rounded">{jobId}</code>
+                        </p>
+                        {jobStatus && (
+                            <p className="text-sm text-[var(--text-muted)] mb-2">
+                                현재 상태: <strong>{jobStatus}</strong>
+                            </p>
+                        )}
+                        {jobProgress !== null && (
+                            <p className="text-sm text-[var(--text-muted)] mb-4">
+                                진행률: <strong>{jobProgress}%</strong>
+                            </p>
+                        )}
+                        <Button
+                            onClick={handleCheckJobStatus}
+                            disabled={isCheckingJob}
+                            variant="rainbow"
+                            className="px-6 py-3"
+                        >
+                            {isCheckingJob ? "확인 중..." : "결과 확인하기"}
+                        </Button>
+                        <p className="text-xs text-[var(--text-muted)] mt-4">
+                            💡 재생 버튼을 누르면 자동으로 상태를 확인하고 음악이 준비되면 재생됩니다.
+                        </p>
                     </div>
                 )}
 
@@ -346,7 +575,9 @@ function MusicResultPage() {
             {showNameModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
                     <div className="relative w-full max-w-md rounded-[2.5rem] border-4 border-black/10 bg-gradient-to-tr from-[#fff6da] via-white to-[#fce4ef] p-8 shadow-[0_25px_0_rgba(46,31,39,0.08)]">
-                        <h2 className="text-2xl font-semibold text-[var(--text-primary)] mb-4">음악 이름을 지어주세요</h2>
+                        <h2 className="text-2xl font-semibold text-[var(--text-primary)] mb-4">
+                            {savedMusicId ? "음악 이름 변경" : "음악 이름을 지어주세요"}
+                        </h2>
                         <input
                             type="text"
                             value={musicName}

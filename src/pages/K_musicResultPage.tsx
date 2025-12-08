@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router";
 import Button from "../components/button";
 import { getAllAnswers, resetAnswers } from "../utils/compositionSession";
 import { formatAnswerValue } from "../utils/valueLabels";
-import { saveMusic, getAllSavedMusic, updateMusicName, type SavedMusic } from "../utils/musicStorage";
+import { saveMusic, getAllSavedMusic, updateMusicName } from "../utils/musicStorage";
 import { isLoggedIn } from "../utils/auth";
-import { checkJobStatus, type JobStatusResponse } from "../api/checkJobStatus";
+import { checkJobStatus } from "../api/checkJobStatus";
 
 type SummaryItem = {
     label: string;
@@ -35,6 +35,58 @@ function MusicResultPage() {
     // 자동 저장 관련
     const [savedMusicId, setSavedMusicId] = useState<string | null>(null);
     const [hasAutoSaved, setHasAutoSaved] = useState(false);
+
+    // 기본 음악 이름 생성 (저장된 음악 개수 기반)
+    const getDefaultMusicName = (): string => {
+        if (!isLoggedIn()) return "음악 1";
+        
+        try {
+            const savedMusics = getAllSavedMusic();
+            const count = savedMusics.length;
+            return `음악 ${count + 1}`;
+        } catch {
+            return "음악 1";
+        }
+    };
+
+    // 음악 자동 저장 함수
+    const autoSaveMusic = useCallback((url: string, responseJson: string | null): string | null => {
+        // 이미 저장했거나 로그인하지 않았으면 저장하지 않음
+        if (hasAutoSaved || !isLoggedIn() || !url) {
+            return savedMusicId;
+        }
+
+        try {
+            const answers = getAllAnswers();
+            const defaultName = getDefaultMusicName();
+            
+            const savedMusic = saveMusic({
+                name: defaultName,
+                compositionData: {
+                    style: answers.style,
+                    mood: answers.mood,
+                    instrument: answers.instrument,
+                    key: answers.key,
+                    duration: answers.duration,
+                    tempo: answers.tempo,
+                    hummingStart: answers.hummingStart,
+                    hummingMain: answers.hummingMain,
+                    hummingEnd: answers.hummingEnd,
+                    referenceVisual: answers.referenceVisual,
+                },
+                composeResponse: responseJson,
+            });
+
+            setSavedMusicId(savedMusic.id);
+            setMusicName(defaultName);
+            setHasAutoSaved(true);
+            console.log("✅ 음악이 자동으로 내 보관함에 저장되었습니다:", defaultName);
+            return savedMusic.id;
+        } catch (error) {
+            console.warn("⚠️ 자동 저장 실패 (로그인 필요할 수 있음):", error);
+            return null;
+        }
+    }, [hasAutoSaved, savedMusicId]);
 
     useEffect(() => {
         const answers = getAllAnswers();
@@ -93,64 +145,12 @@ function MusicResultPage() {
                 console.warn("Failed to parse compose response", error);
             }
         }
-    }, []);
+    }, [autoSaveMusic]);
 
     const hasData = useMemo(
         () => summary.some((item) => item.value && item.value !== "선택하지 않음"),
         [summary],
     );
-
-    // 기본 음악 이름 생성 (저장된 음악 개수 기반)
-    const getDefaultMusicName = (): string => {
-        if (!isLoggedIn()) return "음악 1";
-        
-        try {
-            const savedMusics = getAllSavedMusic();
-            const count = savedMusics.length;
-            return `음악 ${count + 1}`;
-        } catch {
-            return "음악 1";
-        }
-    };
-
-    // 음악 자동 저장 함수
-    const autoSaveMusic = (url: string, responseJson: string | null): string | null => {
-        // 이미 저장했거나 로그인하지 않았으면 저장하지 않음
-        if (hasAutoSaved || !isLoggedIn() || !url) {
-            return savedMusicId;
-        }
-
-        try {
-            const answers = getAllAnswers();
-            const defaultName = getDefaultMusicName();
-            
-            const savedMusic = saveMusic({
-                name: defaultName,
-                compositionData: {
-                    style: answers.style,
-                    mood: answers.mood,
-                    instrument: answers.instrument,
-                    key: answers.key,
-                    duration: answers.duration,
-                    tempo: answers.tempo,
-                    hummingStart: answers.hummingStart,
-                    hummingMain: answers.hummingMain,
-                    hummingEnd: answers.hummingEnd,
-                    referenceVisual: answers.referenceVisual,
-                },
-                composeResponse: responseJson,
-            });
-
-            setSavedMusicId(savedMusic.id);
-            setMusicName(defaultName);
-            setHasAutoSaved(true);
-            console.log("✅ 음악이 자동으로 내 보관함에 저장되었습니다:", defaultName);
-            return savedMusic.id;
-        } catch (error) {
-            console.warn("⚠️ 자동 저장 실패 (로그인 필요할 수 있음):", error);
-            return null;
-        }
-    };
 
     const handleSaveToArchive = () => {
         if (!isLoggedIn()) {

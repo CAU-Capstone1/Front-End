@@ -5,6 +5,8 @@ import { buildCompositionBody, createComposition } from "../api/createCompositio
 import { getAllAnswers } from "../utils/compositionSession";
 import { formatAnswerValue } from "../utils/valueLabels";
 import type { CompositionAnswerKey } from "../utils/compositionSession";
+import MusicGeneratingLoader from "../components/MusicGeneratingLoader";
+import { pollJobUntilComplete, type JobStatusResponse } from "../api/checkJobStatus";
 
 type ReviewItem = {
     key: CompositionAnswerKey;
@@ -67,16 +69,61 @@ function ReviewPage() {
 
     const hasAnySelection = useMemo(() => items.some((item) => item.value !== "선택하지 않음"), [items]);
 
+    // 로딩 화면 표시
+    if (isSubmitting) {
+        return <MusicGeneratingLoader />;
+    }
+
     const handleConfirm = async () => {
         setIsSubmitting(true);
         setError(null);
         const answers = getAllAnswers();
+        const requestBody = buildCompositionBody(answers);
+
+        console.log("🎵 음악 생성 요청 시작");
+        console.log("📋 저장된 답변들:", answers);
+        console.log("📦 요청 본문:", requestBody);
 
         try {
-            const result = await createComposition(buildCompositionBody(answers));
-            sessionStorage.setItem("compose:lastResponse", JSON.stringify(result));
-            navigate("/musicResult");
+            const result = await createComposition(requestBody);
+            console.log("✅ 작곡 요청 응답:", result);
+
+            // Job ID가 있는지 확인 (비동기 작업, 백엔드 DTO의 jobId 필드를 우선 확인)
+            const jobId = result.jobId || result.PublicJobId || result.id;
+            
+            if (jobId) {
+                console.log("🔄 Job ID 발견, 상태 확인 시작:", jobId);
+                
+                try {
+                    // Job 완료까지 폴링
+                    const finalResult = await pollJobUntilComplete(jobId, {
+                        intervalMs: 3000, // 3초마다 확인
+                        maxAttempts: 100, // 최대 5분
+                        onStatusUpdate: (status: JobStatusResponse) => {
+                            console.log("📊 Job 상태 업데이트:", status);
+                        },
+                    });
+
+                    console.log("✅ 음악 생성 완료:", finalResult);
+                    sessionStorage.setItem("compose:lastResponse", JSON.stringify(finalResult));
+                    navigate("/musicResult");
+                } catch (pollError) {
+                    // 폴링 실패 시, 초기 응답을 저장하고 결과 페이지로 이동
+                    console.warn("⚠️ Job 상태 확인 실패, 초기 응답 사용:", pollError);
+                    console.log("📝 초기 응답 저장:", result);
+                    sessionStorage.setItem("compose:lastResponse", JSON.stringify(result));
+                    sessionStorage.setItem("compose:jobId", jobId);
+                    // 결과 페이지로 이동 (결과 페이지에서 수동으로 확인할 수 있도록)
+                    navigate("/musicResult");
+                }
+            } else {
+                // 즉시 완료된 경우
+                console.log("✅ 음악 생성 즉시 완료:", result);
+                sessionStorage.setItem("compose:lastResponse", JSON.stringify(result));
+                navigate("/musicResult");
+            }
         } catch (err) {
+            console.error("❌ 음악 생성 실패:", err);
             const message = err instanceof Error ? err.message : String(err);
             setError(message);
             setIsSubmitting(false);

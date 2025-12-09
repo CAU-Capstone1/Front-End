@@ -7,9 +7,9 @@ import type { CompositionAnswerKey } from "../utils/compositionSession";
 const MAX_AUDIO_SIZE_MB = 50;
 
 const AUDIO_SEGMENTS = [
-  { id: "start", label: "시작 멜로디", helper: "도입부나 전주 느낌" },
-  { id: "main", label: "메인 멜로디", helper: "코러스, 후렴 등 핵심" },
-  { id: "end", label: "끝 멜로디", helper: "아웃트로, 마무리" },
+  { id: "start", label: "시작 멜로디", helper: "도입부나 전주 느낌", required: false },
+  { id: "main", label: "메인 멜로디", helper: "코러스, 후렴 등 핵심", required: true },
+  { id: "end", label: "끝 멜로디", helper: "아웃트로, 마무리", required: false },
 ] as const;
 
 type SegmentId = typeof AUDIO_SEGMENTS[number]["id"];
@@ -190,7 +190,8 @@ export default function AudioFileUploader() {
             필요한 구간만 골라 허밍을 업로드해요
           </h2>
           <p className="text-m text-[var(--text-muted)]">
-            메인 멜로디는 필수로 올려야 음악이 만들어져요. 시작, 끝 멜로디는 올리고 싶은 것 만 올려요.
+            <span className="font-semibold text-[var(--accent-rose)]">메인 멜로디는 필수</span>로 올려야 음악이 만들어져요.{" "}
+            <span className="text-[var(--text-muted)]">시작, 끝 멜로디는 올리고 싶은 것만 올려요.</span>
           </p>
         </div>
 
@@ -200,12 +201,25 @@ export default function AudioFileUploader() {
             return (
               <div
                 key={segment.id}
-                className={`flex h-full flex-col gap-4 rounded-[1.8rem] border-2 px-5 py-6 text-center shadow-[0_12px_0_rgba(46,31,39,0.08)] transition ${
+                className={`relative flex h-full flex-col gap-4 rounded-[1.8rem] border-2 px-5 py-6 text-center shadow-[0_12px_0_rgba(46,31,39,0.08)] transition ${
                   state.file || state.storedName
-                    ? "border-[var(--accent-amber)] bg-white"
+                    ? segment.required
+                      ? "border-[var(--accent-amber)] bg-white ring-2 ring-[var(--accent-amber)]/30"
+                      : "border-[var(--accent-amber)] bg-white"
+                    : segment.required
+                    ? "border-[var(--accent-rose)]/50 bg-white/70 ring-2 ring-[var(--accent-rose)]/20"
                     : "border-black/10 bg-white/70"
                 }`}
               >
+                {segment.required ? (
+                  <span className="absolute right-4 top-2 rounded-full bg-[var(--accent-rose)] px-2 py-0.5 text-xs font-bold text-white shadow-md">
+                    필수
+                  </span>
+                ) : (
+                  <span className="absolute right-4 top-2 rounded-full bg-gray-200 px-2 py-0.5 text-xs font-semibold text-gray-600 shadow-md">
+                    선택
+                  </span>
+                )}
                 <div className="space-y-1">
                   <h3 className="text-lg font-semibold text-[var(--text-primary)]">{segment.label}</h3>
                   <p className="text-xs text-[var(--text-muted)]">{segment.helper}</p>
@@ -214,7 +228,11 @@ export default function AudioFileUploader() {
                   <button
                     type="button"
                     onClick={() => segmentInputRefs[segment.id].current?.click()}
-                    className="my-btn rounded-[1.2rem] border-2 border-dashed border-[var(--accent-rose)] bg-white px-3 py-3 text-sm font-semibold text-[var(--accent-rose)] shadow-[0_8px_0_rgba(242,137,130,0.18)] transition hover:-translate-y-[2px]"
+                    className={`my-btn rounded-[1.2rem] border-2 border-dashed bg-white px-3 py-3 text-sm font-semibold shadow-[0_8px_0_rgba(242,137,130,0.18)] transition hover:-translate-y-[2px] ${
+                      segment.required
+                        ? "border-[var(--accent-rose)] text-[var(--accent-rose)]"
+                        : "border-gray-300 text-gray-500 shadow-[0_8px_0_rgba(156,163,175,0.18)]"
+                    }`}
                   >
                     파일 선택
                   </button>

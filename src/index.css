@@ -227,3 +227,57 @@ body {
     fill: #2e1f27;
     margin-left: 2px;
 }
+
+/* 페이지 전환 fade in/out (아래로 내려갔다 올라오는 애니메이션) */
+.page-transition-wrapper {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+}
+
+.page-content {
+    width: 100%;
+}
+
+.page-content.page-prev {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1;
+}
+
+.page-content.page-next {
+    position: relative;
+    z-index: 2;
+}
+
+.page-content.fade-in-up {
+    animation: fadeInUp 300ms ease forwards;
+}
+
+.page-content.fade-out-down {
+    animation: fadeOutDown 300ms ease forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOutDown {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+}

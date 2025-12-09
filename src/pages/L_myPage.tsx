@@ -355,7 +355,7 @@ function MyPage() {
                         </svg>
                         홈으로
                     </Button> */}
-                    <Button toWhere="/main" variant="rainbow" className="px-12 py-5">
+                    <Button toWhere="/" variant="rainbow" className="px-12 py-5">
                         새 음악 만들기
                     </Button>
                 </div>

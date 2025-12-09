@@ -164,14 +164,23 @@ function MusicResultPage() {
                 
                 // 음악 파일 URL 추출 (백엔드 DTO의 musicUrl 필드를 우선 확인)
                 const url = parsed.musicUrl || parsed.audioUrl || parsed.fileUrl || parsed.url || parsed.audio_url || parsed.music_url;
+                const status = parsed.status || parsed.Status;
+                
                 if (url) {
                     setMusicUrl(url);
                     // 음악이 완성되었으므로 자동 저장 시도
                     autoSaveMusic(url, rawResponse);
-                } else if (parsedJobId && !url) {
-                    // jobId는 있지만 musicUrl이 없는 경우 (아직 처리 중)
-                    // 자동으로 상태 확인
-                    checkJobStatusAndUpdate(parsedJobId);
+                } else if (parsedJobId) {
+                    // jobId는 있지만 musicUrl이 없는 경우
+                    // status가 SUCCEEDED인데 musicUrl이 없으면 즉시 상태 확인 (musicUrl이 아직 업데이트되지 않았을 수 있음)
+                    if (status === "SUCCEEDED" || status === "succeeded") {
+                        // SUCCEEDED 상태인데 musicUrl이 없으면 즉시 상태 확인
+                        console.log("⚠️ Status가 SUCCEEDED인데 musicUrl이 없습니다. 상태를 다시 확인합니다.");
+                        checkJobStatusAndUpdate(parsedJobId);
+                    } else {
+                        // 아직 처리 중이면 상태 확인
+                        checkJobStatusAndUpdate(parsedJobId);
+                    }
                 }
             } catch (error) {
                 console.warn("Failed to parse compose response", error);

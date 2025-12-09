@@ -126,6 +126,12 @@ export async function pollJobUntilComplete(
             console.warn(`⚠️ 알 수 없는 Job 상태: ${jobStatus}, 계속 대기합니다.`);
             await new Promise((resolve) => setTimeout(resolve, intervalMs));
         } catch (error) {
+            // 403 Forbidden 에러는 인증/권한 문제이므로 재시도하지 않음
+            if (error instanceof Error && error.message.includes("403")) {
+                console.error("❌ 인증/권한 오류 (403): Job 상태를 확인할 수 없습니다.");
+                throw new Error("인증이 필요하거나 권한이 없습니다. 로그인 상태를 확인해주세요.");
+            }
+            
             // 네트워크 오류 등은 무시하고 계속 시도
             if (attempt < maxAttempts) {
                 console.warn(`⚠️ Job 상태 확인 실패 (재시도 ${attempt}/${maxAttempts}):`, error);

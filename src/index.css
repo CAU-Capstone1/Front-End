@@ -253,11 +253,11 @@ body {
 }
 
 .page-content.fade-in-up {
-    animation: fadeInUp 300ms ease forwards;
+    animation: fadeInUp 1000ms ease forwards;
 }
 
 .page-content.fade-out-down {
-    animation: fadeOutDown 300ms ease forwards;
+    animation: fadeOutDown 0ms ease forwards;
 }
 
 @keyframes fadeInUp {
@@ -269,6 +269,10 @@ body {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
 }
 
 @keyframes fadeOutDown {

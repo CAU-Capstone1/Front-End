@@ -68,7 +68,7 @@ function MainPage() {
                 <AudioFileUploader />
 
                 {isMainMelodyUploaded && (
-                    <div className="flex flex-col items-center gap-4 text-center mt-15">
+                    <div className="flex flex-col items-center gap-4 text-center mt-15 animate-fade-in-up">
                         <div className="flex flex-wrap justify-center gap-10">
                             <Button onClick={handleGoVisual} variant="rainbow" className="px-12 py-5 text-lg">
                                 이미지 업로드하기

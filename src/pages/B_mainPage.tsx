@@ -31,10 +31,16 @@ function MainPage() {
             <div className="pointer-events-none absolute -right-6 top-32 hidden h-44 w-44 rounded-full bg-[var(--accent-mint)]/45 blur-3xl sm:block" />
             <div className="pointer-events-none absolute left-1/2 bottom-10 hidden h-48 w-48 -translate-x-1/2 rounded-full bg-[var(--accent-amber)]/30 blur-3xl sm:block" />
 
-            <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center gap-12">
+            <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center gap-5">
+                <header className="flex w-full items-center justify-between">
+                    <Button variant="ghost" onClick={() => navigate(-1)} className="text-m text-[var(--text-muted)]">
+                        ← 이전으로
+                    </Button>
+                    <span />
+                </header>
                 <AudioFileUploader />
 
-                <div className="flex flex-col items-center gap-4 text-center">
+                <div className="flex flex-col items-center gap-4 text-center mt-15">
                     <div className="flex flex-wrap justify-center gap-10">
                         <Button onClick={handleGoVisual} variant="rainbow" className="px-12 py-5 text-lg">
                             이미지 업로드하기

@@ -67,7 +67,7 @@ export default function GlobalHeader() {
                     {user && location.pathname !== "/myPage" && (
                         <button
                             onClick={() => navigate("/myPage")}
-                            className="text-sm font-semibold text-[var(--text-primary)] hover:text-[var(--accent-rose)] transition-colors cursor-pointer"
+                            className="rounded-full border-2 border-black/10 bg-white/90 px-5 py-2 text-sm font-semibold text-[var(--text-primary)] shadow-[0_6px_0_rgba(46,31,39,0.08)] hover:bg-white hover:shadow-[0_4px_0_rgba(46,31,39,0.06)] hover:-translate-y-[2px] transition-all duration-200 cursor-pointer"
                         >
                             {user.name}
                         </button>

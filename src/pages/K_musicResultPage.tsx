@@ -35,6 +35,32 @@ function MusicResultPage() {
     // 자동 저장 관련
     const [savedMusicId, setSavedMusicId] = useState<string | null>(null);
     const [hasAutoSaved, setHasAutoSaved] = useState(false);
+    
+    // 요약 카드 스크롤 관련
+    const summaryScrollRef = useRef<HTMLDivElement>(null);
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(true);
+    
+    // 스크롤 가능 여부 확인
+    const checkScrollButtons = useCallback(() => {
+        if (!summaryScrollRef.current) return;
+        const { scrollLeft, scrollWidth, clientWidth } = summaryScrollRef.current;
+        setCanScrollLeft(scrollLeft > 0);
+        setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
+    }, []);
+    
+    useEffect(() => {
+        checkScrollButtons();
+        const scrollElement = summaryScrollRef.current;
+        if (scrollElement) {
+            scrollElement.addEventListener('scroll', checkScrollButtons);
+            window.addEventListener('resize', checkScrollButtons);
+            return () => {
+                scrollElement.removeEventListener('scroll', checkScrollButtons);
+                window.removeEventListener('resize', checkScrollButtons);
+            };
+        }
+    }, [checkScrollButtons, summary]);
 
     // 기본 음악 이름 생성 (저장된 음악 개수 기반)
     const getDefaultMusicName = (): string => {
@@ -447,81 +473,119 @@ function MusicResultPage() {
                     <p className="text-base text-[var(--text-muted)]">지금 바로 재생해보고, 원하는 이름과 보관 장소를 선택해보세요.</p>
                 </header>
 
-                <section className="grid gap-10 lg:grid-cols-[1.2fr_1fr]">
+                <section className="flex flex-col gap-6">
+                    {/* 상단 섹션: 재생 버튼과 액션 버튼들 */}
                     <div className="rounded-[2.5rem] border-4 border-black/10 bg-gradient-to-tr from-[#fff6da] via-white to-[#fce4ef] p-10 shadow-[0_25px_0_rgba(46,31,39,0.08)]">
-                        <div className="flex flex-col items-center justify-center gap-8">
-                                <button 
-                                    type="button" 
-                                    className="play-button"
-                                    onClick={handlePlayPause}
-                                    disabled={!musicUrl || isLoading}
-                                >
-                                    <span className="play-button-core">
-                                        {isLoading ? (
-                                            <svg viewBox="0 0 24 24" className="play-button-icon" style={{ animation: "spin 1s linear infinite" }}>
-                                                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.3" />
-                                                <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
-                                            </svg>
-                                        ) : isPlaying ? (
-                                            <svg viewBox="0 0 24 24" className="play-button-icon">
-                                                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-                                            </svg>
-                                        ) : (
-                                            <svg viewBox="0 0 24 24" className="play-button-icon">
-                                                <path d="M8 5.5v13l10-6.5z" />
-                                            </svg>
-                                        )}
-                                    </span>
-                                </button>
-                                {musicUrl && (
-                                    <p className="text-sm text-[var(--text-muted)]">
-                                        {isPlaying ? "재생 중..." : isLoading ? "로딩 중..." : "재생할 준비가 되었습니다"}
-                                    </p>
-                                )}
-                                <div className="flex flex-col items-center gap-3 w-full">
-                                    {/* 상단 두 개의 버튼 */}
-                                    <div className="flex gap-3 w-full">
-                                        <Button 
-                                            variant="soft" 
-                                            className="flex-1 py-5 text-m font-semibold hover:cursor-pointer"
-                                            onClick={handleSaveToArchive}
-                                        >
-                                            내 보관함
-                                        </Button>
-                                        <Button 
-                                            variant="soft" 
-                                            className="flex-1 py-5 text-m font-semibold hover:cursor-pointer"
-                                            onClick={handleSaveToArchive}
-                                        >
-                                            음악 이름 짓기
-                                        </Button>
-                                    </div>
-                                    {/* 하단 큰 버튼 (다운로드) */}
-                                    <Button 
-                                        variant="soft" 
-                                        className="w-full py-5 text-m font-semibold hover:cursor-pointer flex items-center justify-center gap-2"
-                                        onClick={handleDownload}
-                                        disabled={!musicUrl}
-                                    >
-                                        <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
-                                            <path d="M12 15.5L7.5 11h3V3h3v8h3L12 15.5zM5 19h14v2H5v-2z" />
+                        <div className="flex flex-col items-center gap-6">
+                            {/* 재생 버튼 (중앙) */}
+                            <button 
+                                type="button" 
+                                className="play-button"
+                                onClick={handlePlayPause}
+                                disabled={!musicUrl || isLoading}
+                            >
+                                <span className="play-button-core">
+                                    {isLoading ? (
+                                        <svg viewBox="0 0 24 24" className="play-button-icon" style={{ animation: "spin 1s linear infinite" }}>
+                                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.3" />
+                                            <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
                                         </svg>
-                                        다운로드
-                                    </Button>
-                                </div>
+                                    ) : isPlaying ? (
+                                        <svg viewBox="0 0 24 24" className="play-button-icon">
+                                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                                        </svg>
+                                    ) : (
+                                        <svg viewBox="0 0 24 24" className="play-button-icon">
+                                            <path d="M8 5.5v13l10-6.5z" />
+                                        </svg>
+                                    )}
+                                </span>
+                            </button>
+                            
+                            {/* 두 개의 버튼 */}
+                            <div className="flex gap-4 w-full max-w-md">
+                                <Button 
+                                    variant="soft" 
+                                    className="flex-1 py-4 text-base font-semibold hover:cursor-pointer"
+                                    onClick={handleSaveToArchive}
+                                >
+                                    내 보관함
+                                </Button>
+                                <Button 
+                                    variant="soft" 
+                                    className="flex-1 py-4 text-base font-semibold hover:cursor-pointer"
+                                    onClick={handleSaveToArchive}
+                                >
+                                    이름 짓기
+                                </Button>
+                            </div>
+                            
+                            {/* 다운로드 버튼 */}
+                            <Button 
+                                variant="soft" 
+                                className="w-full max-w-md py-4 text-base font-semibold hover:cursor-pointer flex items-center justify-center gap-2"
+                                onClick={handleDownload}
+                                disabled={!musicUrl}
+                            >
+                                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
+                                    <path d="M12 15.5L7.5 11h3V3h3v8h3L12 15.5zM5 19h14v2H5v-2z" />
+                                </svg>
+                                다운로드
+                            </Button>
+                        </div>
+                    </div>
+
+                    {/* 하단 섹션: 가로 스크롤 가능한 요약 카드들과 화살표 버튼 */}
+                    <div className="rounded-[2.5rem] border-4 border-black/10 bg-white/85 p-8 shadow-[0_22px_0_rgba(46,31,39,0.08)] relative">
+                        {/* 왼쪽 화살표 (박스 밖) */}
+                        {canScrollLeft && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (summaryScrollRef.current) {
+                                        summaryScrollRef.current.scrollBy({ left: -300, behavior: 'smooth' });
+                                    }
+                                }}
+                                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 z-10 w-12 h-12 rounded-full bg-white/90 border-2 border-black/10 shadow-lg flex items-center justify-center hover:bg-white transition-all"
+                            >
+                                <svg viewBox="0 0 24 24" className="w-6 h-6 fill-[var(--text-primary)]">
+                                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+                                </svg>
+                            </button>
+                        )}
+                        
+                        {/* 가로 스크롤 가능한 요약 카드들 */}
+                        <div 
+                            ref={summaryScrollRef}
+                            className="overflow-x-auto pb-4 scrollbar-hide"
+                            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                        >
+                            <div className="flex gap-4 min-w-max">
+                                {summary.map((item) => (
+                                    <div key={item.label} className="flex-shrink-0 w-64 flex flex-col rounded-[1.5rem] bg-[var(--bg-secondary)] p-5">
+                                        <span className="text-sm font-semibold uppercase tracking-[0.25em] text-[var(--accent-rose)] mb-3">{item.label}</span>
+                                        <span className="text-base text-[var(--text-primary)] break-words">{item.value}</span>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-
-                    <div className="rounded-[2.5rem] border-4 border-black/10 bg-white/85 p-10 shadow-[0_22px_0_rgba(46,31,39,0.08)]">
-                        <h2 className="text-xl ml-3 font-semibold text-[var(--text-primary)]">요청 요약</h2>
-                        <div className="mt-6 space-y-4">
-                            {summary.map((item) => (
-                                <div key={item.label} className="flex items-center justify-between rounded-[1.5rem] bg-[var(--bg-secondary)] px-5 py-4 text-[var(--text-primary)]">
-                                    <span className="text-m font-semibold uppercase tracking-[0.25em] text-[var(--accent-rose)]">{item.label}</span>
-                                    <span className="text-m ">{item.value}</span>
-                                </div>
-                            ))}
-                        </div>
+                        
+                        {/* 오른쪽 화살표 (박스 밖) */}
+                        {canScrollRight && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (summaryScrollRef.current) {
+                                        summaryScrollRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+                                    }
+                                }}
+                                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 z-10 w-12 h-12 rounded-full bg-white/90 border-2 border-black/10 shadow-lg flex items-center justify-center hover:bg-white transition-all"
+                            >
+                                <svg viewBox="0 0 24 24" className="w-6 h-6 fill-[var(--text-primary)]">
+                                    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
+                                </svg>
+                            </button>
+                        )}
                     </div>
                 </section>
 

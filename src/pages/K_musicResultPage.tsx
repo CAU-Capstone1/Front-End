@@ -565,9 +565,9 @@ function MusicResultPage() {
                     <Button toWhere="/" variant="rainbow" className="w-55 py-5" onClick={() => resetAnswers()}>
                         처음으로 돌아가기
                     </Button>
-                    <Button variant="rainbow" className="w-55 py-5" onClick={() => window.location.reload()}>
+                    {/* <Button variant="rainbow" className="w-55 py-5" onClick={() => window.location.reload()}>
                         다시 생성하기
-                    </Button>
+                    </Button> */}
                 </div>
             </div>
 

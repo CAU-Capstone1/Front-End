@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import AudioFileUploader from "../components/audioFile";
 import Button from "../components/button";
@@ -5,6 +6,32 @@ import { getAnswer } from "../utils/compositionSession";
 
 function MainPage() {
     const navigate = useNavigate();
+    const [isMainMelodyUploaded, setIsMainMelodyUploaded] = useState(() => !!getAnswer("hummingMain"));
+
+    // 메인 멜로디 업로드 상태를 확인
+    useEffect(() => {
+        const checkMainMelody = () => {
+            setIsMainMelodyUploaded(!!getAnswer("hummingMain"));
+        };
+
+        // 초기 확인
+        checkMainMelody();
+
+        // 메인 멜로디 업로드 완료 이벤트 감지
+        const handleMainMelodyUploaded = () => {
+            checkMainMelody();
+        };
+
+        window.addEventListener("mainMelodyUploaded", handleMainMelodyUploaded);
+
+        // 주기적으로도 확인 (다른 경로로 업로드된 경우 대비)
+        const interval = setInterval(checkMainMelody, 1000);
+
+        return () => {
+            window.removeEventListener("mainMelodyUploaded", handleMainMelodyUploaded);
+            clearInterval(interval);
+        };
+    }, []);
 
     const requireMainMelody = () => {
         const mainMelody = getAnswer("hummingMain");
@@ -40,17 +67,18 @@ function MainPage() {
                 </header>
                 <AudioFileUploader />
 
-                <div className="flex flex-col items-center gap-4 text-center mt-15">
-                    <div className="flex flex-wrap justify-center gap-10">
-                        <Button onClick={handleGoVisual} variant="rainbow" className="px-12 py-5 text-lg">
-                            이미지 업로드하기
-                        </Button>
-                        <Button onClick={handleSkip} variant="rainbow" className="px-12 py-5 text-lg">
-                             바로 다음 단계로 
-                        </Button>
+                {isMainMelodyUploaded && (
+                    <div className="flex flex-col items-center gap-4 text-center mt-15">
+                        <div className="flex flex-wrap justify-center gap-10">
+                            <Button onClick={handleGoVisual} variant="rainbow" className="px-12 py-5 text-lg">
+                                이미지 업로드하기
+                            </Button>
+                            <Button onClick={handleSkip} variant="rainbow" className="px-12 py-5 text-lg">
+                                다음 단계로
+                            </Button>
+                        </div>
                     </div>
-                    
-                </div>
+                )}
             </div>
         </div>
     );

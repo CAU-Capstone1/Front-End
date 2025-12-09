@@ -143,6 +143,11 @@ export default function AudioFileUploader() {
           storedName: s3Key,
         },
       }));
+
+      // 메인 멜로디 업로드 완료 시 커스텀 이벤트 발생
+      if (segmentId === "main") {
+        window.dispatchEvent(new CustomEvent("mainMelodyUploaded"));
+      }
     } catch (error) {
       console.error("업로드 중 치명적인 오류 발생:", error);
       setSegmentState((prev) => ({

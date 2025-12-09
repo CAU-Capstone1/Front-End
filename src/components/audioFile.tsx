@@ -212,11 +212,11 @@ export default function AudioFileUploader() {
                 }`}
               >
                 {segment.required ? (
-                  <span className="absolute right-4 top-2 rounded-full bg-[var(--accent-rose)] px-2 py-0.5 text-xs font-bold text-white shadow-md">
+                  <span className="absolute right-4 top-3 rounded-full bg-[var(--accent-rose)] px-2 py-0.5 text-xs font-bold text-white shadow-md">
                     필수
                   </span>
                 ) : (
-                  <span className="absolute right-4 top-2 rounded-full bg-gray-200 px-2 py-0.5 text-xs font-semibold text-gray-600 shadow-md">
+                  <span className="absolute right-4 top-3 rounded-full bg-gray-200 px-2 py-0.5 text-xs font-semibold text-gray-600 shadow-md">
                     선택
                   </span>
                 )}

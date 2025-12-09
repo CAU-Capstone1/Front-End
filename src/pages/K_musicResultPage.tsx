@@ -153,14 +153,29 @@ function MusicResultPage() {
         }
     }, [checkScrollButtons, summary, startAutoScroll, stopAutoScroll]);
 
-    // 기본 음악 이름 생성 (저장된 음악 개수 기반)
+    // 기본 음악 이름 생성 (중복 방지)
     const getDefaultMusicName = (): string => {
         if (!isLoggedIn()) return "음악 1";
         
         try {
             const savedMusics = getAllSavedMusic();
-            const count = savedMusics.length;
-            return `음악 ${count + 1}`;
+            
+            // "음악 X" 형식의 이름에서 가장 큰 숫자 찾기
+            const musicNumberPattern = /^음악\s+(\d+)$/;
+            let maxNumber = 0;
+            
+            savedMusics.forEach((music) => {
+                const match = music.name.match(musicNumberPattern);
+                if (match) {
+                    const num = parseInt(match[1], 10);
+                    if (num > maxNumber) {
+                        maxNumber = num;
+                    }
+                }
+            });
+            
+            // 가장 큰 숫자 + 1로 새 이름 생성
+            return `음악 ${maxNumber + 1}`;
         } catch {
             return "음악 1";
         }

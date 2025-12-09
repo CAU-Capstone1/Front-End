@@ -56,7 +56,7 @@ function LengthPage() {
                     />
                     <span className="text-lg font-semibold text-[var(--accent-rose)]">초</span>
                 </div>
-                <p className="text-sm font-medium text-[var(--text-muted)]">
+                <p className="text-base font-medium text-[var(--text-muted)]">
                 최대 180초(3분)까지만 입력할 수 있어요.
                 </p>
             </div>

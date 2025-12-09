@@ -30,7 +30,7 @@ function LoginPage() {
             }
             
             alert("로그인 성공!");
-            navigate("/main");
+            navigate("/");
         } catch (err) {
             setError(err instanceof Error ? err.message : "로그인에 실패했습니다.");
         } finally {

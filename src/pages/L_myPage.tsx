@@ -223,23 +223,22 @@ function MyPage() {
                                     {currentUser.name}님 환영합니다
                                 </span>
                             )}
-                            <Button
-                                variant="outline"
+                            <button
                                 onClick={async () => {
                                     try {
                                         await logout();
                                         alert("로그아웃되었습니다.");
-                                        navigate("/login");
+                                        navigate("/");
                                     } catch (error) {
                                         console.error("로그아웃 실패:", error);
-                                        // 에러가 발생해도 로그인 페이지로 이동
-                                        navigate("/login");
+                                        // 에러가 발생해도 시작 페이지로 이동
+                                        navigate("/");
                                     }
                                 }}
-                                className="px-4 py-2 text-sm"
+                                className="rainbow-text-hover-parent rounded-full border-2 border-black/10 bg-white/90 px-7 py-3 text-sm font-semibold shadow-[0_6px_0_rgba(46,31,39,0.08)] hover:bg-white hover:shadow-[0_4px_0_rgba(46,31,39,0.06)] hover:-translate-y-[2px] transition-all duration-200 cursor-pointer"
                             >
-                                로그아웃
-                            </Button>
+                                <span className="text-[var(--text-primary)] rainbow-text-hover">로그아웃</span>
+                            </button>
                         </div>
                     </div>
                     <h1 className="text-[2.6rem] font-semibold leading-tight text-[var(--text-primary)]">내 보관함</h1>

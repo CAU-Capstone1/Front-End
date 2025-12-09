@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { getCurrentUser, logout } from "../utils/auth";
-import Button from "./button";
 
 export default function GlobalHeader() {
     const [user, setUser] = useState(getCurrentUser());
@@ -54,34 +53,39 @@ export default function GlobalHeader() {
             {showLoginButtons ? (
                 // 시작 페이지에서 로그인하지 않은 경우: 양쪽 끝에 로그인/회원가입 버튼
                 <>
-                    <Button toWhere="/login" variant="outline" className="px-6 py-2 text-sm">
-                        로그인
-                    </Button>
-                    <Button toWhere="/signup" variant="outline" className="px-6 py-2 text-sm">
-                        회원가입
-                    </Button>
+                    <button
+                        onClick={() => navigate("/login")}
+                        className="rainbow-text-hover-parent rounded-full border-2 border-black/10 bg-white/90 px-7 py-3 text-sm font-semibold shadow-[0_6px_0_rgba(46,31,39,0.08)] hover:bg-white hover:shadow-[0_4px_0_rgba(46,31,39,0.06)] hover:-translate-y-[2px] transition-all duration-200 cursor-pointer"
+                    >
+                        <span className="text-[var(--text-primary)] rainbow-text-hover">로그인</span>
+                    </button>
+                    <button
+                        onClick={() => navigate("/signup")}
+                        className="rainbow-text-hover-parent rounded-full border-2 border-black/10 bg-white/90 px-7 py-3 text-sm font-semibold shadow-[0_6px_0_rgba(46,31,39,0.08)] hover:bg-white hover:shadow-[0_4px_0_rgba(46,31,39,0.06)] hover:-translate-y-[2px] transition-all duration-200 cursor-pointer ml-auto"
+                    >
+                        <span className="text-[var(--text-primary)] rainbow-text-hover">회원가입</span>
+                    </button>
                 </>
             ) : (
-                // 로그인된 경우 또는 다른 페이지: 오른쪽에 사용자 이름 (조건부로 로그아웃 버튼)
-                <div className="flex items-center gap-4 ml-auto">
+                // 로그인된 경우 또는 다른 페이지: 왼쪽에 로그아웃 버튼, 오른쪽에 사용자 이름
+                <>
+                    {user && showLogoutButton && (
+                        <button
+                            onClick={handleLogout}
+                            className="rainbow-text-hover-parent rounded-full border-2 border-black/10 bg-white/90 px-7 py-3버튼튼 text-sm font-semibold shadow-[0_6px_0_rgba(46,31,39,0.08)] hover:bg-white hover:shadow-[0_4px_0_rgba(46,31,39,0.06)] hover:-translate-y-[2px] transition-all duration-200 cursor-pointer"
+                        >
+                            <span className="text-[var(--text-primary)] rainbow-text-hover">로그아웃</span>
+                        </button>
+                    )}
                     {user && location.pathname !== "/myPage" && (
                         <button
                             onClick={() => navigate("/myPage")}
-                            className="rounded-full border-2 border-black/10 bg-white/90 px-5 py-2 text-sm font-semibold text-[var(--text-primary)] shadow-[0_6px_0_rgba(46,31,39,0.08)] hover:bg-white hover:shadow-[0_4px_0_rgba(46,31,39,0.06)] hover:-translate-y-[2px] transition-all duration-200 cursor-pointer"
+                            className="rainbow-text-hover-parent rounded-full border-2 border-black/10 bg-white/90 px-7 py-3 text-sm font-semibold shadow-[0_6px_0_rgba(46,31,39,0.08)] hover:bg-white hover:shadow-[0_4px_0_rgba(46,31,39,0.06)] hover:-translate-y-[2px] transition-all duration-200 cursor-pointer ml-auto"
                         >
-                            {user.name}
+                            <span className="text-[var(--text-primary)] rainbow-text-hover">{user.name}</span>
                         </button>
                     )}
-                    {user && showLogoutButton && (
-                        <Button
-                            onClick={handleLogout}
-                            variant="outline"
-                            className="px-4 py-2 text-sm"
-                        >
-                            로그아웃
-                        </Button>
-                    )}
-                </div>
+                </>
             )}
         </header>
     );

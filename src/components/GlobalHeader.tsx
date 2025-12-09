@@ -64,7 +64,7 @@ export default function GlobalHeader() {
             ) : (
                 // 로그인된 경우 또는 다른 페이지: 오른쪽에 사용자 이름 (조건부로 로그아웃 버튼)
                 <div className="flex items-center gap-4 ml-auto">
-                    {user && (
+                    {user && location.pathname !== "/myPage" && (
                         <button
                             onClick={() => navigate("/myPage")}
                             className="text-sm font-semibold text-[var(--text-primary)] hover:text-[var(--accent-rose)] transition-colors cursor-pointer"

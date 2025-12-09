@@ -1,14 +1,28 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import Button from "../components/button";
 import { resetAnswers } from "../utils/compositionSession";
+import { getCurrentUser } from "../utils/auth";
 
 const SPARKLES = Array.from({ length: 30 }).map((_, idx) => idx);
 
 function StartPage() {
+    const navigate = useNavigate();
+    const [showModal, setShowModal] = useState(false);
+
     // 시작 페이지에 들어올 때마다 이전 선택사항 초기화
     useEffect(() => {
         resetAnswers();
     }, []);
+
+    const handleStartClick = () => {
+        const user = getCurrentUser();
+        if (!user) {
+            setShowModal(true);
+        } else {
+            navigate("/main");
+        }
+    };
 
     return (
         <div className="start-gradient-bg relative flex min-h-screen w-full items-center justify-center overflow-hidden px-4 py-20 sm:px-10">
@@ -43,11 +57,41 @@ function StartPage() {
                 </header>
 
                 <div className="flex flex-col items-center mt-6">
-                    <Button toWhere="/main" variant="rainbow" className="px-16 py-5 text-lg">
+                    <Button onClick={handleStartClick} variant="rainbow" className="px-16 py-5 text-lg">
                         시작하기
                     </Button>
                 </div>
             </main>
+
+            {/* 로그인 필요 모달 */}
+            {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="relative mx-4 w-full max-w-md rounded-[2rem] border-4 border-black/10 bg-white/95 px-8 py-10 shadow-[0_28px_0_rgba(46,31,39,0.15)] animate-fade-in-up">
+                        <h2 className="mb-4 text-center text-2xl font-semibold text-[var(--text-primary)]">
+                            로그인 먼저 해주세요
+                        </h2>
+                        <p className="mb-8 text-center text-base text-[var(--text-muted)]">
+                            음악을 만들려면 먼저 로그인이 필요해요.
+                        </p>
+                        <div className="flex flex-col gap-3">
+                            <Button
+                                onClick={() => navigate("/login")}
+                                variant="rainbow"
+                                className="w-full px-8 py-4 text-lg"
+                            >
+                                로그인하러 가기
+                            </Button>
+                            <Button
+                                onClick={() => setShowModal(false)}
+                                variant="outline"
+                                className="w-full px-8 py-4 text-lg"
+                            >
+                                닫기
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

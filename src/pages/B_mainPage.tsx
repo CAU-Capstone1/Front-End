@@ -67,9 +67,9 @@ function MainPage() {
                 </header>
                 <AudioFileUploader />
 
-                {isMainMelodyUploaded && (
-                    <div className="flex flex-col items-center gap-4 text-center mt-15 animate-fade-in-up">
-                        <div className="flex flex-wrap justify-center gap-10">
+                <div className="flex flex-col items-center gap-4 text-center mt-15 min-h-[120px]">
+                    {isMainMelodyUploaded ? (
+                        <div className="flex flex-wrap justify-center gap-10 animate-fade-in-up">
                             <Button onClick={handleGoVisual} variant="rainbow" className="px-12 py-5 text-lg">
                                 이미지 업로드하기
                             </Button>
@@ -77,8 +77,10 @@ function MainPage() {
                                 다음 단계로
                             </Button>
                         </div>
-                    </div>
-                )}
+                    ) : (
+                        <div className="h-[120px]" />
+                    )}
+                </div>
             </div>
         </div>
     );

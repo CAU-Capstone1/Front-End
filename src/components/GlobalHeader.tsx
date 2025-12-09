@@ -72,7 +72,7 @@ export default function GlobalHeader() {
                     {user && showLogoutButton && (
                         <button
                             onClick={handleLogout}
-                            className="rainbow-text-hover-parent rounded-full border-2 border-black/10 bg-white/90 px-7 py-3버튼튼 text-sm font-semibold shadow-[0_6px_0_rgba(46,31,39,0.08)] hover:bg-white hover:shadow-[0_4px_0_rgba(46,31,39,0.06)] hover:-translate-y-[2px] transition-all duration-200 cursor-pointer"
+                            className="rainbow-text-hover-parent rounded-full border-2 border-black/10 bg-white/90 px-7 py-image.png text-sm font-semibold shadow-[0_6px_0_rgba(46,31,39,0.08)] hover:bg-white hover:shadow-[0_4px_0_rgba(46,31,39,0.06)] hover:-translate-y-[2px] transition-all duration-200 cursor-pointer"
                         >
                             <span className="text-[var(--text-primary)] rainbow-text-hover">로그아웃</span>
                         </button>

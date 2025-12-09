@@ -40,27 +40,118 @@ function MusicResultPage() {
     const summaryScrollRef = useRef<HTMLDivElement>(null);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(true);
+    const autoScrollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const isUserScrollingRef = useRef(false);
     
     // 스크롤 가능 여부 확인
     const checkScrollButtons = useCallback(() => {
         if (!summaryScrollRef.current) return;
         const { scrollLeft, scrollWidth, clientWidth } = summaryScrollRef.current;
         setCanScrollLeft(scrollLeft > 0);
-        setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
+        const canScroll = scrollLeft < scrollWidth - clientWidth - 1;
+        setCanScrollRight(canScroll);
+        
+        // 오른쪽 화살표가 사라지면 자동 스크롤 중지
+        if (!canScroll && autoScrollIntervalRef.current) {
+            if (autoScrollIntervalRef.current) {
+                clearInterval(autoScrollIntervalRef.current);
+                autoScrollIntervalRef.current = null;
+            }
+        }
     }, []);
+    
+    // 자동 스크롤 중지
+    const stopAutoScroll = useCallback(() => {
+        if (autoScrollIntervalRef.current) {
+            clearInterval(autoScrollIntervalRef.current);
+            autoScrollIntervalRef.current = null;
+        }
+    }, []);
+    
+    // 자동 스크롤 시작
+    const startAutoScroll = useCallback(() => {
+        // 이미 실행 중이면 중지
+        if (autoScrollIntervalRef.current) {
+            clearInterval(autoScrollIntervalRef.current);
+            autoScrollIntervalRef.current = null;
+        }
+        
+        // 스크롤이 필요한지 확인
+        if (!summaryScrollRef.current) return;
+        const { scrollWidth, clientWidth } = summaryScrollRef.current;
+        if (scrollWidth <= clientWidth) return; // 스크롤이 필요 없으면 시작하지 않음
+        
+        autoScrollIntervalRef.current = setInterval(() => {
+            if (!summaryScrollRef.current || isUserScrollingRef.current) return;
+            
+            // 오른쪽 화살표가 사라졌는지 확인
+            const { scrollLeft, scrollWidth, clientWidth } = summaryScrollRef.current;
+            if (scrollLeft >= scrollWidth - clientWidth - 1) {
+                stopAutoScroll();
+                return;
+            }
+            
+            // 천천히 오른쪽으로 스크롤 (느리게)
+            summaryScrollRef.current.scrollBy({ left: 0.2, behavior: 'auto' });
+            
+            checkScrollButtons();
+        }, 50); // 50ms마다 실행 (느린 애니메이션)
+    }, [checkScrollButtons, stopAutoScroll]);
     
     useEffect(() => {
         checkScrollButtons();
         const scrollElement = summaryScrollRef.current;
         if (scrollElement) {
+            let userScrollTimeout: ReturnType<typeof setTimeout> | null = null;
+            
+            // 사용자 상호작용 감지
+            const handleUserInteraction = () => {
+                isUserScrollingRef.current = true;
+                stopAutoScroll();
+                
+                // 기존 타임아웃 취소
+                if (userScrollTimeout) {
+                    clearTimeout(userScrollTimeout);
+                }
+                
+                // 3초 후 자동 스크롤 재개 (오른쪽 화살표가 있으면만)
+                userScrollTimeout = setTimeout(() => {
+                    isUserScrollingRef.current = false;
+                    const { scrollLeft, scrollWidth, clientWidth } = scrollElement;
+                    if (scrollLeft < scrollWidth - clientWidth - 1) {
+                        startAutoScroll();
+                    }
+                }, 3000);
+            };
+            
             scrollElement.addEventListener('scroll', checkScrollButtons);
+            scrollElement.addEventListener('wheel', handleUserInteraction);
+            scrollElement.addEventListener('touchstart', handleUserInteraction);
+            scrollElement.addEventListener('mousedown', handleUserInteraction);
             window.addEventListener('resize', checkScrollButtons);
+            
+            // 약간의 지연 후 자동 스크롤 시작 (DOM이 완전히 렌더링된 후)
+            const startTimeout = setTimeout(() => {
+                const { scrollLeft, scrollWidth, clientWidth } = scrollElement;
+                if (scrollLeft < scrollWidth - clientWidth - 1) {
+                    startAutoScroll();
+                }
+            }, 300);
+            
             return () => {
+                if (userScrollTimeout) {
+                    clearTimeout(userScrollTimeout);
+                }
+                clearTimeout(startTimeout);
                 scrollElement.removeEventListener('scroll', checkScrollButtons);
+                scrollElement.removeEventListener('wheel', handleUserInteraction);
+                scrollElement.removeEventListener('touchstart', handleUserInteraction);
+                scrollElement.removeEventListener('mousedown', handleUserInteraction);
                 window.removeEventListener('resize', checkScrollButtons);
+                stopAutoScroll();
             };
         }
-    }, [checkScrollButtons, summary]);
+    }, [checkScrollButtons, summary, startAutoScroll, stopAutoScroll]);
 
     // 기본 음악 이름 생성 (저장된 음악 개수 기반)
     const getDefaultMusicName = (): string => {
@@ -410,7 +501,7 @@ function MusicResultPage() {
         }
     };
 
-    // 음악 다운로드 처리 (로그인 불필요)
+    // 음악 다운로드 처리 (S3 URL 직접 다운로드)
     const handleDownload = async () => {
         if (!musicUrl) {
             alert("다운로드할 음악이 없습니다.");
@@ -418,32 +509,67 @@ function MusicResultPage() {
         }
 
         try {
-            // 음악 파일 다운로드
-            const response = await fetch(musicUrl);
-            if (!response.ok) {
-                throw new Error("다운로드 실패");
+            // 먼저 fetch로 시도 (CORS가 허용된 경우)
+            try {
+                const response = await fetch(musicUrl, {
+                    method: 'GET',
+                    mode: 'cors',
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    
+                    // 파일명 생성 (음악 이름이 있으면 사용, 없으면 기본값)
+                    const fileName = musicName.trim() 
+                        ? `${musicName.trim()}.mp3` 
+                        : `music-${Date.now()}.mp3`;
+                    a.download = fileName;
+                    
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    
+                    return; // 성공하면 여기서 종료
+                }
+            } catch (fetchError) {
+                // CORS 오류 등으로 fetch 실패 시 직접 링크 방식 사용
+                console.log("Fetch 실패, 직접 링크 방식 사용:", fetchError);
             }
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
+            
+            // CORS 문제로 fetch가 실패한 경우, 직접 링크로 다운로드 시도
+            // S3 URL에 직접 접근하여 다운로드 (브라우저가 자동으로 다운로드 처리)
             const a = document.createElement("a");
-            a.href = url;
+            a.href = musicUrl;
+            a.target = "_blank";
+            a.rel = "noopener noreferrer";
             
             // 파일명 생성 (음악 이름이 있으면 사용, 없으면 기본값)
             const fileName = musicName.trim() 
                 ? `${musicName.trim()}.mp3` 
                 : `music-${Date.now()}.mp3`;
+            
+            // download 속성 시도 (CORS가 없어도 작동할 수 있음)
             a.download = fileName;
             
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
             
-            alert("다운로드가 완료되었습니다!");
+            // download 속성이 작동하지 않을 수 있으므로, 새 창에서도 열기
+            // 사용자가 수동으로 다운로드할 수 있도록
+            setTimeout(() => {
+                window.open(musicUrl, '_blank');
+            }, 100);
+            
         } catch (error) {
             console.error("다운로드 실패:", error);
-            alert("다운로드 중 오류가 발생했습니다.");
+            // 최후의 수단: 직접 링크 열기
+            window.open(musicUrl, '_blank');
+            alert("브라우저에서 직접 다운로드해주세요. 새 창이 열렸습니다.");
         }
     };
 
@@ -507,7 +633,7 @@ function MusicResultPage() {
                                 <Button 
                                     variant="soft" 
                                     className="flex-1 py-4 text-base font-semibold hover:cursor-pointer"
-                                    onClick={handleSaveToArchive}
+                                    onClick={() => navigate("/myPage")}
                                 >
                                     내 보관함
                                 </Button>
@@ -536,52 +662,79 @@ function MusicResultPage() {
                     </div>
 
                     {/* 하단 섹션: 가로 스크롤 가능한 요약 카드들과 화살표 버튼 */}
-                    <div className="rounded-[2.5rem] border-4 border-black/10 bg-white/85 p-8 shadow-[0_22px_0_rgba(46,31,39,0.08)] relative">
-                        {/* 왼쪽 화살표 (박스 밖) */}
+                    <div className="relative py-8">
+                        {/* 왼쪽 화살표 */}
                         {canScrollLeft && (
                             <button
                                 type="button"
                                 onClick={() => {
                                     if (summaryScrollRef.current) {
-                                        summaryScrollRef.current.scrollBy({ left: -300, behavior: 'smooth' });
+                                        isUserScrollingRef.current = true;
+                                        stopAutoScroll();
+                                        // 카드 너비(256px) + gap(16px) = 272px, 두 칸 = 544px
+                                        summaryScrollRef.current.scrollBy({ left: -544, behavior: 'smooth' });
+                                        // 3초 후 자동 스크롤 재개 (오른쪽 화살표가 있으면만)
+                                        setTimeout(() => {
+                                            isUserScrollingRef.current = false;
+                                            const { scrollLeft, scrollWidth, clientWidth } = summaryScrollRef.current!;
+                                            if (scrollLeft < scrollWidth - clientWidth - 1) {
+                                                startAutoScroll();
+                                            }
+                                        }, 3000);
                                     }
                                 }}
-                                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 z-10 w-12 h-12 rounded-full bg-white/90 border-2 border-black/10 shadow-lg flex items-center justify-center hover:bg-white transition-all"
+                                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 z-10 flex items-center justify-center hover:opacity-100 transition-opacity duration-300"
                             >
-                                <svg viewBox="0 0 24 24" className="w-6 h-6 fill-[var(--text-primary)]">
+                                <svg viewBox="0 0 24 24" className="w-8 h-8 fill-[var(--text-primary)] opacity-50">
                                     <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
                                 </svg>
                             </button>
                         )}
                         
-                        {/* 가로 스크롤 가능한 요약 카드들 */}
                         <div 
                             ref={summaryScrollRef}
                             className="overflow-x-auto pb-4 scrollbar-hide"
                             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                         >
-                            <div className="flex gap-4 min-w-max">
+                            <div className="flex gap-5 min-w-max px-4">
                                 {summary.map((item) => (
-                                    <div key={item.label} className="flex-shrink-0 w-64 flex flex-col rounded-[1.5rem] bg-[var(--bg-secondary)] p-5">
-                                        <span className="text-sm font-semibold uppercase tracking-[0.25em] text-[var(--accent-rose)] mb-3">{item.label}</span>
-                                        <span className="text-base text-[var(--text-primary)] break-words">{item.value}</span>
+                                    <div 
+                                        key={item.label} 
+                                        className="flex-shrink-0 w-72 flex flex-col rounded-[2.5rem] bg-gradient-to-br from-white via-[#fffef8] to-[#fff6da] border-2 border-white/50 p-7 shadow-[0_8px_24px_rgba(246,190,95,0.15)] hover:shadow-[0_12px_32px_rgba(246,190,95,0.25)] transition-all duration-300 backdrop-blur-sm"
+                                    >
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-br from-[var(--accent-rose)] to-[var(--accent-amber)]"></div>
+                                            <span className="text-sm font-bold uppercase tracking-[0.3em] text-[var(--accent-rose)]">{item.label}</span>
+                                        </div>
+                                        <span className="text-base text-[var(--text-primary)] break-words leading-relaxed font-medium">{item.value}</span>
                                     </div>
                                 ))}
                             </div>
                         </div>
                         
-                        {/* 오른쪽 화살표 (박스 밖) */}
+                        {/* 오른쪽 화살표 */}
                         {canScrollRight && (
                             <button
                                 type="button"
                                 onClick={() => {
                                     if (summaryScrollRef.current) {
-                                        summaryScrollRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+                                        isUserScrollingRef.current = true;
+                                        stopAutoScroll();
+                                        // 카드 너비(256px) + gap(16px) = 272px, 두 칸 = 544px
+                                        summaryScrollRef.current.scrollBy({ left: 544, behavior: 'smooth' });
+                                        // 3초 후 자동 스크롤 재개 (오른쪽 화살표가 있으면만)
+                                        setTimeout(() => {
+                                            isUserScrollingRef.current = false;
+                                            const { scrollLeft, scrollWidth, clientWidth } = summaryScrollRef.current!;
+                                            if (scrollLeft < scrollWidth - clientWidth - 1) {
+                                                startAutoScroll();
+                                            }
+                                        }, 3000);
                                     }
                                 }}
-                                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 z-10 w-12 h-12 rounded-full bg-white/90 border-2 border-black/10 shadow-lg flex items-center justify-center hover:bg-white transition-all"
+                                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 z-10 flex items-center justify-center hover:opacity-100 transition-opacity duration-300"
                             >
-                                <svg viewBox="0 0 24 24" className="w-6 h-6 fill-[var(--text-primary)]">
+                                <svg viewBox="0 0 24 24" className="w-8 h-8 fill-[var(--text-primary)] opacity-50">
                                     <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
                                 </svg>
                             </button>

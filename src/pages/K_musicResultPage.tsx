@@ -610,7 +610,7 @@ function MusicResultPage() {
                 <header className="text-center space-y-3">
                     <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-6 py-2 text-sm font-semibold uppercase
                     tracking-[0.3em] text-[var(--accent-rose)] shadow-[0_10px_0_rgba(46,31,39,0.08)] mb-10 ">
-                    ai result
+                    다 됐어요
                     </span>
                     <h1 className="text-[2.6rem] font-semibold leading-tight text-[var(--text-primary)]">음악이 완성되었습니다</h1>
                     <p className="text-base text-[var(--text-muted)] font-medium">지금 바로 재생해보고, 원하는 이름과 보관 장소를 선택해보세요.</p>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface Obstacle {
     id: number;
@@ -17,6 +17,9 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
     const [score, setScore] = useState(0);
     const [gameOver, setGameOver] = useState(false);
     const [showBubble, setShowBubble] = useState(false);
+    const [showPingBubble, setShowPingBubble] = useState(false);
+    const [showMasterBubble, setShowMasterBubble] = useState(false);
+    const [showEasyBubble, setShowEasyBubble] = useState(false);
     const gameStateRef = useRef({
         birdX: 50,
         birdY: 100,
@@ -26,12 +29,13 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
         lastObstacleTime: 0,
         animationId: 0,
         spacePressed: false,
+        teleportScore: 0, // 순간이동 시점의 점수
     });
 
     const CANVAS_WIDTH = 600;
     const CANVAS_HEIGHT = 400;
     const BIRD_SIZE = 40;
-    const MOVE_SPEED = 4;
+    const MOVE_SPEED = 6;
 
     const keysPressedRef = useRef<Set<string>>(new Set());
 
@@ -109,7 +113,10 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
         const drawSpeechBubble = (x: number, y: number, text: string) => {
             ctx.save();
             
-            const bubbleWidth = 120;
+            // 텍스트 길이에 따라 말풍선 크기 조정
+            ctx.font = "bold 14px sans-serif";
+            const textWidth = ctx.measureText(text).width;
+            const bubbleWidth = Math.max(120, textWidth + 30);
             const bubbleHeight = 50;
             const bubbleX = x - bubbleWidth / 2;
             const bubbleY = y - BIRD_SIZE - bubbleHeight - 10;
@@ -117,7 +124,7 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
             // 말풍선 배경
             ctx.fillStyle = "#ffffff";
             ctx.strokeStyle = "#1f2937";
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.roundRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight, 10);
             ctx.fill();
@@ -134,7 +141,6 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
             
             // 텍스트
             ctx.fillStyle = "#1f2937";
-            ctx.font = "bold 14px sans-serif";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.fillText(text, x, bubbleY + bubbleHeight / 2);
@@ -178,8 +184,6 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
         };
 
         const drawObstacle = (obstacle: Obstacle) => {
-            const centerX = obstacle.x + obstacle.width / 2;
-            const centerY = obstacle.y + obstacle.height / 2;
             const size = Math.max(obstacle.width, obstacle.height);
             
             // 이동 방향에 따라 회전 각도 계산
@@ -351,17 +355,50 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
             // 점수 증가
             setScore((prev) => {
                 const newScore = prev + 1;
-                // 900~1000점 사이일 때만 말풍선 표시
-                if (newScore >= 900 && newScore <= 1000) {
+                // 600~700점 사이일 때만 말풍선 표시
+                if (newScore >= 600 && newScore <= 700) {
                     if (!showBubble) {
                         setShowBubble(true);
                     }
                 } else {
-                    // 1000점을 넘으면 말풍선 숨기기
+                    // 700점을 넘으면 말풍선 숨기기
                     if (showBubble) {
                         setShowBubble(false);
                     }
                 }
+                
+                // 1200~1300점 사이일 때만 "나는 음악의 지배자다" 말풍선 표시
+                if (newScore >= 1200 && newScore <= 1300) {
+                    if (!showMasterBubble) {
+                        setShowMasterBubble(true);
+                    }
+                } else {
+                    // 1300점을 넘으면 말풍선 숨기기
+                    if (showMasterBubble) {
+                        setShowMasterBubble(false);
+                    }
+                }
+                
+                // 1800~1900점 사이일 때만 "이거 너무 쉬운거 아닌가?" 말풍선 표시
+                if (newScore >= 1800 && newScore <= 1900) {
+                    if (!showEasyBubble) {
+                        setShowEasyBubble(true);
+                    }
+                } else {
+                    // 1900점을 넘으면 말풍선 숨기기
+                    if (showEasyBubble) {
+                        setShowEasyBubble(false);
+                    }
+                }
+                
+                // "뿅" 말풍선: 순간이동 후 30점이 오르는 동안 표시
+                if (showPingBubble) {
+                    const scoreDiff = newScore - state.teleportScore;
+                    if (scoreDiff > 30) {
+                        setShowPingBubble(false);
+                    }
+                }
+                
                 return newScore;
             });
 
@@ -370,6 +407,27 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
                 const birdCenterX = state.birdX + BIRD_SIZE / 2;
                 const birdCenterY = state.birdY + BIRD_SIZE / 2;
                 drawSpeechBubble(birdCenterX, birdCenterY, "따분하군...");
+            }
+            
+            // "뿅" 말풍선 그리기
+            if (showPingBubble) {
+                const birdCenterX = state.birdX + BIRD_SIZE / 2;
+                const birdCenterY = state.birdY + BIRD_SIZE / 2;
+                drawSpeechBubble(birdCenterX, birdCenterY, "뿅");
+            }
+            
+            // "나는 음악의 지배자다" 말풍선 그리기
+            if (showMasterBubble) {
+                const birdCenterX = state.birdX + BIRD_SIZE / 2;
+                const birdCenterY = state.birdY + BIRD_SIZE / 2;
+                drawSpeechBubble(birdCenterX, birdCenterY, "나는 음악의 지배자다");
+            }
+            
+            // "이거 너무 쉬운거 아닌가?" 말풍선 그리기
+            if (showEasyBubble) {
+                const birdCenterX = state.birdX + BIRD_SIZE / 2;
+                const birdCenterY = state.birdY + BIRD_SIZE / 2;
+                drawSpeechBubble(birdCenterX, birdCenterY, "이거 너무 쉬운거 아닌가?");
             }
 
             // 게임 속도 증가 (더 빠르게)
@@ -390,6 +448,9 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
                     // 랜덤한 위치로 순간이동
                     gameStateRef.current.birdX = Math.random() * (CANVAS_WIDTH - BIRD_SIZE);
                     gameStateRef.current.birdY = Math.random() * (CANVAS_HEIGHT - BIRD_SIZE);
+                    // 순간이동 시점의 점수 저장 및 "뿅" 말풍선 표시
+                    gameStateRef.current.teleportScore = score;
+                    setShowPingBubble(true);
                 }
                 keysPressedRef.current.add(e.code);
                 if (e.key === " ") {
@@ -429,12 +490,15 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
                 cancelAnimationFrame(gameStateRef.current.animationId);
             }
         };
-    }, [score, gameOver, showBubble]);
+    }, [score, gameOver, showBubble, showPingBubble, showMasterBubble, showEasyBubble]);
 
     const handleRestart = () => {
         setGameOver(false);
         setScore(0);
         setShowBubble(false);
+        setShowPingBubble(false);
+        setShowMasterBubble(false);
+        setShowEasyBubble(false);
         keysPressedRef.current.clear();
         gameStateRef.current = {
             birdX: 50,
@@ -445,6 +509,7 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
             lastObstacleTime: 0,
             animationId: 0,
             spacePressed: false,
+            teleportScore: 0,
         };
     };
 

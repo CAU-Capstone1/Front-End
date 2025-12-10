@@ -20,6 +20,9 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
     const [showPingBubble, setShowPingBubble] = useState(false);
     const [showMasterBubble, setShowMasterBubble] = useState(false);
     const [showEasyBubble, setShowEasyBubble] = useState(false);
+    const [friendBirdX, setFriendBirdX] = useState(-100); // 친구 새 X 위치
+    const [friendBirdY, setFriendBirdY] = useState(0); // 친구 새 Y 위치
+    const [showFriendBird, setShowFriendBird] = useState(false);
     const gameStateRef = useRef({
         birdX: 50,
         birdY: 100,
@@ -45,6 +48,75 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
 
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
+
+        const drawCloud = (x: number, y: number, size: number) => {
+            ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+            ctx.beginPath();
+            // 구름을 여러 원으로 그리기
+            ctx.arc(x, y, size * 0.5, 0, Math.PI * 2);
+            ctx.arc(x + size * 0.6, y, size * 0.6, 0, Math.PI * 2);
+            ctx.arc(x + size * 1.2, y, size * 0.5, 0, Math.PI * 2);
+            ctx.arc(x + size * 0.3, y - size * 0.3, size * 0.4, 0, Math.PI * 2);
+            ctx.arc(x + size * 0.9, y - size * 0.3, size * 0.4, 0, Math.PI * 2);
+            ctx.fill();
+        };
+
+        const drawGreenBird = (x: number, y: number) => {
+            const centerX = x + BIRD_SIZE / 2;
+            const centerY = y + BIRD_SIZE / 2;
+            
+            // 연두색 병아리 몸체 (둥근 원)
+            ctx.fillStyle = "#a8e063"; // 연두색
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, BIRD_SIZE * 0.4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 몸체 테두리
+            ctx.strokeStyle = "#86c440";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 날개 (한쪽에 곡선)
+            ctx.strokeStyle = "#1f2937";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(centerX - BIRD_SIZE * 0.15, centerY, BIRD_SIZE * 0.25, 0, Math.PI);
+            ctx.stroke();
+            
+            // 병아리 눈 (작은 검은 점)
+            ctx.fillStyle = "#1f2937";
+            ctx.beginPath();
+            ctx.arc(centerX + BIRD_SIZE * 0.15, centerY - BIRD_SIZE * 0.1, BIRD_SIZE * 0.05, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 부리 (작은 주황색 삼각형)
+            ctx.fillStyle = "#fb923c"; // 주황색
+            ctx.beginPath();
+            ctx.moveTo(centerX + BIRD_SIZE * 0.35, centerY - BIRD_SIZE * 0.05);
+            ctx.lineTo(centerX + BIRD_SIZE * 0.45, centerY);
+            ctx.lineTo(centerX + BIRD_SIZE * 0.35, centerY + BIRD_SIZE * 0.05);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 다리 (작은 막대기)
+            ctx.strokeStyle = "#a8e063";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(centerX - BIRD_SIZE * 0.15, centerY + BIRD_SIZE * 0.35);
+            ctx.lineTo(centerX - BIRD_SIZE * 0.15, centerY + BIRD_SIZE * 0.45);
+            ctx.moveTo(centerX + BIRD_SIZE * 0.15, centerY + BIRD_SIZE * 0.35);
+            ctx.lineTo(centerX + BIRD_SIZE * 0.15, centerY + BIRD_SIZE * 0.45);
+            ctx.stroke();
+            
+            // 발 (작은 원)
+            ctx.fillStyle = "#a8e063";
+            ctx.beginPath();
+            ctx.arc(centerX - BIRD_SIZE * 0.15, centerY + BIRD_SIZE * 0.45, BIRD_SIZE * 0.04, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(centerX + BIRD_SIZE * 0.15, centerY + BIRD_SIZE * 0.45, BIRD_SIZE * 0.04, 0, Math.PI * 2);
+            ctx.fill();
+        };
 
         const drawBird = (x: number, y: number, facingLeft: boolean) => {
             const centerX = x + BIRD_SIZE / 2;
@@ -155,12 +227,9 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
             
             // 음표 머리 (타원형)
             ctx.fillStyle = color;
-            ctx.strokeStyle = "#1f2937";
-            ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.ellipse(0, -size * 0.3, size * 0.25, size * 0.2, 0, 0, Math.PI * 2);
             ctx.fill();
-            ctx.stroke();
             
             // 음표 줄기
             ctx.strokeStyle = color;
@@ -178,7 +247,6 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
             ctx.quadraticCurveTo(size * 0.35, size * 0.6, size * 0.2, size * 0.55);
             ctx.closePath();
             ctx.fill();
-            ctx.stroke();
             
             ctx.restore();
         };
@@ -220,10 +288,27 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
 
             // 배경 (하늘)
             const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradient.addColorStop(0, "#87ceeb");
-            gradient.addColorStop(1, "#e0f2fe");
+            gradient.addColorStop(0, "#b3e5fc"); // 연한 하늘색
+            gradient.addColorStop(0.5, "#c5e8fc"); // 더 연한 하늘색
+            gradient.addColorStop(1, "#e1f5fe"); // 매우 연한 하늘색
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 구름 추가
+            const time = Date.now() * 0.0005;
+            ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+            
+            // 구름 1
+            const cloud1X = (canvas.width * 0.2 + time * 20) % (canvas.width + 100) - 50;
+            drawCloud(cloud1X, canvas.height * 0.15, 60);
+            
+            // 구름 2
+            const cloud2X = (canvas.width * 0.6 - time * 15) % (canvas.width + 100) - 50;
+            drawCloud(cloud2X, canvas.height * 0.25, 50);
+            
+            // 구름 3
+            const cloud3X = (canvas.width * 0.4 + time * 25) % (canvas.width + 100) - 50;
+            drawCloud(cloud3X, canvas.height * 0.1, 45);
 
             // 새 이동 (비행기처럼 자유롭게)
             if (keysPressedRef.current.has("ArrowUp")) {
@@ -239,9 +324,29 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
                 state.birdX = Math.min(CANVAS_WIDTH - BIRD_SIZE, state.birdX + MOVE_SPEED);
             }
 
+            // 친구 새 이동 (900~1100점 사이)
+            if (showFriendBird) {
+                setFriendBirdX((prev) => {
+                    const newX = prev + 4; // 오른쪽으로 이동 (속도 증가)
+                    if (newX > canvas.width + BIRD_SIZE) {
+                        setShowFriendBird(false);
+                    }
+                    return newX;
+                });
+            }
+
             // 새 그리기 (방향에 따라)
             const facingLeft = keysPressedRef.current.has("ArrowLeft") && !keysPressedRef.current.has("ArrowRight");
             drawBird(state.birdX, state.birdY, facingLeft);
+            
+            // 친구 새 그리기
+            if (showFriendBird && friendBirdX >= -BIRD_SIZE && friendBirdX <= canvas.width + BIRD_SIZE) {
+                drawGreenBird(friendBirdX, friendBirdY);
+                // "안녕~" 말풍선 그리기
+                if (friendBirdX > 50 && friendBirdX < canvas.width - 150) {
+                    drawSpeechBubble(friendBirdX + BIRD_SIZE / 2, friendBirdY + BIRD_SIZE / 2, "안녕~");
+                }
+            }
 
             // 장애물 생성 (난이도에 따라 빈도 증가)
             const now = Date.now();
@@ -356,7 +461,7 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
             setScore((prev) => {
                 const newScore = prev + 1;
                 // 600~700점 사이일 때만 말풍선 표시
-                if (newScore >= 600 && newScore <= 700) {
+                if (newScore >= 400 && newScore <= 500) {
                     if (!showBubble) {
                         setShowBubble(true);
                     }
@@ -364,6 +469,20 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
                     // 700점을 넘으면 말풍선 숨기기
                     if (showBubble) {
                         setShowBubble(false);
+                    }
+                }
+                
+                // 900~1100점 사이에 친구 새 나타나기
+                if (newScore >= 900 && newScore <= 1050) {
+                    if (!showFriendBird) {
+                        setShowFriendBird(true);
+                        setFriendBirdX(-BIRD_SIZE); // 왼쪽에서 시작
+                        setFriendBirdY(canvas.height * 0.3); // 중간 높이
+                    }
+                } else {
+                    // 1100점을 넘으면 친구 새 숨기기
+                    if (showFriendBird) {
+                        setShowFriendBird(false);
                     }
                 }
                 
@@ -490,7 +609,7 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
                 cancelAnimationFrame(gameStateRef.current.animationId);
             }
         };
-    }, [score, gameOver, showBubble, showPingBubble, showMasterBubble, showEasyBubble]);
+    }, [score, gameOver, showBubble, showPingBubble, showMasterBubble, showEasyBubble, showFriendBird, friendBirdX, friendBirdY]);
 
     const handleRestart = () => {
         setGameOver(false);
@@ -499,6 +618,9 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
         setShowPingBubble(false);
         setShowMasterBubble(false);
         setShowEasyBubble(false);
+        setShowFriendBird(false);
+        setFriendBirdX(-100);
+        setFriendBirdY(0);
         keysPressedRef.current.clear();
         gameStateRef.current = {
             birdX: 50,

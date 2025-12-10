@@ -23,6 +23,7 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
     const [friendBirdX, setFriendBirdX] = useState(-100); // 친구 새 X 위치
     const [friendBirdY, setFriendBirdY] = useState(0); // 친구 새 Y 위치
     const [showFriendBird, setShowFriendBird] = useState(false);
+    const [isClosing, setIsClosing] = useState(false);
     const gameStateRef = useRef({
         birdX: 50,
         birdY: 100,
@@ -473,7 +474,7 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
                 }
                 
                 // 900~1100점 사이에 친구 새 나타나기
-                if (newScore >= 900 && newScore <= 1050) {
+                if (newScore >= 700 && newScore <= 850) {
                     if (!showFriendBird) {
                         setShowFriendBird(true);
                         setFriendBirdX(-BIRD_SIZE); // 왼쪽에서 시작
@@ -487,7 +488,7 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
                 }
                 
                 // 1200~1300점 사이일 때만 "나는 음악의 지배자다" 말풍선 표시
-                if (newScore >= 1200 && newScore <= 1300) {
+                if (newScore >= 1000 && newScore <= 1100) {
                     if (!showMasterBubble) {
                         setShowMasterBubble(true);
                     }
@@ -635,11 +636,26 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
         };
     };
 
+    const handleClose = () => {
+        setIsClosing(true);
+        setTimeout(() => {
+            onClose();
+        }, 300); // 애니메이션 시간과 맞춤
+    };
+
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-            <div className="relative bg-white rounded-3xl p-8 shadow-2xl max-w-2xl w-full mx-4">
+        <div 
+            className={`fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
+                isClosing ? 'opacity-0' : 'opacity-100'
+            }`}
+        >
+            <div 
+                className={`relative bg-white rounded-3xl p-8 shadow-2xl max-w-2xl w-full mx-4 transition-all duration-300 ${
+                    isClosing ? 'opacity-0 scale-95 translate-y-4' : 'opacity-100 scale-100 translate-y-0'
+                }`}
+            >
                 <button
-                    onClick={onClose}
+                    onClick={handleClose}
                     className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-gray-600 transition-colors"
                 >
                     ×

@@ -84,18 +84,20 @@ function MusicResultPage() {
         autoScrollIntervalRef.current = setInterval(() => {
             if (!summaryScrollRef.current || isUserScrollingRef.current) return;
             
+            const scrollElement = summaryScrollRef.current;
+            
             // 오른쪽 화살표가 사라졌는지 확인
-            const { scrollLeft, scrollWidth, clientWidth } = summaryScrollRef.current;
+            const { scrollLeft, scrollWidth, clientWidth } = scrollElement;
             if (scrollLeft >= scrollWidth - clientWidth - 1) {
                 stopAutoScroll();
                 return;
             }
             
-            // 천천히 오른쪽으로 스크롤 (느리게)
-            summaryScrollRef.current.scrollBy({ left: 0.2, behavior: 'auto' });
+            // 천천히 오른쪽으로 스크롤 (직접 scrollLeft 조정으로 부드럽게)
+            scrollElement.scrollLeft += 0.5;
             
             checkScrollButtons();
-        }, 50); // 50ms마다 실행 (느린 애니메이션)
+        }, 50); // 50ms마다 실행 (부드러운 애니메이션)
     }, [checkScrollButtons, stopAutoScroll]);
     
     useEffect(() => {
@@ -121,7 +123,7 @@ function MusicResultPage() {
                     if (scrollLeft < scrollWidth - clientWidth - 1) {
                         startAutoScroll();
                     }
-                }, 3000);
+                }, 1000);
             };
             
             scrollElement.addEventListener('scroll', checkScrollButtons);

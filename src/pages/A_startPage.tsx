@@ -3,12 +3,16 @@ import { useNavigate } from "react-router";
 import Button from "../components/button";
 import { resetAnswers } from "../utils/compositionSession";
 import { getCurrentUser } from "../utils/auth";
+import DinoGame from "../components/DinoGame";
 
 const SPARKLES = Array.from({ length: 30 }).map((_, idx) => idx);
 
 function StartPage() {
     const navigate = useNavigate();
     const [showModal, setShowModal] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
+    const [isDragOver, setIsDragOver] = useState(false);
+    const [showGame, setShowGame] = useState(false);
 
     // 시작 페이지에 들어올 때마다 이전 선택사항 초기화
     useEffect(() => {
@@ -21,6 +25,38 @@ function StartPage() {
             setShowModal(true);
         } else {
             navigate("/main");
+        }
+    };
+
+    const handleDragStart = (e: React.DragEvent) => {
+        setIsDragging(true);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', 'logo');
+    };
+
+    const handleDragEnd = () => {
+        setIsDragging(false);
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        setIsDragOver(true);
+    };
+
+    const handleDragLeave = () => {
+        setIsDragOver(false);
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragOver(false);
+        setIsDragging(false);
+        
+        const data = e.dataTransfer.getData('text/plain');
+        if (data === 'logo') {
+            // 게임 시작
+            setShowGame(true);
         }
     };
 
@@ -49,7 +85,12 @@ function StartPage() {
                     <img
                         src="/HBLG.png"
                         alt="Humming Bird"
-                        className="w-full max-w-4xl animate-[logoBounce_6s_ease-in-out_infinite] drop-shadow-[0_25px_55px_rgba(246,190,95,0.35)]"
+                        draggable
+                        onDragStart={handleDragStart}
+                        onDragEnd={handleDragEnd}
+                        className={`w-full max-w-4xl animate-[logoBounce_6s_ease-in-out_infinite] drop-shadow-[0_25px_55px_rgba(246,190,95,0.35)] cursor-grab active:cursor-grabbing transition-opacity duration-200 ${
+                            isDragging ? 'opacity-50' : ''
+                        }`}
                     />
                     {/* <h1 className="start-title text-4xl font-bold tracking-[0.3em] uppercase sm:text-5xl">
                         Humming Bird
@@ -57,9 +98,24 @@ function StartPage() {
                 </header>
 
                 <div className="flex flex-col items-center mt-6">
-                    <Button onClick={handleStartClick} variant="rainbow" className="px-16 py-5 text-lg">
-                        시작하기
-                    </Button>
+                    <div
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        className={`transition-all duration-200 ${
+                            isDragOver ? 'scale-110' : ''
+                        }`}
+                    >
+                        <Button 
+                            onClick={handleStartClick} 
+                            variant="rainbow" 
+                            className={`px-16 py-5 text-lg transition-all duration-200 ${
+                                isDragOver ? 'ring-4 ring-white/50 shadow-2xl' : ''
+                            }`}
+                        >
+                            시작하기
+                        </Button>
+                    </div>
                 </div>
             </main>
 
@@ -92,6 +148,9 @@ function StartPage() {
                     </div>
                 </div>
             )}
+
+            {/* 공룡 게임 */}
+            {showGame && <DinoGame onClose={() => setShowGame(false)} />}
         </div>
     );
 }

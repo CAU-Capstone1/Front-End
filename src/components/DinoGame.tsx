@@ -500,7 +500,7 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
                 }
                 
                 // 1800~1900점 사이일 때만 "이거 너무 쉬운거 아닌가?" 말풍선 표시
-                if (newScore >= 1300 && newScore <= 1400) {
+                if (newScore >= 1400 && newScore <= 1500) {
                     if (!showEasyBubble) {
                         setShowEasyBubble(true);
                     }

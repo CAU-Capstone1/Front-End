@@ -611,7 +611,7 @@ function MusicResultPage() {
                     ai result
                     </span>
                     <h1 className="text-[2.6rem] font-semibold leading-tight text-[var(--text-primary)]">음악이 완성되었습니다</h1>
-                    <p className="text-base text-[var(--text-muted)]">지금 바로 재생해보고, 원하는 이름과 보관 장소를 선택해보세요.</p>
+                    <p className="text-base text-[var(--text-muted)] font-medium">지금 바로 재생해보고, 원하는 이름과 보관 장소를 선택해보세요.</p>
                 </header>
 
                 <section className="flex flex-col gap-6">
@@ -711,17 +711,17 @@ function MusicResultPage() {
                             className="overflow-x-auto pb-4 scrollbar-hide"
                             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                         >
-                            <div className="flex gap-5 min-w-max px-4">
+                            <div className="flex gap-4 min-w-max px-4">
                                 {summary.map((item) => (
                                     <div 
                                         key={item.label} 
-                                        className="flex-shrink-0 w-72 flex flex-col rounded-[2.5rem] bg-gradient-to-br from-white via-[#fffef8] to-[#fff6da] border-2 border-white/50 p-7 shadow-[0_8px_24px_rgba(246,190,95,0.15)] hover:shadow-[0_12px_32px_rgba(246,190,95,0.25)] transition-all duration-300 backdrop-blur-sm"
+                                        className="flex-shrink-0 w-72 flex flex-col rounded-[1.0rem] bg-gradient-to-br from-white via-[#fffef8] to-[#fff6da] border-2 border-white/50 p-7 shadow-[0_8px_24px_rgba(246,190,95,0.15)] hover:shadow-[0_12px_32px_rgba(246,190,95,0.25)] transition-all duration-300 backdrop-blur-sm"
                                     >
                                         <div className="flex items-center gap-2 mb-4">
                                             <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-br from-[var(--accent-rose)] to-[var(--accent-amber)]"></div>
-                                            <span className="text-sm font-bold uppercase tracking-[0.3em] text-[var(--accent-rose)]">{item.label}</span>
+                                            <span className="text-m font-bold uppercase tracking-[0.3em] text-[var(--accent-rose)]">{item.label}</span>
                                         </div>
-                                        <span className="text-base text-[var(--text-primary)] break-words leading-relaxed font-medium">{item.value}</span>
+                                        <span className="text-base text-[var(--text-primary)] break-words leading-relaxed font-semibold">{item.value}</span>
                                     </div>
                                 ))}
                             </div>

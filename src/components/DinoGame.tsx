@@ -16,6 +16,7 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [score, setScore] = useState(0);
     const [gameOver, setGameOver] = useState(false);
+    const [showBubble, setShowBubble] = useState(false);
     const gameStateRef = useRef({
         birdX: 50,
         birdY: 100,
@@ -24,11 +25,12 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
         gameSpeed: 3,
         lastObstacleTime: 0,
         animationId: 0,
+        spacePressed: false,
     });
 
     const CANVAS_WIDTH = 600;
-    const CANVAS_HEIGHT = 300;
-    const BIRD_SIZE = 30;
+    const CANVAS_HEIGHT = 400;
+    const BIRD_SIZE = 40;
     const MOVE_SPEED = 4;
 
     const keysPressedRef = useRef<Set<string>>(new Set());
@@ -40,33 +42,104 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
-        const drawBird = (x: number, y: number) => {
-            // 새 몸체
-            ctx.fillStyle = "#fbbf24";
+        const drawBird = (x: number, y: number, facingLeft: boolean) => {
+            const centerX = x + BIRD_SIZE / 2;
+            const centerY = y + BIRD_SIZE / 2;
+            const direction = facingLeft ? -1 : 1; // -1이면 왼쪽, 1이면 오른쪽
+            
+            // 병아리 몸체 (둥근 원)
+            ctx.fillStyle = "#fef08a"; // 밝은 노란색
             ctx.beginPath();
-            ctx.ellipse(x + BIRD_SIZE / 2, y + BIRD_SIZE / 2, BIRD_SIZE / 2, BIRD_SIZE / 2.5, 0, 0, Math.PI * 2);
+            ctx.arc(centerX, centerY, BIRD_SIZE * 0.4, 0, Math.PI * 2);
             ctx.fill();
             
-            // 새 부리
-            ctx.fillStyle = "#f59e0b";
+            // 몸체 테두리
+            ctx.strokeStyle = "#fbbf24";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 날개 (한쪽에 곡선) - 방향에 따라 반대쪽
+            ctx.strokeStyle = "#1f2937";
+            ctx.lineWidth = 1.5;
             ctx.beginPath();
-            ctx.moveTo(x + BIRD_SIZE, y + BIRD_SIZE / 2);
-            ctx.lineTo(x + BIRD_SIZE + 8, y + BIRD_SIZE / 2 - 3);
-            ctx.lineTo(x + BIRD_SIZE + 8, y + BIRD_SIZE / 2 + 3);
+            ctx.arc(centerX - BIRD_SIZE * 0.15 * direction, centerY, BIRD_SIZE * 0.25, 0, Math.PI);
+            ctx.stroke();
+            
+            // 병아리 눈 (작은 검은 점) - 방향에 따라 반대쪽
+            ctx.fillStyle = "#1f2937";
+            ctx.beginPath();
+            ctx.arc(centerX + BIRD_SIZE * 0.15 * direction, centerY - BIRD_SIZE * 0.1, BIRD_SIZE * 0.05, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 부리 (작은 주황색 삼각형) - 방향에 따라 반대쪽
+            ctx.fillStyle = "#fb923c"; // 주황색
+            ctx.beginPath();
+            if (facingLeft) {
+                ctx.moveTo(centerX - BIRD_SIZE * 0.35, centerY - BIRD_SIZE * 0.05);
+                ctx.lineTo(centerX - BIRD_SIZE * 0.45, centerY);
+                ctx.lineTo(centerX - BIRD_SIZE * 0.35, centerY + BIRD_SIZE * 0.05);
+            } else {
+                ctx.moveTo(centerX + BIRD_SIZE * 0.35, centerY - BIRD_SIZE * 0.05);
+                ctx.lineTo(centerX + BIRD_SIZE * 0.45, centerY);
+                ctx.lineTo(centerX + BIRD_SIZE * 0.35, centerY + BIRD_SIZE * 0.05);
+            }
             ctx.closePath();
             ctx.fill();
             
-            // 새 눈
-            ctx.fillStyle = "#1f2937";
+            // 다리 (작은 막대기)
+            ctx.strokeStyle = "#fef08a";
+            ctx.lineWidth = 3;
             ctx.beginPath();
-            ctx.arc(x + BIRD_SIZE / 2 + 5, y + BIRD_SIZE / 2 - 3, 3, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.moveTo(centerX - BIRD_SIZE * 0.15, centerY + BIRD_SIZE * 0.35);
+            ctx.lineTo(centerX - BIRD_SIZE * 0.15, centerY + BIRD_SIZE * 0.45);
+            ctx.moveTo(centerX + BIRD_SIZE * 0.15, centerY + BIRD_SIZE * 0.35);
+            ctx.lineTo(centerX + BIRD_SIZE * 0.15, centerY + BIRD_SIZE * 0.45);
+            ctx.stroke();
             
-            // 날개
-            ctx.fillStyle = "#fbbf24";
+            // 발 (작은 원)
+            ctx.fillStyle = "#fef08a";
             ctx.beginPath();
-            ctx.ellipse(x + BIRD_SIZE / 2 - 5, y + BIRD_SIZE / 2, BIRD_SIZE / 3, BIRD_SIZE / 2, -0.3, 0, Math.PI * 2);
+            ctx.arc(centerX - BIRD_SIZE * 0.15, centerY + BIRD_SIZE * 0.45, BIRD_SIZE * 0.04, 0, Math.PI * 2);
             ctx.fill();
+            ctx.beginPath();
+            ctx.arc(centerX + BIRD_SIZE * 0.15, centerY + BIRD_SIZE * 0.45, BIRD_SIZE * 0.04, 0, Math.PI * 2);
+            ctx.fill();
+        };
+
+        const drawSpeechBubble = (x: number, y: number, text: string) => {
+            ctx.save();
+            
+            const bubbleWidth = 120;
+            const bubbleHeight = 50;
+            const bubbleX = x - bubbleWidth / 2;
+            const bubbleY = y - BIRD_SIZE - bubbleHeight - 10;
+            
+            // 말풍선 배경
+            ctx.fillStyle = "#ffffff";
+            ctx.strokeStyle = "#1f2937";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight, 10);
+            ctx.fill();
+            ctx.stroke();
+            
+            // 말풍선 꼬리
+            ctx.beginPath();
+            ctx.moveTo(x - 10, bubbleY + bubbleHeight);
+            ctx.lineTo(x, bubbleY + bubbleHeight + 10);
+            ctx.lineTo(x + 10, bubbleY + bubbleHeight);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            // 텍스트
+            ctx.fillStyle = "#1f2937";
+            ctx.font = "bold 14px sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(text, x, bubbleY + bubbleHeight / 2);
+            
+            ctx.restore();
         };
 
         const drawNote = (x: number, y: number, size: number, angle: number, color: string) => {
@@ -149,7 +222,7 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // 새 이동 (비행기처럼 자유롭게)
-            if (keysPressedRef.current.has("ArrowUp") || keysPressedRef.current.has(" ") || keysPressedRef.current.has("Space")) {
+            if (keysPressedRef.current.has("ArrowUp")) {
                 state.birdY = Math.max(0, state.birdY - MOVE_SPEED);
             }
             if (keysPressedRef.current.has("ArrowDown")) {
@@ -162,8 +235,9 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
                 state.birdX = Math.min(CANVAS_WIDTH - BIRD_SIZE, state.birdX + MOVE_SPEED);
             }
 
-            // 새 그리기
-            drawBird(state.birdX, state.birdY);
+            // 새 그리기 (방향에 따라)
+            const facingLeft = keysPressedRef.current.has("ArrowLeft") && !keysPressedRef.current.has("ArrowRight");
+            drawBird(state.birdX, state.birdY, facingLeft);
 
             // 장애물 생성 (난이도에 따라 빈도 증가)
             const now = Date.now();
@@ -275,7 +349,28 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
             });
 
             // 점수 증가
-            setScore((prev) => prev + 1);
+            setScore((prev) => {
+                const newScore = prev + 1;
+                // 900~1000점 사이일 때만 말풍선 표시
+                if (newScore >= 900 && newScore <= 1000) {
+                    if (!showBubble) {
+                        setShowBubble(true);
+                    }
+                } else {
+                    // 1000점을 넘으면 말풍선 숨기기
+                    if (showBubble) {
+                        setShowBubble(false);
+                    }
+                }
+                return newScore;
+            });
+
+            // 말풍선 그리기
+            if (showBubble) {
+                const birdCenterX = state.birdX + BIRD_SIZE / 2;
+                const birdCenterY = state.birdY + BIRD_SIZE / 2;
+                drawSpeechBubble(birdCenterX, birdCenterY, "따분하군...");
+            }
 
             // 게임 속도 증가 (더 빠르게)
             if (score % 50 === 0 && score > 0) {
@@ -287,22 +382,36 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
 
         // 키보드 이벤트
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.code === "Space" || e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === " ") {
+            if (e.code === "Space" || e.key === " ") {
                 e.preventDefault();
+                // 스페이스바를 처음 눌렀을 때만 순간이동
+                if (!gameStateRef.current.spacePressed) {
+                    gameStateRef.current.spacePressed = true;
+                    // 랜덤한 위치로 순간이동
+                    gameStateRef.current.birdX = Math.random() * (CANVAS_WIDTH - BIRD_SIZE);
+                    gameStateRef.current.birdY = Math.random() * (CANVAS_HEIGHT - BIRD_SIZE);
+                }
                 keysPressedRef.current.add(e.code);
                 if (e.key === " ") {
                     keysPressedRef.current.add("Space");
                 }
+            } else if (e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "ArrowLeft" || e.key === "ArrowRight") {
+                e.preventDefault();
+                keysPressedRef.current.add(e.code);
             }
         };
 
         const handleKeyUp = (e: KeyboardEvent) => {
-            if (e.code === "Space" || e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === " ") {
+            if (e.code === "Space" || e.key === " ") {
                 e.preventDefault();
+                gameStateRef.current.spacePressed = false;
                 keysPressedRef.current.delete(e.code);
                 if (e.key === " ") {
                     keysPressedRef.current.delete("Space");
                 }
+            } else if (e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "ArrowLeft" || e.key === "ArrowRight") {
+                e.preventDefault();
+                keysPressedRef.current.delete(e.code);
             }
         };
 
@@ -320,11 +429,12 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
                 cancelAnimationFrame(gameStateRef.current.animationId);
             }
         };
-    }, [score, gameOver]);
+    }, [score, gameOver, showBubble]);
 
     const handleRestart = () => {
         setGameOver(false);
         setScore(0);
+        setShowBubble(false);
         keysPressedRef.current.clear();
         gameStateRef.current = {
             birdX: 50,
@@ -334,6 +444,7 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
             gameSpeed: 3,
             lastObstacleTime: 0,
             animationId: 0,
+            spacePressed: false,
         };
     };
 
@@ -348,8 +459,9 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
                 </button>
 
                 <div className="text-center mb-4">
-                    <h2 className="text-3xl font-bold text-[var(--text-primary)] mb-2">새 게임</h2>
+                    <h2 className="text-3xl font-bold text-[var(--text-primary)] mb-2">벌새, 날다</h2>
                     <p className="text-sm text-[var(--text-muted)]">화살표 키로 자유롭게 이동하며 날아오는 음표를 피하세요!</p>
+                    <p className="text-sm text-[var(--text-muted)] mt-1">스페이스바를 누르면 초능력을 쓸 수 있어요</p>
                 </div>
 
                 <div className="relative bg-gray-100 rounded-xl overflow-hidden border-4 border-gray-300">

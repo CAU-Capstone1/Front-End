@@ -601,18 +601,18 @@ function MusicResultPage() {
     }, []);
 
     return (
-        <div className="relative min-h-screen w-full overflow-hidden px-4 pt-16 pb-32 sm:px-10">
+        <div className="relative min-h-screen w-full overflow-hidden px-4 pt-16 pb-20 sm:px-10">
             <div className="pointer-events-none absolute -left-24 top-10 h-64 w-64 rounded-full bg-[var(--accent-rose)]/18 blur-3xl" />
             <div className="pointer-events-none absolute -right-12 top-0 h-80 w-80 rounded-[45%] bg-[var(--accent-amber)]/20 blur-3xl" />
             <div className="pointer-events-none absolute bottom-10 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[var(--accent-rose)]/12 blur-3xl" />
 
-            <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-14">
+            <div className="relative mx-auto flex w-full max-w-5xl flex-col">
                 <header className="text-center space-y-4 pt-8">
                     <span className="inline-flex items-center gap-3 rounded-full bg-white/90 px-6 py-2.5 mb-8 text-sm font-semibold uppercase tracking-[0.3em] text-[var(--accent-rose)] shadow-[0_8px_0_rgba(242,137,130,0.15)]">
                         다 됐어요
                     </span>
                     <h1 className="text-[2.8rem] font-semibold leading-tight text-[var(--text-primary)]">음악이 완성되었습니다</h1>
-                    <p className="text-lg text-[var(--text-muted)] font-medium">지금 바로 재생해보고, 원하는 이름과 보관 장소를 선택해보세요.</p>
+                    <p className="text-lg text-[var(--text-muted)] font-medium mb-12">지금 바로 재생해보고, 원하는 이름과 보관 장소를 선택해보세요.</p>
                 </header>
 
                 <section className="flex flex-col gap-14">
@@ -810,7 +810,7 @@ function MusicResultPage() {
                     </div>
                 )}
 
-                <div className="flex flex-wrap justify-center gap-6 mt-20 mb-16">
+                <div className="flex flex-wrap justify-center gap-6 mt-20 mb-8">
                     <Button toWhere="/" variant="rainbow" className="px-16 py-5 text-lg font-semibold" onClick={() => resetAnswers()}>
                         처음으로 돌아가기
                     </Button>

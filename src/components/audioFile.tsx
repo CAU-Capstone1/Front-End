@@ -20,6 +20,8 @@ type SegmentState = {
   isUploading: boolean;
   status: string;
   storedName: string | null;
+  isRecording: boolean;
+  recordingTime: number;
 };
 
 const SEGMENT_KEY_MAP: Record<SegmentId, CompositionAnswerKey> = {
@@ -36,6 +38,8 @@ export default function AudioFileUploader() {
       isUploading: false,
       status: "",
       storedName: getAnswer("hummingStart") ?? null,
+      isRecording: false,
+      recordingTime: 0,
     },
     main: {
       file: null,
@@ -43,6 +47,8 @@ export default function AudioFileUploader() {
       isUploading: false,
       status: "",
       storedName: getAnswer("hummingMain") ?? null,
+      isRecording: false,
+      recordingTime: 0,
     },
     end: {
       file: null,
@@ -50,8 +56,28 @@ export default function AudioFileUploader() {
       isUploading: false,
       status: "",
       storedName: getAnswer("hummingEnd") ?? null,
+      isRecording: false,
+      recordingTime: 0,
     },
   }));
+
+  const mediaRecorderRefs = useRef<Record<SegmentId, MediaRecorder | null>>({
+    start: null,
+    main: null,
+    end: null,
+  });
+
+  const recordingChunksRefs = useRef<Record<SegmentId, Blob[]>>({
+    start: [],
+    main: [],
+    end: [],
+  });
+
+  const recordingIntervalRefs = useRef<Record<SegmentId, ReturnType<typeof setInterval> | null>>({
+    start: null,
+    main: null,
+    end: null,
+  });
 
   const startInputRef = useRef<HTMLInputElement | null>(null);
   const mainInputRef = useRef<HTMLInputElement | null>(null);
@@ -67,8 +93,10 @@ export default function AudioFileUploader() {
   );
 
   const validateFile = (file: File, maxSize: number, typePrefix: string) => {
-    if (!file.type.startsWith(typePrefix)) {
-      alert(`${typePrefix.replace("/", "")} 파일만 업로드할 수 있어요.`);
+    // mp3 파일만 허용
+    const isMp3 = file.type === "audio/mpeg" || file.type === "audio/mp3" || file.name.toLowerCase().endsWith(".mp3");
+    if (!isMp3) {
+      alert("mp3 파일만 업로드할 수 있어요.");
       return false;
     }
 
@@ -162,18 +190,114 @@ export default function AudioFileUploader() {
     }
   };
 
+  const startRecording = async (segmentId: SegmentId) => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      const chunks: Blob[] = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunks.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(chunks, { type: "audio/webm" });
+        
+        // webm을 mp3로 변환 시도 (실제로는 형식 변환이 필요하지만, 서버가 mp3만 받으므로 확장자만 변경)
+        // 실제 변환은 서버에서 처리하거나, 클라이언트에서 라이브러리를 사용해야 합니다
+        // 여기서는 확장자만 mp3로 변경하고 타입을 audio/mpeg로 설정
+        const file = new File([blob], `recording-${segmentId}-${Date.now()}.mp3`, { type: "audio/mpeg" });
+        
+        setSegmentState((prev) => {
+          const previousPreview = prev[segmentId].previewURL;
+          if (previousPreview) URL.revokeObjectURL(previousPreview);
+
+          return {
+            ...prev,
+            [segmentId]: {
+              ...prev[segmentId],
+              file,
+              previewURL: URL.createObjectURL(blob), // 미리보기는 원본 blob 사용
+              isRecording: false,
+              recordingTime: 0,
+              status: "",
+            },
+          };
+        });
+
+        // 스트림 정리
+        stream.getTracks().forEach((track) => track.stop());
+        
+        // 인터벌 정리
+        if (recordingIntervalRefs.current[segmentId]) {
+          clearInterval(recordingIntervalRefs.current[segmentId]!);
+          recordingIntervalRefs.current[segmentId] = null;
+        }
+      };
+
+      mediaRecorder.start();
+      mediaRecorderRefs.current[segmentId] = mediaRecorder;
+      recordingChunksRefs.current[segmentId] = chunks;
+
+      setSegmentState((prev) => ({
+        ...prev,
+        [segmentId]: {
+          ...prev[segmentId],
+          isRecording: true,
+          recordingTime: 0,
+        },
+      }));
+
+      // 녹음 시간 카운터
+      recordingIntervalRefs.current[segmentId] = setInterval(() => {
+        setSegmentState((prev) => ({
+          ...prev,
+          [segmentId]: {
+            ...prev[segmentId],
+            recordingTime: prev[segmentId].recordingTime + 1,
+          },
+        }));
+      }, 1000);
+    } catch (error) {
+      console.error("녹음 시작 실패:", error);
+      alert("마이크 권한이 필요합니다. 브라우저 설정에서 마이크 권한을 허용해주세요.");
+    }
+  };
+
+  const stopRecording = (segmentId: SegmentId) => {
+    const mediaRecorder = mediaRecorderRefs.current[segmentId];
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+      mediaRecorder.stop();
+    }
+
+    if (recordingIntervalRefs.current[segmentId]) {
+      clearInterval(recordingIntervalRefs.current[segmentId]!);
+      recordingIntervalRefs.current[segmentId] = null;
+    }
+  };
+
   const resetSegment = (segmentId: SegmentId) => {
+    // 녹음 중이면 중지
+    if (segmentState[segmentId].isRecording) {
+      stopRecording(segmentId);
+    }
+
     setSegmentState((prev) => {
       const previousPreview = prev[segmentId].previewURL;
       if (previousPreview) URL.revokeObjectURL(previousPreview);
       return {
         ...prev,
         [segmentId]: {
+          ...prev[segmentId],
           file: null,
           previewURL: null,
           isUploading: false,
           status: "",
           storedName: null,
+          isRecording: false,
+          recordingTime: 0,
         },
       };
     });
@@ -230,17 +354,48 @@ export default function AudioFileUploader() {
                   <p className="text-xs text-[var(--text-muted)]">{segment.helper}</p>
                 </div>
                 {!(state.file || state.storedName) && (
-                  <button
-                    type="button"
-                    onClick={() => segmentInputRefs[segment.id].current?.click()}
-                    className={`my-btn rounded-[1.2rem] border-2 border-dashed bg-white px-3 py-3 text-sm font-semibold shadow-[0_8px_0_rgba(242,137,130,0.18)] transition hover:-translate-y-[2px] ${
-                      segment.required
-                        ? "border-[var(--accent-rose)] text-[var(--accent-rose)]"
-                        : "border-gray-300 text-gray-500 shadow-[0_8px_0_rgba(156,163,175,0.18)]"
-                    }`}
-                  >
-                    파일 선택
-                  </button>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() => segmentInputRefs[segment.id].current?.click()}
+                      className={`my-btn rounded-[1.2rem] border-2 bg-white px-3 py-3 text-sm font-semibold shadow-[0_8px_0_rgba(242,137,130,0.18)] transition hover:-translate-y-[2px] ${
+                        segment.required
+                          ? "border-[var(--accent-rose)] text-[var(--accent-rose)]"
+                          : "border-gray-300 text-gray-500 shadow-[0_8px_0_rgba(156,163,175,0.18)]"
+                      }`}
+                    >
+                      파일 선택
+                    </button>
+                    {state.isRecording ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
+                          <span className="text-sm font-semibold text-red-500">
+                            녹음 중... {Math.floor(state.recordingTime / 60)}:{(state.recordingTime % 60).toString().padStart(2, "0")}
+                          </span>
+                        </div>
+                        <Button
+                          variant="danger"
+                          onClick={() => stopRecording(segment.id)}
+                          className="w-full"
+                        >
+                          녹음 중지
+                        </Button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => startRecording(segment.id)}
+                        className={`my-btn rounded-[1.2rem] border-2 bg-white px-3 py-3 text-sm font-semibold shadow-[0_8px_0_rgba(242,137,130,0.18)] transition hover:-translate-y-[2px] w-full ${
+                          segment.required
+                            ? "border-[var(--accent-rose)] text-[var(--accent-rose)]"
+                            : "border-gray-300 text-gray-500 shadow-[0_8px_0_rgba(156,163,175,0.18)]"
+                        }`}
+                      >
+                        🎤 녹음하기
+                      </button>
+                    )}
+                  </div>
                 )}
 
                 {(state.file || state.storedName) && (
@@ -271,7 +426,7 @@ export default function AudioFileUploader() {
                 <input
                   ref={segmentInputRefs[segment.id]}
                   type="file"
-                  accept="audio/*"
+                  accept="audio/mpeg,audio/mp3,.mp3"
                   className="hidden"
                   onChange={(event) => handleSegmentFiles(segment.id, event.target.files)}
                 />

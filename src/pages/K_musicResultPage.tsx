@@ -601,24 +601,23 @@ function MusicResultPage() {
     }, []);
 
     return (
-        <div className="relative min-h-screen w-full overflow-hidden px-4 py-16 sm:px-10">
-            <div className="pointer-events-none absolute -left-24 top-20 h-64 w-64 rounded-full bg-[var(--accent-rose)]/18 blur-3xl" />
+        <div className="relative min-h-screen w-full overflow-hidden px-4 pt-16 pb-32 sm:px-10">
+            <div className="pointer-events-none absolute -left-24 top-10 h-64 w-64 rounded-full bg-[var(--accent-rose)]/18 blur-3xl" />
             <div className="pointer-events-none absolute -right-12 top-0 h-80 w-80 rounded-[45%] bg-[var(--accent-amber)]/20 blur-3xl" />
             <div className="pointer-events-none absolute bottom-10 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[var(--accent-rose)]/12 blur-3xl" />
 
-            <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-12">
-                <header className="text-center space-y-3">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-6 py-2 text-sm font-semibold uppercase
-                    tracking-[0.3em] text-[var(--accent-rose)] shadow-[0_10px_0_rgba(46,31,39,0.08)] mb-10 ">
-                    다 됐어요
+            <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-14">
+                <header className="text-center space-y-4 pt-8">
+                    <span className="inline-flex items-center gap-3 rounded-full bg-white/90 px-6 py-2.5 mb-8 text-sm font-semibold uppercase tracking-[0.3em] text-[var(--accent-rose)] shadow-[0_8px_0_rgba(242,137,130,0.15)]">
+                        다 됐어요
                     </span>
-                    <h1 className="text-[2.6rem] font-semibold leading-tight text-[var(--text-primary)]">음악이 완성되었습니다</h1>
-                    <p className="text-base text-[var(--text-muted)] font-medium">지금 바로 재생해보고, 원하는 이름과 보관 장소를 선택해보세요.</p>
+                    <h1 className="text-[2.8rem] font-semibold leading-tight text-[var(--text-primary)]">음악이 완성되었습니다</h1>
+                    <p className="text-lg text-[var(--text-muted)] font-medium">지금 바로 재생해보고, 원하는 이름과 보관 장소를 선택해보세요.</p>
                 </header>
 
-                <section className="flex flex-col gap-6">
+                <section className="flex flex-col gap-14">
                     {/* 상단 섹션: 재생 버튼과 액션 버튼들 */}
-                    <div className="rounded-[2.5rem] border-4 border-black/10 bg-gradient-to-tr from-[#fff6da] via-white to-[#fce4ef] p-10 shadow-[0_25px_0_rgba(46,31,39,0.08)]">
+                    <div className="rounded-[2.5rem] border-2 border-black/10 bg-gradient-to-tr from-[#fffef9] via-white to-[#fff5f3] p-12 shadow-[0_20px_0_rgba(252,234,187,0.12)]">
                         <div className="flex flex-col items-center gap-6">
                             {/* 재생 버튼 (중앙) */}
                             <button 
@@ -648,14 +647,14 @@ function MusicResultPage() {
                             {/* 두 개의 버튼 */}
                             <div className="flex gap-4 w-full max-w-md">
                                 <Button 
-                                    variant="soft" 
+                                    variant="rainbow" 
                                     className="flex-1 py-4 text-base font-semibold hover:cursor-pointer"
                                     onClick={() => navigate("/myPage")}
                                 >
                                     내 보관함
                                 </Button>
                                 <Button 
-                                    variant="soft" 
+                                    variant="rainbow" 
                                     className="flex-1 py-4 text-base font-semibold hover:cursor-pointer"
                                     onClick={handleSaveToArchive}
                                 >
@@ -665,7 +664,7 @@ function MusicResultPage() {
                             
                             {/* 다운로드 버튼 */}
                             <Button 
-                                variant="soft" 
+                                variant="rainbow" 
                                 className="w-full max-w-md py-4 text-base font-semibold hover:cursor-pointer flex items-center justify-center gap-2"
                                 onClick={handleDownload}
                                 disabled={!musicUrl}
@@ -679,7 +678,13 @@ function MusicResultPage() {
                     </div>
 
                     {/* 하단 섹션: 가로 스크롤 가능한 요약 카드들과 화살표 버튼 */}
-                    <div className="relative py-8">
+                    <div className="relative py-6">
+                        {/* 섹션 제목 */}
+                        <div className="mb-10 text-center">
+                            <h2 className="text-3xl font-semibold text-[var(--text-primary)] mb-3">작성한 정보</h2>
+                            <p className="text-base text-[var(--text-muted)]">선택하신 옵션들을 확인해보세요</p>
+                        </div>
+                        
                         {/* 왼쪽 화살표 */}
                         {canScrollLeft && (
                             <button
@@ -700,9 +705,9 @@ function MusicResultPage() {
                                         }, 3000);
                                     }
                                 }}
-                                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 z-10 flex items-center justify-center hover:opacity-100 transition-opacity duration-300"
+                                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 z-10 flex items-center justify-center w-12 h-12 rounded-full bg-white/90 shadow-lg hover:bg-white hover:shadow-xl transition-all duration-300 backdrop-blur-sm"
                             >
-                                <svg viewBox="0 0 24 24" className="w-8 h-8 fill-[var(--text-primary)] opacity-50">
+                                <svg viewBox="0 0 24 24" className="w-6 h-6 fill-[var(--text-primary)]">
                                     <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
                                 </svg>
                             </button>
@@ -713,17 +718,17 @@ function MusicResultPage() {
                             className="overflow-x-auto pb-4 scrollbar-hide"
                             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                         >
-                            <div className="flex gap-4 min-w-max px-4">
+                            <div className="flex gap-5 min-w-max px-4">
                                 {summary.map((item) => (
                                     <div 
                                         key={item.label} 
-                                        className="flex-shrink-0 w-72 flex flex-col rounded-[1.0rem] bg-gradient-to-br from-white via-[#fffef8] to-[#fff6da] border-2 border-white/50 p-7 shadow-[0_8px_24px_rgba(246,190,95,0.15)] hover:shadow-[0_12px_32px_rgba(246,190,95,0.25)] transition-all duration-300 backdrop-blur-sm"
+                                        className="flex-shrink-0 w-72 flex flex-col rounded-[1.5rem] bg-gradient-to-br from-[#fffef9] via-[#fff6da] to-[#fef6dd] border border-black/10 p-8 shadow-[0_4px_12px_rgba(252,234,187,0.15)] hover:shadow-[0_6px_16px_rgba(252,234,187,0.2)] hover:-translate-y-1 transition-all duration-300"
                                     >
-                                        <div className="flex items-center gap-2 mb-4">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-br from-[var(--accent-rose)] to-[var(--accent-amber)]"></div>
-                                            <span className="text-m font-bold uppercase tracking-[0.3em] text-[var(--accent-rose)]">{item.label}</span>
+                                        <div className="flex items-center gap-2.5 mb-5">
+                                            <div className="w-2 h-2 rounded-full bg-[var(--accent-amber)]"></div>
+                                            <span className="text-sm font-bold uppercase tracking-[0.2em] text-[var(--text-primary)]">{item.label}</span>
                                         </div>
-                                        <span className="text-base text-[var(--text-primary)] break-words leading-relaxed font-semibold">{item.value}</span>
+                                        <span className="text-base text-[var(--text-primary)] break-words leading-relaxed font-medium">{item.value}</span>
                                     </div>
                                 ))}
                             </div>
@@ -749,9 +754,9 @@ function MusicResultPage() {
                                         }, 3000);
                                     }
                                 }}
-                                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 z-10 flex items-center justify-center hover:opacity-100 transition-opacity duration-300"
+                                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 z-10 flex items-center justify-center w-12 h-12 rounded-full bg-white/90 shadow-lg hover:bg-white hover:shadow-xl transition-all duration-300 backdrop-blur-sm"
                             >
-                                <svg viewBox="0 0 24 24" className="w-8 h-8 fill-[var(--text-primary)] opacity-50">
+                                <svg viewBox="0 0 24 24" className="w-6 h-6 fill-[var(--text-primary)]">
                                     <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
                                 </svg>
                             </button>
@@ -760,13 +765,14 @@ function MusicResultPage() {
                 </section>
 
                 {!hasData && (
-                    <div className="rounded-2xl border border-dashed border-[var(--accent-rose)] bg-[var(--accent-rose)]/10 px-6 py-4 text-center text-sm font-semibold text-[var(--accent-rose)]">
-                        아직 입력된 정보가 없어요. 처음으로 돌아가서 허밍을 업로드하거나 질문에 답해보세요.
+                    <div className="rounded-[2rem] border-2 border-dashed border-[var(--accent-rose)]/40 bg-gradient-to-br from-[#fff6da]/50 via-white/50 to-[#fce4ef]/50 px-8 py-6 text-center shadow-[0_8px_24px_rgba(242,137,130,0.1)] backdrop-blur-sm mt-8">
+                        <p className="text-base font-semibold text-[var(--accent-rose)] mb-2">아직 입력된 정보가 없어요</p>
+                        <p className="text-sm text-[var(--text-muted)]">처음으로 돌아가서 허밍을 업로드하거나 질문에 답해보세요.</p>
                     </div>
                 )}
 
                 {jobId && !musicUrl && (
-                    <div className="rounded-[2.5rem] border-4 border-black/10 bg-yellow-50/90 p-8 shadow-[0_22px_0_rgba(46,31,39,0.08)]">
+                    <div className="rounded-[2.5rem] border-2 border-black/10 bg-gradient-to-br from-yellow-50/90 via-white/90 to-amber-50/90 p-10 shadow-[0_20px_0_rgba(252,234,187,0.12)] mt-8">
                         <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">음악 생성 중</h2>
                         <p className="text-sm text-[var(--text-muted)] mb-4">
                             Job ID: <code className="bg-white/50 px-2 py-1 rounded">{jobId}</code>
@@ -796,7 +802,7 @@ function MusicResultPage() {
                 )}
 
                 {composeResponseJson && (
-                    <div className="rounded-[2.5rem] border-4 border-black/10 bg-white/90 p-8 shadow-[0_22px_0_rgba(46,31,39,0.08)]">
+                    <div className="rounded-[2.5rem] border-2 border-black/10 bg-white/95 p-10 shadow-[0_20px_0_rgba(46,31,39,0.06)] mt-8">
                         <h2 className="text-lg font-semibold text-[var(--text-primary)]">AI 응답 미리보기</h2>
                         <pre className="mt-4 max-h-60 overflow-auto rounded-2xl bg-gray-900/90 p-5 text-sm text-gray-100">
                             {composeResponseJson}
@@ -804,8 +810,8 @@ function MusicResultPage() {
                     </div>
                 )}
 
-                <div className="flex flex-wrap justify-center gap-6">
-                    <Button toWhere="/" variant="rainbow" className="w-55 py-5" onClick={() => resetAnswers()}>
+                <div className="flex flex-wrap justify-center gap-6 mt-20 mb-16">
+                    <Button toWhere="/" variant="rainbow" className="px-16 py-5 text-lg font-semibold" onClick={() => resetAnswers()}>
                         처음으로 돌아가기
                     </Button>
                     {/* <Button variant="rainbow" className="w-55 py-5" onClick={() => window.location.reload()}>
@@ -862,4 +868,3 @@ function MusicResultPage() {
 }
 
 export default MusicResultPage;
-

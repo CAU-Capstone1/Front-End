@@ -29,7 +29,6 @@ function LoginPage() {
                 localStorage.setItem("accessToken", response.token);
             }
             
-            alert("로그인 성공!");
             navigate("/");
         } catch (err) {
             setError(err instanceof Error ? err.message : "로그인에 실패했습니다.");

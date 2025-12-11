@@ -299,7 +299,7 @@ body {
 
 /* 무지개 그라데이션 텍스트 (hover) */
 .rainbow-text-hover-parent:hover .rainbow-text-hover {
-    background: linear-gradient(120deg, #ffd1dc, #fceabb, #d3f8e2, #a6e3e9, #f7d6ff) !important;
+    background: linear-gradient(120deg, #fffef9, #fef6dd, #fff5f3, #ffe4e1) !important;
     -webkit-background-clip: text !important;
     background-clip: text !important;
     -webkit-text-fill-color: transparent !important;

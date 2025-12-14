@@ -1,5 +1,10 @@
 import { getAuthHeaders } from "../utils/auth";
 
+// API 기본 URL (환경 변수로 설정 가능)
+// 프로덕션에서는 절대 경로 사용, 개발 환경에서는 프록시 사용
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
+    (import.meta.env.PROD ? "http://3.36.255.180:8080/api" : "/api");
+
 /**
  * 백엔드 JobStatus enum에 대응하는 타입
  */
@@ -37,7 +42,7 @@ export async function checkJobStatus(jobId: string): Promise<JobStatusResponse> 
     };
 
     const encodedJobId = encodeURIComponent(jobId);
-    const url = `/api/job/${encodedJobId}`;
+    const url = `${API_BASE_URL}/job/${encodedJobId}`;
 
     try {
         const response = await fetch(url, {

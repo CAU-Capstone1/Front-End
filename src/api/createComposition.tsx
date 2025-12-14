@@ -28,12 +28,16 @@ export async function createComposition(body: CompositionRequestBody) {
         ...getAuthHeaders(), 
     };
 
+<<<<<<< HEAD
     const url = `${API_BASE_URL}/compose`;
     console.log("🌐 API 요청 URL:", url);
     console.log("📤 요청 헤더:", headers);
     console.log("📦 요청 본문:", body);
 
     const response = await fetch(url, {
+=======
+    const response = await fetch(`${API_BASE_URL}/compose`, {
+>>>>>>> adf7bac0d7374e9d6a094c9df992657250953e2e
         method: "POST",
         headers: headers, // 수정된 headers를 사용
         body: JSON.stringify(body),

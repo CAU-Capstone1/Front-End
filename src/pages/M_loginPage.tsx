@@ -23,15 +23,25 @@ function LoginPage() {
         try {
             const response = await login(email, password); 
             
-            // 🚨 핵심 수정: JWT 토큰을 localStorage에 저장 🚨
-            // 백엔드가 반환한 토큰을 클라이언트가 저장하여 세션 유지에 사용합니다.
-            if (response && response.token) {
-                localStorage.setItem("accessToken", response.token);
+            // login 함수가 이미 토큰을 저장하므로 추가 저장 불필요
+            // 응답 확인만 수행
+            if (!response || !response.accessToken) {
+                throw new Error("로그인 응답이 올바르지 않습니다.");
             }
             
             navigate("/");
         } catch (err) {
-            setError(err instanceof Error ? err.message : "로그인에 실패했습니다.");
+            console.error("로그인 오류:", err);
+            if (err instanceof Error) {
+                // 네트워크 오류인 경우 더 명확한 메시지 제공
+                if (err.message.includes("Failed to fetch") || err.message.includes("NetworkError")) {
+                    setError("서버에 연결할 수 없습니다. 네트워크 연결을 확인해주세요.");
+                } else {
+                    setError(err.message);
+                }
+            } else {
+                setError("로그인에 실패했습니다. 잠시 후 다시 시도해주세요.");
+            }
         } finally {
             setLoading(false);
         }

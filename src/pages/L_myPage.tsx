@@ -171,27 +171,50 @@ function MyPage() {
         }
 
         try {
-            // 음악 파일 다운로드
-            const response = await fetch(musicUrl);
-            if (!response.ok) {
-                throw new Error("다운로드 실패");
+            // 먼저 fetch로 시도 (CORS가 허용된 경우)
+            try {
+                const response = await fetch(musicUrl, {
+                    method: 'GET',
+                    mode: 'cors',
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    
+                    // 파일명 생성 (음악 이름 사용)
+                    const fileName = music.name.trim() 
+                        ? `${music.name.trim()}.mp3` 
+                        : `music-${Date.now()}.mp3`;
+                    a.download = fileName;
+                    
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    
+                    return; // 성공하면 여기서 종료
+                }
+            } catch (fetchError) {
+                // CORS 오류 등으로 fetch 실패 시 직접 링크 방식 사용
+                console.log("Fetch 실패, 직접 링크 방식 사용:", fetchError);
             }
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
             
-            // 파일명 생성 (음악 이름 사용)
-            const fileName = `${music.name}.mp3`;
-            a.download = fileName;
+            // CORS 문제로 fetch가 실패한 경우, 직접 링크로 다운로드 시도
+            // S3 URL에 직접 접근하여 다운로드 (브라우저가 자동으로 다운로드 처리)
+            const a = document.createElement("a");
+            a.href = musicUrl;
+            a.download = music.name.trim() 
+                ? `${music.name.trim()}.mp3` 
+                : `music-${Date.now()}.mp3`;
+            a.style.display = 'none';
             
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
             
-            alert("다운로드가 완료되었습니다!");
         } catch (error) {
             console.error("다운로드 실패:", error);
             alert("다운로드 중 오류가 발생했습니다.");

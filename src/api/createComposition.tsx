@@ -28,27 +28,48 @@ export async function createComposition(body: CompositionRequestBody) {
         ...getAuthHeaders(), 
     };
 
-<<<<<<< HEAD
     const url = `${API_BASE_URL}/compose`;
-    console.log("🌐 API 요청 URL:", url);
-    console.log("📤 요청 헤더:", headers);
-    console.log("📦 요청 본문:", body);
+    
+    // 디버깅을 위한 로그 (개발 환경에서만)
+    if (import.meta.env.DEV) {
+        console.log("🌐 API 요청 URL:", url);
+        const authHeaders = getAuthHeaders();
+        console.log("📤 요청 헤더:", { 
+            "Content-Type": headers["Content-Type"],
+            Authorization: authHeaders.Authorization ? "Bearer ***" : "없음" 
+        });
+        console.log("📦 요청 본문:", body);
+    }
 
     const response = await fetch(url, {
-=======
-    const response = await fetch(`${API_BASE_URL}/compose`, {
->>>>>>> adf7bac0d7374e9d6a094c9df992657250953e2e
         method: "POST",
         headers: headers, // 수정된 headers를 사용
         body: JSON.stringify(body),
     });
 
-    console.log("📥 응답 상태:", response.status, response.statusText);
-
     if (!response.ok) {
-        const message = await response.text();
-        console.error("❌ 서버 에러 응답:", message);
-        throw new Error(`작곡 요청 실패 (${response.status}): ${message}`);
+        let errorMessage = "";
+        try {
+            const message = await response.text();
+            errorMessage = message;
+            console.error("❌ 서버 에러 응답:", message);
+            
+            // JSON 형식인 경우 파싱해서 더 읽기 쉽게 표시
+            try {
+                const errorJson = JSON.parse(message);
+                if (errorJson.message) {
+                    errorMessage = errorJson.message;
+                } else if (errorJson.error) {
+                    errorMessage = errorJson.error;
+                }
+            } catch {
+                // JSON이 아니면 그대로 사용 (message 변수 사용)
+            }
+        } catch {
+            errorMessage = `서버 오류 (${response.status})`;
+        }
+        
+        throw new Error(`작곡 요청 실패 (${response.status}): ${errorMessage}`);
     }
 
     return response.json().catch(() => ({}));

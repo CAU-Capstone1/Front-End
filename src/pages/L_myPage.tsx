@@ -107,41 +107,51 @@ function MyPage() {
             return;
         }
 
-        // 이미 재생 중인 음악이면 일시정지
-        if (playingId === music.id && audioRef.current) {
+        // 이미 재생 중인 같은 음악이면 일시정지
+        if (playingId === music.id && audioRef.current && !audioRef.current.paused) {
             audioRef.current.pause();
             setPlayingId(null);
             return;
         }
 
         // 다른 음악이 재생 중이면 정지
-        if (audioRef.current) {
+        if (audioRef.current && playingId !== music.id) {
             audioRef.current.pause();
+            audioRef.current = null;
         }
 
         try {
-            // 새 Audio 객체 생성
-            audioRef.current = new Audio(musicUrl);
-            
-            // 재생 이벤트 리스너
-            audioRef.current.addEventListener("play", () => {
-                setPlayingId(music.id);
-            });
-            
-            audioRef.current.addEventListener("pause", () => {
-                setPlayingId(null);
-            });
-            
-            audioRef.current.addEventListener("ended", () => {
-                setPlayingId(null);
-            });
-            
-            audioRef.current.addEventListener("error", (e) => {
-                console.error("음악 재생 오류:", e);
-                setPlayingId(null);
-                alert("음악 재생 중 오류가 발생했습니다.");
-            });
+            // Audio 객체가 없거나 다른 음악이면 새로 생성
+            if (!audioRef.current || audioRef.current.src !== musicUrl) {
+                // 기존 이벤트 리스너 제거를 위해 새 객체 생성
+                if (audioRef.current) {
+                    audioRef.current.pause();
+                    audioRef.current = null;
+                }
+                
+                audioRef.current = new Audio(musicUrl);
+                
+                // 재생 이벤트 리스너
+                audioRef.current.addEventListener("play", () => {
+                    setPlayingId(music.id);
+                });
+                
+                audioRef.current.addEventListener("pause", () => {
+                    setPlayingId(null);
+                });
+                
+                audioRef.current.addEventListener("ended", () => {
+                    setPlayingId(null);
+                });
+                
+                audioRef.current.addEventListener("error", (e) => {
+                    console.error("음악 재생 오류:", e);
+                    setPlayingId(null);
+                    alert("음악 재생 중 오류가 발생했습니다.");
+                });
+            }
 
+            // 재생
             await audioRef.current.play();
         } catch (error) {
             console.error("재생 실패:", error);

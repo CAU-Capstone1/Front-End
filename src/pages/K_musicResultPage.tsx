@@ -468,10 +468,21 @@ function MusicResultPage() {
             return;
         }
 
+        // 먼저 현재 Audio 객체가 있고 재생 중인지 확인 (로딩 중이어도 재생 중이면 일시정지 가능)
+        const currentAudio = audioRef.current;
+        if (currentAudio && (isPlaying || !currentAudio.paused)) {
+            // 재생 중이면 일시정지
+            currentAudio.pause();
+            setIsPlaying(false);
+            setIsLoading(false);
+            return;
+        }
+
         // Audio 객체가 없거나 URL이 변경되었으면 새로 생성
         if (!audioRef.current || audioRef.current.src !== urlToPlay) {
             if (audioRef.current) {
                 audioRef.current.pause();
+                audioRef.current = null;
             }
             audioRef.current = new Audio(urlToPlay);
             
@@ -496,24 +507,23 @@ function MusicResultPage() {
                 alert("음악 재생 중 오류가 발생했습니다.");
             });
             
-            audioRef.current.addEventListener("loadstart", () => {
-                setIsLoading(true);
-            });
+            // loadstart 이벤트는 제거 (로딩 스피너 표시 안 함)
         }
 
         const audio = audioRef.current;
 
         try {
-            if (isPlaying) {
-                // 일시정지
-                audio.pause();
-            } else {
-                // 재생
+            // 일시정지 상태이거나 재생 중이 아니면 재생
+            if (audio) {
+                // 재생 시작 시 바로 재생 상태로 설정 (로딩 스피너 없이)
+                setIsPlaying(true);
+                setIsLoading(false);
                 await audio.play();
             }
         } catch (error) {
             console.error("재생 실패:", error);
             setIsLoading(false);
+            setIsPlaying(false);
             alert("음악 재생에 실패했습니다.");
         }
     };
@@ -624,7 +634,7 @@ function MusicResultPage() {
                                 type="button" 
                                 className="play-button"
                                 onClick={handlePlayPause}
-                                disabled={!musicUrl || isLoading}
+                                disabled={!musicUrl}
                             >
                                 <span className="play-button-core">
                                     {isLoading ? (

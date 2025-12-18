@@ -3,7 +3,8 @@ const VALUE_LABEL_MAP: Record<string, string> = {
     orchestra: "오케스트라", // 하위 호환성 유지
     hiphop: "힙합",
     rock: "록",
-    sageuk: "사극풍",
+    sageuk: "사극풍", // 하위 호환성 유지
+    jazz: "재즈",
     peaceful: "평화로운",
     dreamy: "몽환적인",
     exciting: "신나는",

@@ -13,17 +13,17 @@ const GENRE_OPTIONS = [
     {
         label: "힙합",
         value: "hiphop",
-        imageUrl: "https://i.namu.wiki/i/Jz224Csh4AhvZ53rujh-eqK_GKO_x7jxsNbsBV5FyoM2aEF36Y0ScvTUKunhDR1-fKej9wXzVyASyCdtGY8H6w.webp",
+        imageUrl: "/hiphop2.jpg",
     },
     {
         label: "록",
         value: "rock",
-        imageUrl: "https://img1.daumcdn.net/thumb/R1280x0.fwebp/?fname=http://t1.daumcdn.net/brunch/service/user/3XvV/image/Vp2Idqu3LI8_4_fC2To-0o5ovHU.JPG",
+        imageUrl: "/rock.jpg",
     },
     {
-        label: "사극풍",
-        value: "sageuk",
-        imageUrl: "https://img.segye.com/content/image/2023/04/25/20230425518948.jpg",
+        label: "재즈",
+        value: "jazz",
+        imageUrl: "/JAZZ2.jpg",
     },
 ];
 

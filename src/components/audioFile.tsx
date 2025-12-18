@@ -92,7 +92,7 @@ export default function AudioFileUploader() {
     [],
   );
 
-  const validateFile = (file: File, maxSize: number, typePrefix: string) => {
+  const validateFile = (file: File, maxSize: number) => {
     // mp3 파일만 허용
     const isMp3 = file.type === "audio/mpeg" || file.type === "audio/mp3" || file.name.toLowerCase().endsWith(".mp3");
     if (!isMp3) {
@@ -112,7 +112,7 @@ export default function AudioFileUploader() {
     (segmentId: SegmentId, files: FileList | null) => {
       if (!files?.length) return;
       const candidate = files[0];
-      if (!validateFile(candidate, MAX_AUDIO_SIZE_MB, "audio")) return;
+      if (!validateFile(candidate, MAX_AUDIO_SIZE_MB)) return;
 
       setSegmentState((prev) => {
         const previousPreview = prev[segmentId].previewURL;

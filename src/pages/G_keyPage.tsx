@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import QuestionLayout from "../components/questionLayout";
 import { getAnswer, removeAnswer, setAnswer } from "../utils/compositionSession";
 
@@ -36,6 +36,8 @@ const KEY_GROUPS: Array<{
 
 function KeyPage() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const isEditMode = searchParams.get("from") === "review";
     const [selectedKey, setSelectedKey] = useState<string>("");
 
     useEffect(() => {
@@ -46,12 +48,12 @@ function KeyPage() {
     const handleNext = () => {
         if (!selectedKey) return;
         setAnswer("key", selectedKey);
-        navigate("/length");
+        navigate(isEditMode ? "/review" : "/length");
     };
 
     const handleSkip = () => {
         removeAnswer("key");
-        navigate("/length");
+        navigate(isEditMode ? "/review" : "/length");
     };
 
     return (
@@ -59,9 +61,9 @@ function KeyPage() {
             title="어떤 키를 원하시나요?"
             description="원하는 분위기의 음계를 골라보세요."
             stepLabel="04 / 06"
-            onBack={() => navigate(-1)}
+            onBack={() => navigate(isEditMode ? "/review" : -1)}
             onSkip={handleSkip}
-            primaryAction={{ label: "다음", onClick: handleNext, disabled: !selectedKey, variant: "rainbow" }}
+            primaryAction={{ label: isEditMode ? "완료" : "다음", onClick: handleNext, disabled: !selectedKey, variant: "rainbow" }}
         >
             <div className="space-y-6">
                 {KEY_GROUPS.map((group) => (

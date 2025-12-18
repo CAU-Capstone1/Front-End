@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import OptionCard from "../components/optionCard";
 import QuestionLayout from "../components/questionLayout";
 import { getAnswer, removeAnswer, setAnswer } from "../utils/compositionSession";
@@ -122,6 +122,8 @@ const DEFAULT_MOOD_OPTIONS = [
 
 function What2() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const isEditMode = searchParams.get("from") === "review";
     const [selected, setSelected] = useState<string>("");
     const [customValue, setCustomValue] = useState<string>("");
 
@@ -157,12 +159,12 @@ function What2() {
     const handleNext = () => {
         if (!selected.trim()) return;
         setAnswer("mood", selected.trim());
-        navigate("/instrument");
+        navigate(isEditMode ? "/review" : "/instrument");
     };
 
     const handleSkip = () => {
         removeAnswer("mood");
-        navigate("/instrument");
+        navigate(isEditMode ? "/review" : "/instrument");
     };
 
     return (
@@ -170,9 +172,9 @@ function What2() {
             title="어떤 분위기의 음악을 만들고 싶으신가요?"
             description="느끼고 싶은 무드를 선택하거나 직접 입력하세요."
             stepLabel="02 / 06"
-            onBack={() => navigate(-1)}
+            onBack={() => navigate(isEditMode ? "/review" : -1)}
             onSkip={handleSkip}
-            primaryAction={{ label: "다음", onClick: handleNext, disabled: !selected.trim(), variant: "rainbow" }}
+            primaryAction={{ label: isEditMode ? "완료" : "다음", onClick: handleNext, disabled: !selected.trim(), variant: "rainbow" }}
         >
             <div className={OPTION_GRID_CLASS}>
                 {moodOptions.map((option) => (

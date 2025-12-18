@@ -1,19 +1,21 @@
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import VisualUploader from "../components/visualUploader";
 import Button from "../components/button";
 import { getAnswer } from "../utils/compositionSession";
 
 function VisualUploadPage() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const isEditMode = searchParams.get("from") === "review";
 
     const handleNext = () => {
         const mainMelody = getAnswer("hummingMain");
-        if (!mainMelody) {
+        if (!mainMelody && !isEditMode) {
             alert("메인 멜로디 허밍을 먼저 업로드해주세요.");
             navigate("/");
             return;
         }
-        navigate("/what1");
+        navigate(isEditMode ? "/review" : "/what1");
     };
 
     return (
@@ -40,7 +42,7 @@ function VisualUploadPage() {
 
                 <div className="flex flex-wrap justify-center gap-4">
                     <Button onClick={handleNext} variant="rainbow" className="px-24 py-5 text-lg">
-                        다음
+                        {isEditMode ? "완료" : "다음"}
                     </Button>
                 </div>
             </div>

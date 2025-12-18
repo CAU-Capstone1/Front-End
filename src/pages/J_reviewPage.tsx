@@ -57,9 +57,15 @@ function ReviewPage() {
         const answers = getAllAnswers();
         const nextItems: ReviewItem[] = REVIEW_ITEMS.map((item) => {
             const rawValue = answers[item.key];
-            const formatted = item.key === "duration"
+            let formatted = item.key === "duration"
                 ? formatAnswerValue(rawValue ?? null, "초")
                 : formatAnswerValue(rawValue ?? null);
+            
+            // 참고 이미지가 base64인 경우 짧게 표시
+            if (item.key === "referenceVisual" && rawValue && rawValue.startsWith("data:")) {
+                formatted = "이미지 업로드 완료";
+            }
+            
             const value = formatted === "-" ? "선택하지 않음" : formatted;
             return { ...item, rawValue, value };
         });
@@ -158,12 +164,12 @@ function ReviewPage() {
                             className="flex h-full flex-col justify-between gap-4 rounded-[2rem] border-4 border-black/10 bg-white/85 px-6 py-6 shadow-[0_16px_0_rgba(46,31,39,0.08)]"
                         >
                             <div>
-                                <p className="text-2xl font-semibold uppercase tracking-[0.25em] text-[var(--accent-rose)] mb-2">{item.label}</p>
+                                <p className="text-2xl font-semibold uppercase tracking-[0.25em] text-[#d4577a] mb-2">{item.label}</p>
                                 <p
-                                    className={`text-lg font-semibold ${
+                                    className={`text-lg font-semibold break-words overflow-hidden ${
                                         item.value === "선택하지 않음"
-                                            ? "text-[var(--accent-amber)]"
-                                            : "text-[var(--text-primary)]"
+                                            ? "text-[#e3bebe]"
+                                            : "text-[#2e1f27]"
                                     }`}
                                 >
                                     {item.value}

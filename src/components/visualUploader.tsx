@@ -38,7 +38,7 @@ export default function VisualUploader() {
         if (!validateFile(candidate)) return;
 
         setFile(candidate);
-        setStatus("참고 비주얼 준비 완료");
+        setStatus("이미지 업로드 완료");
         setStoredName(candidate.name);
         
         // blob URL 생성

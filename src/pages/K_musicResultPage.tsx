@@ -254,8 +254,27 @@ function MusicResultPage() {
         }
     }, []);
 
+    // 참고 이미지 URL 상태 추가
+    const [referenceImageUrl, setReferenceImageUrl] = useState<string | null>(null);
+    const [imageLoadError, setImageLoadError] = useState(false);
+
     useEffect(() => {
         const answers = getAllAnswers();
+        
+        // 참고 이미지 URL 설정 및 디버깅
+        const imageUrl = answers.referenceVisual;
+        if (imageUrl) {
+            // base64 데이터인 경우 처음 50자만 표시
+            const displayUrl = imageUrl.startsWith("data:") 
+                ? `${imageUrl.substring(0, 50)}... (base64 이미지, ${(imageUrl.length / 1024).toFixed(1)}KB)`
+                : imageUrl;
+            console.log("📸 참고 이미지:", displayUrl);
+            setReferenceImageUrl(imageUrl);
+            setImageLoadError(false);
+        } else {
+            console.log("📸 참고 이미지: 없음");
+        }
+        
         const displayValue = (value: string | null | undefined, suffix?: string) => {
             const formatted = formatAnswerValue(value ?? null, suffix);
             return formatted === "-" ? "선택하지 않음" : formatted;
@@ -264,7 +283,8 @@ function MusicResultPage() {
             { label: "시작 멜로디", value: displayValue(answers.hummingStart) },
             { label: "메인 멜로디", value: displayValue(answers.hummingMain) },
             { label: "끝 멜로디", value: displayValue(answers.hummingEnd) },
-            { label: "참고 이미지", value: displayValue(answers.referenceVisual) },
+            // 참고 이미지는 상단에 표시되므로 여기서는 제외
+            // { label: "참고 이미지", value: displayValue(answers.referenceVisual) },
             { label: "장르", value: displayValue(answers.style) },
             { label: "무드", value: displayValue(answers.mood) },
             { label: "악기", value: displayValue(answers.instrument) },
@@ -628,62 +648,110 @@ function MusicResultPage() {
                 <section className="flex flex-col gap-14">
                     {/* 상단 섹션: 재생 버튼과 액션 버튼들 */}
                     <div className="rounded-[2.5rem] border-2 border-black/10 bg-gradient-to-tr from-[#fffef9] via-white to-[#fff5f3] p-12 shadow-[0_20px_0_rgba(252,234,187,0.12)]">
-                        <div className="flex flex-col items-center gap-6">
-                            {/* 재생 버튼 (중앙) */}
-                            <button 
-                                type="button" 
-                                className="play-button"
-                                onClick={handlePlayPause}
-                                disabled={!musicUrl}
-                            >
-                                <span className="play-button-core">
-                                    {isLoading ? (
-                                        <svg viewBox="0 0 24 24" className="play-button-icon" style={{ animation: "spin 1s linear infinite" }}>
-                                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.3" />
-                                            <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
-                                        </svg>
-                                    ) : isPlaying ? (
-                                        <svg viewBox="0 0 24 24" className="play-button-icon">
-                                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-                                        </svg>
-                                    ) : (
-                                        <svg viewBox="0 0 24 24" className="play-button-icon">
-                                            <path d="M8 5.5v13l10-6.5z" />
-                                        </svg>
-                                    )}
-                                </span>
-                            </button>
-                            
-                            {/* 두 개의 버튼 */}
-                            <div className="flex gap-4 w-full max-w-md">
+                        <div className={`flex ${referenceImageUrl ? 'flex-row' : 'flex-col'} items-center gap-8`}>
+                            {/* 왼쪽: 재생 버튼과 액션 버튼들 */}
+                            <div className={`flex flex-col items-center gap-6 ${referenceImageUrl ? 'flex-1' : 'w-full'}`}>
+                                {/* 재생 버튼 (중앙) */}
+                                <button 
+                                    type="button" 
+                                    className="play-button"
+                                    onClick={handlePlayPause}
+                                    disabled={!musicUrl}
+                                >
+                                    <span className="play-button-core">
+                                        {isLoading ? (
+                                            <svg viewBox="0 0 24 24" className="play-button-icon" style={{ animation: "spin 1s linear infinite" }}>
+                                                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.3" />
+                                                <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
+                                            </svg>
+                                        ) : isPlaying ? (
+                                            <svg viewBox="0 0 24 24" className="play-button-icon">
+                                                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                                            </svg>
+                                        ) : (
+                                            <svg viewBox="0 0 24 24" className="play-button-icon">
+                                                <path d="M8 5.5v13l10-6.5z" />
+                                            </svg>
+                                        )}
+                                    </span>
+                                </button>
+                                
+                                {/* 두 개의 버튼 */}
+                                <div className="flex gap-4 w-full max-w-md">
+                                    <Button 
+                                        variant="rainbow" 
+                                        className="flex-1 py-4 text-base font-semibold hover:cursor-pointer"
+                                        onClick={() => navigate("/myPage")}
+                                    >
+                                        내 보관함
+                                    </Button>
+                                    <Button 
+                                        variant="rainbow" 
+                                        className="flex-1 py-4 text-base font-semibold hover:cursor-pointer"
+                                        onClick={handleSaveToArchive}
+                                    >
+                                        이름 짓기
+                                    </Button>
+                                </div>
+                                
+                                {/* 다운로드 버튼 */}
                                 <Button 
                                     variant="rainbow" 
-                                    className="flex-1 py-4 text-base font-semibold hover:cursor-pointer"
-                                    onClick={() => navigate("/myPage")}
+                                    className="w-full max-w-md py-4 text-base font-semibold hover:cursor-pointer flex items-center justify-center gap-2"
+                                    onClick={handleDownload}
+                                    disabled={!musicUrl}
                                 >
-                                    내 보관함
-                                </Button>
-                                <Button 
-                                    variant="rainbow" 
-                                    className="flex-1 py-4 text-base font-semibold hover:cursor-pointer"
-                                    onClick={handleSaveToArchive}
-                                >
-                                    이름 짓기
+                                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
+                                        <path d="M12 15.5L7.5 11h3V3h3v8h3L12 15.5zM5 19h14v2H5v-2z" />
+                                    </svg>
+                                    다운로드
                                 </Button>
                             </div>
                             
-                            {/* 다운로드 버튼 */}
-                            <Button 
-                                variant="rainbow" 
-                                className="w-full max-w-md py-4 text-base font-semibold hover:cursor-pointer flex items-center justify-center gap-2"
-                                onClick={handleDownload}
-                                disabled={!musicUrl}
-                            >
-                                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
-                                    <path d="M12 15.5L7.5 11h3V3h3v8h3L12 15.5zM5 19h14v2H5v-2z" />
-                                </svg>
-                                다운로드
-                            </Button>
+                            {/* 오른쪽: 참고 이미지 (업로드된 경우에만 표시) */}
+                            {referenceImageUrl && (
+                                <div className="flex-shrink-0 w-96 h-full">
+                                    <div className="relative h-full min-h-[400px] rounded-[2rem] border-4 border-black/10 bg-white/85 shadow-[0_16px_0_rgba(46,31,39,0.08)] overflow-hidden">
+                                        {imageLoadError ? (
+                                            <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+                                                <p className="text-lg font-semibold text-[var(--text-primary)] mb-2">이미지를 불러올 수 없습니다</p>
+                                                <p className="text-sm text-[var(--text-muted)] mb-4">URL: {referenceImageUrl.substring(0, 50)}...</p>
+                                                <button 
+                                                    onClick={() => {
+                                                        setImageLoadError(false);
+                                                        // 강제로 이미지 다시 로드
+                                                        const img = new Image();
+                                                        img.src = referenceImageUrl;
+                                                    }}
+                                                    className="px-4 py-2 bg-[var(--accent-rose)] text-white rounded-lg hover:opacity-90"
+                                                >
+                                                    다시 시도
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <img
+                                                src={referenceImageUrl}
+                                                alt="참고 이미지"
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    const displayUrl = referenceImageUrl.startsWith("data:") 
+                                                        ? `${referenceImageUrl.substring(0, 50)}...`
+                                                        : referenceImageUrl;
+                                                    console.error("❌ 이미지 로드 실패:", displayUrl);
+                                                    console.error("❌ 에러 상세:", e);
+                                                    setImageLoadError(true);
+                                                }}
+                                                onLoad={() => {
+                                                    const displayUrl = referenceImageUrl.startsWith("data:") 
+                                                        ? `base64 이미지 (${(referenceImageUrl.length / 1024).toFixed(1)}KB)`
+                                                        : referenceImageUrl;
+                                                    console.log("✅ 이미지 로드 성공:", displayUrl);
+                                                }}
+                                            />
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 

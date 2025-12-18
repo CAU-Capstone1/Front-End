@@ -76,6 +76,11 @@ export async function createComposition(body: CompositionRequestBody) {
 }
 
 export function buildCompositionBody(answers: CompositionAnswers): CompositionRequestBody {
+    // referenceVisual이 base64 데이터인 경우 서버로 전송하지 않음 (너무 큼)
+    // base64 데이터는 클라이언트에서만 표시 목적으로 사용
+    const referenceVisual = answers.referenceVisual;
+    const isBase64 = referenceVisual && referenceVisual.startsWith("data:");
+    
     return {
         style: answers.style ?? null,
         mood: answers.mood ?? null,
@@ -86,6 +91,7 @@ export function buildCompositionBody(answers: CompositionAnswers): CompositionRe
         hummingStart: answers.hummingStart ?? null,
         hummingMain: answers.hummingMain ?? null,
         hummingEnd: answers.hummingEnd ?? null,
-        referenceVisual: answers.referenceVisual ?? null,
+        // base64가 아닌 경우만 서버로 전송 (URL인 경우)
+        referenceVisual: isBase64 ? null : (referenceVisual ?? null),
     };
 }

@@ -21,6 +21,7 @@ export const STORAGE_KEYS = {
     hummingMain: "compose:hummingMain",
     hummingEnd: "compose:hummingEnd",
     referenceVisual: "compose:referenceVisual",
+    referenceVisualName: "compose:referenceVisualName",
 } as const;
 
 export type CompositionAnswerKey = keyof typeof STORAGE_KEYS;

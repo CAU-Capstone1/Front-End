@@ -6,9 +6,15 @@ const MAX_IMAGE_SIZE_MB = 20;
 
 export default function VisualUploader() {
     const [file, setFile] = useState<File | null>(null);
-    const [previewURL, setPreviewURL] = useState<string | null>(null);
+    const [previewURL, setPreviewURL] = useState<string | null>(() => {
+        // 저장된 base64 이미지가 있으면 미리보기로 설정
+        const savedImage = getAnswer("referenceVisual");
+        return (savedImage && savedImage.startsWith("data:")) ? savedImage : null;
+    });
     const [status, setStatus] = useState<string>("");
-    const [storedName, setStoredName] = useState<string | null>(() => getAnswer("referenceVisual") ?? null);
+    const [storedName, setStoredName] = useState<string | null>(() => 
+        getAnswer("referenceVisualName") ?? getAnswer("referenceVisual") ?? null
+    );
 
     const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -33,20 +39,41 @@ export default function VisualUploader() {
 
         setFile(candidate);
         setStatus("참고 비주얼 준비 완료");
-        setAnswer("referenceVisual", candidate.name);
         setStoredName(candidate.name);
+        
+        // blob URL 생성
+        const blobURL = URL.createObjectURL(candidate);
         setPreviewURL((prev) => {
             if (prev) URL.revokeObjectURL(prev);
-            return URL.createObjectURL(candidate);
+            return blobURL;
         });
+        
+        // 이미지를 base64로 변환하여 저장 (sessionStorage에 저장 가능하도록)
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const base64String = reader.result as string;
+            // base64 데이터 저장
+            setAnswer("referenceVisual", base64String);
+            setAnswer("referenceVisualName", candidate.name);
+            console.log("✅ 이미지가 base64로 저장되었습니다:", {
+                파일명: candidate.name,
+                크기: `${(base64String.length / 1024).toFixed(1)}KB`,
+                형식: candidate.type
+            });
+        };
+        reader.readAsDataURL(candidate);
     }, []);
 
     const reset = () => {
-        if (previewURL) URL.revokeObjectURL(previewURL);
+        // base64 데이터가 아닌 blob URL인 경우에만 revoke
+        if (previewURL && previewURL.startsWith("blob:")) {
+            URL.revokeObjectURL(previewURL);
+        }
         setFile(null);
         setPreviewURL(null);
         setStatus("");
         removeAnswer("referenceVisual");
+        removeAnswer("referenceVisualName");
         setStoredName(null);
     };
 
@@ -81,10 +108,12 @@ export default function VisualUploader() {
                         <p className="font-semibold">{displayName}</p>
                         {previewURL && (
                             <div className="overflow-hidden rounded-2xl border border-black/10">
-                                {file?.type.startsWith("image/") ? (
+                                {(file?.type.startsWith("image/") || previewURL.startsWith("data:image/")) ? (
                                     <img src={previewURL} alt="참고 이미지" className="h-48 w-full object-cover" />
-                                ) : (
+                                ) : (file?.type.startsWith("video/") || previewURL.startsWith("data:video/")) ? (
                                     <video src={previewURL} controls className="h-48 w-full object-cover" />
+                                ) : (
+                                    <img src={previewURL} alt="참고 이미지" className="h-48 w-full object-cover" />
                                 )}
                             </div>
                         )}

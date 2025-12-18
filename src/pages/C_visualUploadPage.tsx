@@ -27,7 +27,7 @@ function VisualUploadPage() {
                         step 02
                     </span>
                     <h1 className="text-[2.6rem] font-semibold leading-tight text-[var(--text-primary)]">
-                        참고 이미지나 영상을 준비했나요?
+                        참고 이미지를를 준비했나요?
                     </h1>
                     <p className="text-base text-[var(--text-muted)]">
                         AI에게 보여주고 싶은 분위기가 있다면 여기에서 업로드해 주세요. 꼭 필요하지는 않으니 건너뛰어도 괜찮아요.

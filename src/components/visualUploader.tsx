@@ -14,7 +14,7 @@ export default function VisualUploader() {
 
     const validateFile = (candidate: File) => {
         if (!candidate.type.startsWith("image/") && !candidate.type.startsWith("video/")) {
-            alert("이미지 또는 영상 파일만 업로드할 수 있어요.");
+            alert("이미지만 업로드할 수 있어요.");
             return false;
         }
 
@@ -57,7 +57,7 @@ export default function VisualUploader() {
             <div className="space-y-3 text-left">
                 <p className="text-sm uppercase tracking-[0.35em] text-[var(--accent-rose)]">visual ref</p>
                 <h2 className="text-[2.2rem] font-semibold text-[var(--text-primary)] leading-tight">
-                    참고 이미지나 영상을 추가해보세요
+                    참고 이미지를 추가해보세요
                 </h2>
                 <p className="text-sm text-[var(--text-muted)]">
                     분위기를 설명해 줄 수 있는 레퍼런스를 업로드하면 AI가 음악을 더 풍부하게 이해할 수 있어요.
@@ -71,7 +71,7 @@ export default function VisualUploader() {
                         onClick={() => inputRef.current?.click()}
                         className="my-btn flex h-48 w-full max-w-md flex-col items-center justify-center gap-3 rounded-[2rem] border-2 border-dashed border-[var(--accent-amber)] bg-white/80 text-center text-[var(--text-primary)] shadow-[0_14px_0_rgba(246,190,95,0.2)] transition hover:-translate-y-[2px]"
                     >
-                        <span className="text-sm font-semibold text-[var(--accent-amber)]">이미지 · 영상 선택</span>
+                        <span className="text-sm font-semibold text-[var(--accent-amber)]">이미지 선택</span>
                         <span className="text-xs text-[var(--text-muted)]">최대 {MAX_IMAGE_SIZE_MB}MB (JPG / PNG / MP4 등)</span>
                     </button>
                 )}

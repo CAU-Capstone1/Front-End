@@ -20,7 +20,7 @@ const REVIEW_ITEMS: Array<Omit<ReviewItem, "value" | "rawValue">> = [
     { key: "hummingStart", label: "시작 멜로디", route: "/" },
     { key: "hummingMain", label: "메인 멜로디", route: "/" },
     { key: "hummingEnd", label: "끝 멜로디", route: "/" },
-    { key: "referenceVisual", label: "참고 이미지 / 영상", route: "/visual" },
+    { key: "referenceVisual", label: "참고 이미지", route: "/visual" },
     { key: "style", label: "장르", route: "/what1" },
     { key: "mood", label: "무드", route: "/what2" },
     { key: "instrument", label: "악기", route: "/instrument" },
@@ -142,7 +142,7 @@ function ReviewPage() {
                         review
                     </span>
                     <h1 className="text-[2.6rem] font-semibold leading-tight text-[var(--text-primary)] mb-2">
-                        현재 설정을 한번 더 확인해요
+                        이대로 음악을 만들어볼까요?
                     </h1>
                     <p className="text-base text-[var(--text-muted)] mb-3">필요한 부분을 수정한 뒤 그대로 음악 생성을 진행할 수 있어요.</p>
                 </header>

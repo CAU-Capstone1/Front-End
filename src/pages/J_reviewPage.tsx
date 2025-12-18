@@ -175,7 +175,7 @@ function ReviewPage() {
                                     {item.value}
                                 </p>
                             </div>
-                            <Button variant="outline" className="self-end px-4" onClick={() => navigate(item.route)}>
+                            <Button variant="outline" className="self-end px-4 !text-[rgb(230,173,52)]" onClick={() => navigate(item.route)}>
                                 수정하기
                             </Button>
                         </div>

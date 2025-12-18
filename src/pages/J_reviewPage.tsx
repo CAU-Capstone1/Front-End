@@ -14,9 +14,41 @@ type ReviewItem = {
     value: string;
     rawValue: string | null | undefined;
     route: string;
+    helper?: string;
 };
 
-const REVIEW_ITEMS: Array<Omit<ReviewItem, "value" | "rawValue">> = [
+// 키 옵션 정보 (키 페이지와 동일)
+const KEY_GROUPS = [
+    {
+        label: "밝은 계열",
+        caption: "맑고 희망찬 분위기를 만들고 싶을 때",
+        options: [
+            { value: "C", label: "C", helper: "순수하고 안정적인, 기본에 충실한 느낌" },
+            { value: "D", label: "D", helper: "밝고 경쾌한, 가볍게 뛰어오르는 기분" },
+            { value: "E", label: "E", helper: "화려하고 반짝이는, 무대 위 스포트라이트" },
+        ],
+    },
+    {
+        label: "어두운 계열",
+        caption: "잔잔하거나 깊이 있는 분위기를 원할 때",
+        options: [
+            { value: "F", label: "F", helper: "잔잔하고 따뜻한, 여유로운 감성" },
+            { value: "Gm", label: "Gm", helper: "드라마틱하고 몰입감 있는 전개" },
+            { value: "Am", label: "Am", helper: "감성적인 울림, 애틋한 장면" },
+        ],
+    },
+];
+
+// 템포 옵션 정보 (템포 페이지와 동일)
+const TEMPO_OPTIONS = [
+    { label: "아주 빠르게", value: "very-fast", helper: "에너지 넘치는 160BPM 이상" },
+    { label: "빠르게", value: "fast", helper: "활기찬 130~150BPM" },
+    { label: "보통", value: "medium", helper: "익숙하고 편안한 110~120BPM" },
+    { label: "느리게", value: "slow", helper: "잔잔한 80~100BPM" },
+    { label: "아주 느리게", value: "very-slow", helper: "감성적인 60BPM 이하" },
+];
+
+const REVIEW_ITEMS: Array<Omit<ReviewItem, "value" | "rawValue" | "helper">> = [
     { key: "hummingStart", label: "시작 멜로디", route: "/" },
     { key: "hummingMain", label: "메인 멜로디", route: "/" },
     { key: "hummingEnd", label: "끝 멜로디", route: "/" },
@@ -67,7 +99,25 @@ function ReviewPage() {
             }
             
             const value = formatted === "-" ? "선택하지 않음" : formatted;
-            return { ...item, rawValue, value };
+            
+            // 키 또는 템포인 경우 helper 텍스트 찾기
+            let helper: string | undefined;
+            if (item.key === "key" && rawValue) {
+                for (const group of KEY_GROUPS) {
+                    const option = group.options.find(opt => opt.value === rawValue);
+                    if (option) {
+                        helper = option.helper;
+                        break;
+                    }
+                }
+            } else if (item.key === "tempo" && rawValue) {
+                const option = TEMPO_OPTIONS.find(opt => opt.value === rawValue);
+                if (option) {
+                    helper = option.helper;
+                }
+            }
+            
+            return { ...item, rawValue, value, helper };
         });
         setItems(nextItems);
         setHighlightText(buildHighlightText(answers));
@@ -174,6 +224,11 @@ function ReviewPage() {
                                 >
                                     {item.value}
                                 </p>
+                                {item.helper && (
+                                    <p className="text-sm text-[var(--text-muted)] mt-2">
+                                        {item.helper}
+                                    </p>
+                                )}
                             </div>
                             <Button variant="outline" className="self-end px-4 !text-[rgb(230,173,52)]" onClick={() => navigate(`${item.route}?from=review`)}>
                                 수정하기

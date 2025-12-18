@@ -642,7 +642,7 @@ function MusicResultPage() {
                         다 됐어요
                     </span>
                     <h1 className="text-[2.8rem] font-semibold leading-tight text-[var(--text-primary)]">음악이 완성되었어요</h1>
-                    <p className="text-lg text-[var(--text-muted)] font-medium mb-12">지금 바로 재생해보고, 원하는 이름과 보관 장소를 선택해보세요.</p>
+                    <p className="text-[18px] text-[var(--text-muted)] font-medium mb-12">지금 바로 재생해보고, 원하는 이름과 보관 장소를 선택해보세요.</p>
                 </header>
 
                 <section className="flex flex-col gap-14">
@@ -759,8 +759,8 @@ function MusicResultPage() {
                     <div className="relative py-6">
                         {/* 섹션 제목 */}
                         <div className="mb-10 text-center">
-                            <h2 className="text-3xl font-semibold text-[var(--text-primary)] mb-3">작성한 정보</h2>
-                            <p className="text-base text-[var(--text-muted)]">선택하신 옵션들을 확인해보세요</p>
+                            <h2 className="text-4xl font-semibold text-[var(--text-primary)] mb-3 mt-15">작성한 정보</h2>
+                            <p className="text-[18px] text-[var(--text-muted)]">선택하신 옵션들을 확인해보세요</p>
                         </div>
                         
                         {/* 왼쪽 화살표 */}
@@ -804,7 +804,7 @@ function MusicResultPage() {
                                     >
                                         <div className="flex items-center gap-2.5 mb-5">
                                             <div className="w-2 h-2 rounded-full bg-[var(--accent-amber)]"></div>
-                                            <span className="text-sm font-bold uppercase tracking-[0.2em] text-[var(--text-primary)]">{item.label}</span>
+                                            <span className="text-[17px] font-bold uppercase tracking-[0.2em] text-[var(--text-primary)]">{item.label}</span>
                                         </div>
                                         <span className="text-base text-[var(--text-primary)] break-words leading-relaxed font-medium">{item.value}</span>
                                     </div>
@@ -879,14 +879,14 @@ function MusicResultPage() {
                     </div>
                 )}
 
-                {composeResponseJson && (
+                {/* {composeResponseJson && (
                     <div className="rounded-[2.5rem] border-2 border-black/10 bg-white/95 p-10 shadow-[0_20px_0_rgba(46,31,39,0.06)] mt-8">
                         <h2 className="text-lg font-semibold text-[var(--text-primary)]">AI 응답 미리보기</h2>
                         <pre className="mt-4 max-h-60 overflow-auto rounded-2xl bg-gray-900/90 p-5 text-sm text-gray-100">
                             {composeResponseJson}
                         </pre>
                     </div>
-                )}
+                )} */}
 
                 <div className="flex flex-wrap justify-center gap-6 mt-20 mb-8">
                     <Button toWhere="/" variant="rainbow" className="px-16 py-5 text-lg font-semibold" onClick={() => resetAnswers()}>

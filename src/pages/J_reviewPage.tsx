@@ -67,7 +67,7 @@ function buildHighlightText(answers: Record<string, string | null | undefined>) 
     if (answers.hummingStart) parts.push("시작 멜로디 업로드 완료");
     if (answers.hummingMain) parts.push("메인 멜로디 업로드 완료");
     if (answers.hummingEnd) parts.push("끝 멜로디 업로드 완료");
-    if (answers.referenceVisual) parts.push("참고 비주얼 첨부");
+    if (answers.referenceVisual) parts.push("참고 이미지 첨부");
     if (answers.mood) parts.push(`${formatAnswerValue(answers.mood)} 분위기`);
     if (answers.instrument) parts.push(formatAnswerValue(answers.instrument));
     if (answers.tempo) parts.push(formatAnswerValue(answers.tempo));

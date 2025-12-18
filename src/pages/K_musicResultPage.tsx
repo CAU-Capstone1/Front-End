@@ -639,7 +639,7 @@ function MusicResultPage() {
             <div className="relative mx-auto flex w-full max-w-5xl flex-col">
                 <header className="text-center space-y-4 pt-8">
                     <span className="inline-flex items-center gap-3 rounded-full bg-white/90 px-6 py-2.5 mb-8 text-sm font-semibold uppercase tracking-[0.3em] text-[var(--accent-rose)] shadow-[0_8px_0_rgba(242,137,130,0.15)]">
-                        다 됐어요
+                        Completed
                     </span>
                     <h1 className="text-[2.8rem] font-semibold leading-tight text-[var(--text-primary)]">음악이 완성되었어요</h1>
                     <p className="text-[18px] text-[var(--text-muted)] font-medium mb-12">지금 바로 재생해보고, 원하는 이름과 보관 장소를 선택해보세요.</p>

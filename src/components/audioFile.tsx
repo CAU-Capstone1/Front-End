@@ -350,8 +350,8 @@ export default function AudioFileUploader() {
                   </span>
                 )}
                 <div className="space-y-1">
-                  <h3 className="text-lg font-semibold text-[var(--text-primary)]">{segment.label}</h3>
-                  <p className="text-xs text-[var(--text-muted)]">{segment.helper}</p>
+                  <h3 className="text-[18px] font-semibold text-[var(--text-primary)]">{segment.label}</h3>
+                  <p className="text-[15px] text-[var(--text-muted)]">{segment.helper}</p>
                 </div>
                 {!(state.file || state.storedName) && (
                   <div className="flex flex-col gap-2">

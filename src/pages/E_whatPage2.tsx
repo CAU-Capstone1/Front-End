@@ -32,12 +32,12 @@ const MOOD_OPTIONS_BY_GENRE: Record<string, Array<{ label: string; value: string
         {
             label: "자신감있는",
             value: "confident",
-            imageUrl: "https://i.pinimg.com/736x/73/0e/a5/730ea54905b57dfa59981fc9825badd2.jpg",
+            imageUrl: "https://i.pinimg.com/1200x/ba/14/0f/ba140f6600a851c4e261f35df81a7163.jpg ",
         },
         {
             label: "거친",
             value: "rough",
-            imageUrl: "https://i.pinimg.com/736x/b2/c3/d4/b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7.jpg",
+            imageUrl: "https://i.pinimg.com/1200x/5f/24/77/5f2477e3ad9dbc0f78b0b59cd15adf49.jpg",
         },
         {
             label: "느긋한",
@@ -54,12 +54,12 @@ const MOOD_OPTIONS_BY_GENRE: Record<string, Array<{ label: string; value: string
         {
             label: "폭발적인",
             value: "explosive",
-            imageUrl: "https://i.pinimg.com/736x/73/0e/a5/730ea54905b57dfa59981fc9825badd2.jpg",
+            imageUrl: "https://i.pinimg.com/736x/f9/02/4d/f9024dc2d2cbae18e4c80e2963b74651.jpg",
         },
         {
             label: "반항적인",
             value: "rebellious",
-            imageUrl: "https://i.pinimg.com/736x/b2/c3/d4/b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7.jpg",
+            imageUrl: "https://i.pinimg.com/1200x/73/4d/36/734d3604ade08e8831ae8b67b9ad635c.jpg",
         },
         {
             label: "쓸쓸한",
@@ -91,7 +91,7 @@ const MOOD_OPTIONS_BY_GENRE: Record<string, Array<{ label: string; value: string
         {
             label: "세련된",
             value: "refined",
-            imageUrl: "https://i.pinimg.com/736x/c3/d4/e5/c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8.jpg",
+            imageUrl: "https://i.pinimg.com/1200x/56/9f/ae/569faed362c4f7c03b23090af679e6df.jpg",
         },
     ],
 };

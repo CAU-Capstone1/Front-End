@@ -97,7 +97,7 @@ export default function MusicGeneratingLoader() {
                 {/* 게임 버튼 */}
                 <button
                     onClick={() => setShowGame(true)}
-                    className="mt-8 px-8 py-4 rounded-full bg-gradient-to-r from-[var(--accent-rose)] to-[var(--accent-amber)] text-white font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+                    className="mt-8 px-8 py-4 rounded-full border-2 border-[var(--accent-amber)] bg-white text-[var(--text-primary)] font-semibold text-lg shadow-[0_8px_0_rgba(242,137,130,0.32)] hover:bg-[var(--accent-amber)]/10 hover:translate-y-[2px] hover:shadow-[0_6px_0_rgba(242,137,130,0.25)] transition-all duration-300"
                 >
                     START!
                 </button>

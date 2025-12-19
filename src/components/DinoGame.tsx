@@ -462,7 +462,7 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
             setScore((prev) => {
                 const newScore = prev + 1;
                 // 600~700점 사이일 때만 말풍선 표시
-                if (newScore >= 400 && newScore <= 500) {
+                if (newScore >= 200 && newScore <= 300) {
                     if (!showBubble) {
                         setShowBubble(true);
                     }
@@ -474,7 +474,7 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
                 }
                 
                 // 900~1100점 사이에 친구 새 나타나기
-                if (newScore >= 700 && newScore <= 850) {
+                if (newScore >= 500 && newScore <= 650) {
                     if (!showFriendBird) {
                         setShowFriendBird(true);
                         setFriendBirdX(-BIRD_SIZE); // 왼쪽에서 시작
@@ -488,7 +488,7 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
                 }
                 
                 // 1200~1300점 사이일 때만 "나는 음악의 지배자다" 말풍선 표시
-                if (newScore >= 1000 && newScore <= 1100) {
+                if (newScore >= 800 && newScore <= 900) {
                     if (!showMasterBubble) {
                         setShowMasterBubble(true);
                     }
@@ -500,7 +500,7 @@ export default function DinoGame({ onClose }: { onClose: () => void }) {
                 }
                 
                 // 1800~1900점 사이일 때만 "이거 너무 쉬운거 아닌가?" 말풍선 표시
-                if (newScore >= 1400 && newScore <= 1500) {
+                if (newScore >= 1200 && newScore <= 1300) {
                     if (!showEasyBubble) {
                         setShowEasyBubble(true);
                     }

@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router";
+import { useNavigate, Link, useSearchParams } from "react-router";
 import Button from "../components/button";
 import { login } from "../utils/auth"; // login 함수는 AuthResponse 객체를 반환해야 함
 
 function LoginPage() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const returnUrl = searchParams.get("returnUrl") || "/";
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -29,7 +31,8 @@ function LoginPage() {
                 throw new Error("로그인 응답이 올바르지 않습니다.");
             }
             
-            navigate("/");
+            // returnUrl이 있으면 해당 페이지로, 없으면 홈으로 이동
+            navigate(returnUrl);
         } catch (err) {
             console.error("로그인 오류:", err);
             if (err instanceof Error) {

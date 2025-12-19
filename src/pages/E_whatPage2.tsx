@@ -10,15 +10,15 @@ const MOOD_OPTIONS_BY_GENRE: Record<string, Array<{ label: string; value: string
         {
             label: "웅장한",
             value: "grand",
-            imageUrl: "https://i.pinimg.com/736x/a1/2b/3c/a12b3c4d5e6f7a8b9c0d1e2f3a4b5c6d.jpg",
+            imageUrl: "https://i.pinimg.com/736x/03/53/bc/0353bce8163525de4bec13ce59f0d18b.jpg",
         },
         {
             label: "고급스러운",
             value: "luxurious",
-            imageUrl: "https://i.pinimg.com/736x/e5/0d/73/e50d7394c8f0f7b5e7c5e5e5e5e5e5e5.jpg",
+            imageUrl: "https://i.pinimg.com/1200x/a6/67/cf/a667cf769fbe89c5e81639c5a11fb8de.jpg",
         },
         {
-            label: "애잔한",
+            label: "슬픈",
             value: "poignant",
             imageUrl: "https://i.pinimg.com/736x/62/19/93/6219934aea211d826e58509e8979fa1f.jpg",
         },
@@ -30,7 +30,7 @@ const MOOD_OPTIONS_BY_GENRE: Record<string, Array<{ label: string; value: string
     ],
     hiphop: [
         {
-            label: "당당한",
+            label: "자신감있는",
             value: "confident",
             imageUrl: "https://i.pinimg.com/736x/73/0e/a5/730ea54905b57dfa59981fc9825badd2.jpg",
         },
@@ -172,7 +172,7 @@ function What2() {
             title="어떤 분위기의 음악을 만들고 싶으신가요?"
             description="느끼고 싶은 무드를 선택하거나 직접 입력하세요."
             stepLabel="02 / 06"
-            onBack={() => navigate(isEditMode ? "/review" : -1)}
+            onBack={() => isEditMode ? navigate("/review") : navigate(-1)}
             onSkip={handleSkip}
             primaryAction={{ label: isEditMode ? "완료" : "다음", onClick: handleNext, disabled: !selected.trim(), variant: "rainbow" }}
         >

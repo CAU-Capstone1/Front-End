@@ -99,7 +99,7 @@ export default function MusicGeneratingLoader() {
                     onClick={() => setShowGame(true)}
                     className="mt-8 px-8 py-4 rounded-full bg-gradient-to-r from-[var(--accent-rose)] to-[var(--accent-amber)] text-white font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
                 >
-                    🦖 공룡 게임하기
+                    START!
                 </button>
                 <p className="text-sm text-[var(--text-muted)] mt-2">기다리는 동안 게임을 즐겨보세요!</p>
 

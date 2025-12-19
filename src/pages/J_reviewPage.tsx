@@ -7,6 +7,7 @@ import { formatAnswerValue } from "../utils/valueLabels";
 import type { CompositionAnswerKey } from "../utils/compositionSession";
 import MusicGeneratingLoader from "../components/MusicGeneratingLoader";
 import { pollJobUntilComplete, type JobStatusResponse } from "../api/checkJobStatus";
+import { isLoggedIn } from "../utils/auth";
 
 type ReviewItem = {
     key: CompositionAnswerKey;
@@ -131,6 +132,16 @@ function ReviewPage() {
     }
 
     const handleConfirm = async () => {
+        // 인증 상태 확인
+        if (!isLoggedIn()) {
+            const shouldLogin = confirm("음악을 생성하려면 로그인이 필요합니다. 로그인 페이지로 이동하시겠습니까?");
+            if (shouldLogin) {
+                // 로그인 후 리뷰 페이지로 돌아올 수 있도록 returnUrl 추가
+                navigate("/login?returnUrl=/review");
+            }
+            return;
+        }
+
         setIsSubmitting(true);
         setError(null);
         const answers = getAllAnswers();

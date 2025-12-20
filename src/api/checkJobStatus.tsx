@@ -1,30 +1,39 @@
 import { getAuthHeaders } from "../utils/auth";
 
-export type JobStatus = "QUEUED" | "PROCESSING" | "COMPLETED" | "FAILED" | "SUCCEEDED" | string;
+// API 기본 URL (환경 변수로 설정 가능)
+// 프로덕션에서는 절대 경로 사용, 개발 환경에서는 프록시 사용
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
+    (import.meta.env.PROD ? "http://3.36.255.180:8080/api" : "/api");
 
+/**
+ * 백엔드 JobStatus enum에 대응하는 타입
+ */
+export type JobStatus = "QUEUED" | "PROCESSING" | "SUCCEEDED" | "FAILED" | string;
+
+/**
+ * 백엔드 JobStatusResponse DTO 구조
+ * public record JobStatusResponse(
+ *     String jobId,
+ *     JobStatus status,
+ *     double progress,
+ *     String errorMessage,
+ *     String musicUrl
+ * )
+ */
 export type JobStatusResponse = {
-    // 백엔드 DTO 구조에 맞는 필수 필드
-    jobId?: string;           // 백엔드: String jobId
-    status?: JobStatus;       // 백엔드: JobStatus status
-    progress?: number;        // 백엔드: double progress
-    errorMessage?: string | null; // 백엔드: String errorMessage (null 가능)
-    musicUrl?: string | null; // 백엔드: String musicUrl (null 가능)
-    
-    // 하위 호환성을 위한 기존 필드들
-    PublicJobId?: string;
-    audioUrl?: string;
-    fileUrl?: string;
-    url?: string;
-    audio_url?: string;
-    music_url?: string;
-    error?: string;
-    [key: string]: unknown;
+    jobId: string;
+    status: JobStatus;
+    progress: number;
+    errorMessage: string | null;
+    musicUrl: string | null;
 };
 
 /**
  * Job 상태를 확인하는 함수
+ * GET /api/job/{jobId}
+ * 
  * @param jobId - 확인할 Job ID
- * @returns Job 상태 정보
+ * @returns Job 상태 정보 (백엔드 DTO 구조)
  */
 export async function checkJobStatus(jobId: string): Promise<JobStatusResponse> {
     const headers = {
@@ -32,126 +41,33 @@ export async function checkJobStatus(jobId: string): Promise<JobStatusResponse> 
         ...getAuthHeaders(),
     };
 
-    console.log("🔍 Job 상태 확인:", jobId);
-    console.log("🔍 Job ID 타입:", typeof jobId, "길이:", jobId?.length);
+    const encodedJobId = encodeURIComponent(jobId);
+    const url = `${API_BASE_URL}/job/${encodedJobId}`;
 
     try {
-        // Job ID 인코딩 (URL 안전하게 처리)
-        const encodedJobId = encodeURIComponent(jobId);
-        console.log("🔍 인코딩된 Job ID:", encodedJobId);
-        
-        // 백엔드에서 제공하는 실제 API 경로를 우선 시도
-        const possiblePaths = [
-            `/api/job/${encodedJobId}`,         // 백엔드: GET /api/job/{jobId} (최우선)
-            `/api/job/${jobId}`,                // 인코딩 안 한 버전 (fallback)
-            `/api/jobs/${encodedJobId}`,        // JobController - 하위 호환성
-            `/api/compose/status/${encodedJobId}`, // ProcessController - 하위 호환성
-            `/api/jobs/${jobId}`,               // 인코딩 안 한 버전 (fallback)
-            `/api/compose/status/${jobId}`,     // 인코딩 안 한 버전 (fallback)
-        ];
-        
-        console.log("🔍 시도할 경로 목록:", possiblePaths);
+        const response = await fetch(url, {
+            method: "GET",
+            headers: headers,
+        });
 
-        let lastError: Error | null = null;
-
-        for (const path of possiblePaths) {
-            try {
-                const fullUrl = `${window.location.origin}${path}`;
-                console.log(`🔍 Job 상태 확인 시도: ${path}`);
-                console.log(`🔍 전체 URL: ${fullUrl}`);
-                console.log(`🔍 요청 헤더:`, headers);
-                
-                const response = await fetch(path, {
-                    method: "GET",
-                    headers: headers,
-                });
-
-                console.log(`📥 응답 상태: ${response.status} ${response.statusText} (${path})`);
-                console.log(`📥 응답 URL: ${response.url}`);
-                console.log(`📥 응답 헤더:`, Object.fromEntries(response.headers.entries()));
-
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log(`✅ Job 상태 확인 성공 (${path}):`, data);
-                    return data;
-                } else {
-                    // 응답 본문 확인
-                    let errorBody = "";
-                    try {
-                        errorBody = await response.text();
-                        console.log(`📥 오류 응답 본문 (${path}):`, errorBody);
-                    } catch (e) {
-                        console.log(`📥 응답 본문 읽기 실패:`, e);
-                    }
-                    
-                    // 404나 405는 예상 가능한 오류 (해당 경로가 없을 수 있음)
-                    if (response.status === 404 || response.status === 405) {
-                        console.log(`ℹ️ ${path} - 해당 경로 없음 (${response.status})`);
-                        console.log(`ℹ️ 응답 본문:`, errorBody || "(비어있음)");
-                        continue; // 다음 경로 시도
-                    } else if (response.status === 401 || response.status === 403) {
-                        // 인증 오류
-                        console.error(`❌ ${path} - 인증 오류 (${response.status}):`, errorBody);
-                        throw new Error(`인증이 필요합니다 (${response.status}): ${errorBody}`);
-                    } else {
-                        // 다른 오류는 로그에 기록
-                        console.warn(`⚠️ ${path} - 오류 (${response.status}):`, errorBody);
-                    }
-                }
-            } catch (error) {
-                lastError = error instanceof Error ? error : new Error(String(error));
-                console.warn(`⚠️ ${path} - 네트워크 오류:`, error);
-                console.warn(`⚠️ 오류 타입:`, error instanceof Error ? error.name : typeof error);
-            }
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Job 상태 확인 실패 (${response.status}): ${errorText}`);
         }
 
-        // 모든 경로 실패 시, compose 엔드포인트에 GET 요청으로 jobId 전달 시도
-        try {
-            const response = await fetch(`/api/compose?jobId=${encodeURIComponent(jobId)}`, {
-                method: "GET",
-                headers: headers,
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                console.log("✅ Job 상태 확인 성공 (GET /api/compose):", data);
-                return data;
-            }
-        } catch (error) {
-            lastError = error instanceof Error ? error : new Error(String(error));
-        }
-
-        // GET 실패 시, POST로 jobId를 포함한 요청 시도
-        try {
-            const response = await fetch("/api/compose", {
-                method: "POST",
-                headers: headers,
-                body: JSON.stringify({ jobId: jobId }),
-            });
-
-            if (response.ok || response.status === 202) {
-                const data = await response.json();
-                console.log("✅ Job 상태 확인 성공 (POST /api/compose with jobId):", data);
-                return data;
-            }
-        } catch (error) {
-            lastError = error instanceof Error ? error : new Error(String(error));
-        }
-
-        // 모든 방법 실패 시, 더 자세한 오류 정보 제공
-        console.error("❌ 모든 Job 상태 확인 경로 실패");
-        console.error("❌ 시도한 경로들:", possiblePaths);
-        console.error("❌ Job ID:", jobId);
-        
-        throw lastError || new Error(`Job 상태를 확인할 수 없습니다. 서버에 Job 상태 확인 API가 없거나 다른 경로를 사용하는 것 같습니다. Job ID: ${jobId}`);
+        const data: JobStatusResponse = await response.json();
+        return data;
     } catch (error) {
         console.error("❌ Job 상태 확인 실패:", error);
-        throw new Error(`Job 상태 확인 실패: ${error instanceof Error ? error.message : String(error)}`);
+        throw new Error(
+            `Job 상태 확인 실패: ${error instanceof Error ? error.message : String(error)}`
+        );
     }
 }
 
 /**
  * Job이 완료될 때까지 폴링하는 함수
+ * 
  * @param jobId - 확인할 Job ID
  * @param options - 폴링 옵션
  * @returns 완료된 Job 결과
@@ -186,45 +102,41 @@ export async function pollJobUntilComplete(
             // 완료 상태 확인
             const jobStatus = status.status?.toUpperCase();
             
-            // 완료 상태 확인 (다양한 완료 상태 지원, 백엔드 SUCCEEDED 포함)
-            if (jobStatus === "SUCCEEDED" || jobStatus === "COMPLETED" || jobStatus === "SUCCESS" || jobStatus === "DONE" || jobStatus === "FINISHED") {
+            // SUCCEEDED 상태면 완료
+            if (jobStatus === "SUCCEEDED") {
                 console.log("✅ Job 완료!");
                 
-                // 완료되었지만 음악 URL이 없을 수 있음 (서버가 별도로 제공할 수 있음)
-                // 백엔드 DTO의 musicUrl 필드를 우선 확인
-                const hasMusicUrl = status.musicUrl || status.audioUrl || status.fileUrl || 
-                                   status.url || status.audio_url || status.music_url;
-                
-                if (!hasMusicUrl) {
-                    console.warn("⚠️ Job이 완료되었지만 음악 URL이 없습니다. 응답:", status);
+                if (!status.musicUrl) {
+                    console.warn("⚠️ Job이 완료되었지만 musicUrl이 null입니다.");
                 }
                 
                 return status;
             }
 
             // 실패 상태 확인
-            if (jobStatus === "FAILED" || jobStatus === "ERROR" || jobStatus === "FAILURE") {
-                // 백엔드 DTO의 errorMessage 필드를 우선 확인
-                const errorMessage = status.errorMessage || status.error || "Job이 실패했습니다.";
+            if (jobStatus === "FAILED") {
+                const errorMessage = status.errorMessage || "Job이 실패했습니다.";
                 throw new Error(`Job 실패: ${errorMessage}`);
             }
 
             // QUEUED 또는 PROCESSING 상태면 계속 대기
-            if (jobStatus === "QUEUED" || jobStatus === "PROCESSING" || jobStatus === "IN_PROGRESS" || jobStatus === "RUNNING") {
-                console.log(`⏳ Job 진행 중... (${jobStatus})`);
-                // progress 정보가 있으면 표시
-                if (status.progress !== undefined) {
-                    console.log(`📊 진행률: ${status.progress}%`);
-                }
+            if (jobStatus === "QUEUED" || jobStatus === "PROCESSING") {
+                console.log(`⏳ Job 진행 중... (${jobStatus}, 진행률: ${status.progress}%)`);
                 // 다음 폴링까지 대기
                 await new Promise((resolve) => setTimeout(resolve, intervalMs));
                 continue;
             }
 
-            // 알 수 없는 상태 - 계속 대기 (서버가 새로운 상태를 추가했을 수 있음)
+            // 알 수 없는 상태 - 계속 대기
             console.warn(`⚠️ 알 수 없는 Job 상태: ${jobStatus}, 계속 대기합니다.`);
             await new Promise((resolve) => setTimeout(resolve, intervalMs));
         } catch (error) {
+            // 403 Forbidden 에러는 인증/권한 문제이므로 재시도하지 않음
+            if (error instanceof Error && error.message.includes("403")) {
+                console.error("❌ 인증/권한 오류 (403): Job 상태를 확인할 수 없습니다.");
+                throw new Error("인증이 필요하거나 권한이 없습니다. 로그인 상태를 확인해주세요.");
+            }
+            
             // 네트워크 오류 등은 무시하고 계속 시도
             if (attempt < maxAttempts) {
                 console.warn(`⚠️ Job 상태 확인 실패 (재시도 ${attempt}/${maxAttempts}):`, error);

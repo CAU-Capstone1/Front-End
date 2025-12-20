@@ -1,6 +1,11 @@
 import { getAuthHeaders } from "../utils/auth"; // 인증 헤더를 가져오기 위한 import
 import type { CompositionAnswers } from "../utils/compositionSession"; // 로컬 유틸리티 타입 import
 
+// API 기본 URL (환경 변수로 설정 가능)
+// 프로덕션에서는 절대 경로 사용, 개발 환경에서는 프록시 사용
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
+    (import.meta.env.PROD ? "http://3.36.255.180:8080/api" : "/api");
+
 export type CompositionRequestBody = {
     style?: string | null;
     mood?: string | null;
@@ -23,139 +28,73 @@ export async function createComposition(body: CompositionRequestBody) {
         ...getAuthHeaders(), 
     };
 
-    const requestBody = JSON.stringify(body);
-    console.log("📤 작곡 요청 데이터:", body);
-    console.log("📤 작곡 요청 본문:", requestBody);
-    console.log("📤 작곡 요청 헤더:", headers);
-
-    // 타임아웃 설정 (2분 - 음악 생성은 시간이 걸릴 수 있음)
-    const TIMEOUT_MS = 120000;
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-        controller.abort();
-        console.error("⏰ 요청 타임아웃: 60초 내에 서버 응답이 없습니다.");
-    }, TIMEOUT_MS);
-
-    try {
-        const response = await fetch("/api/compose", {
-            method: "POST",
-            headers: headers,
-            body: requestBody,
-            signal: controller.signal,
+    const url = `${API_BASE_URL}/compose`;
+    
+    // 디버깅을 위한 로그 (개발 환경에서만)
+    if (import.meta.env.DEV) {
+        console.log("🌐 API 요청 URL:", url);
+        const authHeaders = getAuthHeaders();
+        console.log("📤 요청 헤더:", { 
+            "Content-Type": headers["Content-Type"],
+            Authorization: authHeaders.Authorization ? "Bearer ***" : "없음" 
         });
-
-        clearTimeout(timeoutId);
-        console.log("📥 서버 응답 상태:", response.status, response.statusText);
-        console.log("📥 서버 응답 헤더:", Object.fromEntries(response.headers.entries()));
-        
-        // 응답 본문을 먼저 읽어서 확인 (500 오류여도 결과가 포함될 수 있음)
-        const contentType = response.headers.get("content-type") || "";
-        let responseText = "";
-        
-        try {
-            responseText = await response.text();
-            console.log("📥 서버 응답 원문 (텍스트):", responseText);
-            console.log("📥 응답 길이:", responseText.length);
-        } catch (e) {
-            console.error("❌ 응답 본문 읽기 실패:", e);
-            throw new Error("서버 응답을 읽을 수 없습니다.");
-        }
-        
-        // 응답 본문이 있는지 확인
-        if (responseText.trim()) {
-            // JSON 형식인지 확인
-            if (contentType.includes("application/json") || responseText.trim().startsWith("{")) {
-                try {
-                    const result = JSON.parse(responseText);
-                    console.log("✅ 서버 응답 파싱 성공:", result);
-                    
-                    // 500 오류여도 결과 데이터가 포함되어 있으면 사용
-                    if (!response.ok && response.status === 500) {
-                        // 결과 데이터가 있는지 확인 (audioUrl, musicUrl 등)
-                        const hasResultData = result.audioUrl || result.musicUrl || result.fileUrl || 
-                                           result.url || result.audio_url || result.music_url ||
-                                           result.id || result.compositionId;
-                        
-                        if (hasResultData) {
-                            console.warn("⚠️ 서버가 500 오류를 반환했지만 결과 데이터가 포함되어 있습니다. 결과를 사용합니다.");
-                            console.log("✅ 결과 데이터:", result);
-                            return result;
-                        }
-                    }
-                    
-                    // 정상 응답인 경우 (200, 201, 202 등)
-                    if (response.ok) {
-                        // 202 Accepted이고 job ID가 있으면 비동기 작업 (백엔드 DTO의 jobId 필드를 우선 확인)
-                        if (response.status === 202 && (result.jobId || result.PublicJobId || result.id)) {
-                            console.log("⏳ 비동기 작업 시작됨 (202 Accepted):", result);
-                            // job ID를 포함한 결과 반환
-                            return result;
-                        }
-                        // 즉시 완료된 경우
-                        return result;
-                    }
-                    
-                    // 오류 응답인 경우
-                    const errorMessage = JSON.stringify(result, null, 2);
-                    throw new Error(`작곡 요청 실패 (${response.status}): ${errorMessage}`);
-                } catch (parseError) {
-                    console.error("❌ JSON 파싱 실패:", parseError);
-                    // JSON이 아니면 텍스트로 처리
-                }
-            }
-        }
-        
-        // 응답 본문이 비어있거나 JSON이 아닌 경우
-        if (!response.ok) {
-            let errorMessage: string = "";
-            
-            if (responseText.trim()) {
-                errorMessage = responseText;
-                console.error("❌ 서버 오류 응답 (텍스트):", errorMessage);
-            } else {
-                // 응답 본문이 비어있을 때
-                console.error("❌ 서버 응답 본문이 비어있습니다.");
-                console.error("❌ 상태 코드:", response.status);
-                console.error("❌ 상태 텍스트:", response.statusText);
-                
-                if (response.status === 500) {
-                    errorMessage = "서버에서 오류가 발생했습니다. 가능한 원인:\n" +
-                        "• 업로드한 파일을 서버에서 찾을 수 없음\n" +
-                        "• 서버 내부 처리 오류\n" +
-                        "• 서버 로그를 확인해주세요\n\n" +
-                        "잠시 후 다시 시도하거나, 서버 관리자에게 문의해주세요.";
-                } else {
-                    errorMessage = response.statusText || "서버가 상세 오류 메시지를 반환하지 않았습니다.";
-                }
-            }
-            
-            const finalErrorMessage = errorMessage || "알 수 없는 서버 오류가 발생했습니다.";
-            
-            if (response.status === 500) {
-                throw new Error(`서버 오류가 발생했습니다 (500)\n\n${finalErrorMessage}\n\n요청 데이터를 확인했습니다:\n${JSON.stringify(body, null, 2)}`);
-            }
-            
-            throw new Error(`작곡 요청 실패 (${response.status}): ${finalErrorMessage}`);
-        }
-        
-        // 정상 응답인데 본문이 비어있는 경우
-        throw new Error("서버가 빈 응답을 반환했습니다.");
-    } catch (error) {
-        clearTimeout(timeoutId);
-        
-        if (error instanceof Error) {
-            if (error.name === "AbortError") {
-                throw new Error("요청 시간이 초과되었습니다. 서버가 응답하지 않습니다. 잠시 후 다시 시도해주세요.");
-            }
-            if (error.message === "Failed to fetch") {
-                throw new Error("서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.");
-            }
-        }
-        throw error;
+        console.log("📦 요청 본문:", body);
     }
+
+    const response = await fetch(url, {
+        method: "POST",
+        headers: headers, // 수정된 headers를 사용
+        body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+        // 401 Unauthorized 에러인 경우 (인증 실패)
+        if (response.status === 401) {
+            console.error("❌ 인증 실패: 로그인이 필요합니다.");
+            // 토큰이 만료되었거나 유효하지 않은 경우
+            if (typeof window !== "undefined") {
+                // 로그인 페이지로 리다이렉트 (리뷰 페이지로 돌아올 수 있도록 returnUrl 추가)
+                const shouldRedirect = confirm("로그인이 만료되었습니다. 로그인 페이지로 이동하시겠습니까?");
+                if (shouldRedirect) {
+                    window.location.href = "/login?returnUrl=/review";
+                }
+            }
+            throw new Error("인증이 필요합니다. 로그인 후 다시 시도해주세요.");
+        }
+
+        let errorMessage = "";
+        try {
+            const message = await response.text();
+            errorMessage = message;
+            console.error("❌ 서버 에러 응답:", message);
+            
+            // JSON 형식인 경우 파싱해서 더 읽기 쉽게 표시
+            try {
+                const errorJson = JSON.parse(message);
+                if (errorJson.message) {
+                    errorMessage = errorJson.message;
+                } else if (errorJson.error) {
+                    errorMessage = errorJson.error;
+                }
+            } catch {
+                // JSON이 아니면 그대로 사용 (message 변수 사용)
+            }
+        } catch {
+            errorMessage = `서버 오류 (${response.status})`;
+        }
+        
+        throw new Error(`작곡 요청 실패 (${response.status}): ${errorMessage}`);
+    }
+
+    return response.json().catch(() => ({}));
 }
 
 export function buildCompositionBody(answers: CompositionAnswers): CompositionRequestBody {
+    // referenceVisual이 base64 데이터인 경우 서버로 전송하지 않음 (너무 큼)
+    // base64 데이터는 클라이언트에서만 표시 목적으로 사용
+    const referenceVisual = answers.referenceVisual;
+    const isBase64 = referenceVisual && referenceVisual.startsWith("data:");
+    
     return {
         style: answers.style ?? null,
         mood: answers.mood ?? null,
@@ -166,6 +105,7 @@ export function buildCompositionBody(answers: CompositionAnswers): CompositionRe
         hummingStart: answers.hummingStart ?? null,
         hummingMain: answers.hummingMain ?? null,
         hummingEnd: answers.hummingEnd ?? null,
-        referenceVisual: answers.referenceVisual ?? null,
+        // base64가 아닌 경우만 서버로 전송 (URL인 경우)
+        referenceVisual: isBase64 ? null : (referenceVisual ?? null),
     };
 }

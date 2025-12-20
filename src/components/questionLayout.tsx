@@ -62,7 +62,7 @@ function QuestionLayout({ title, description, children, onBack, onSkip, stepLabe
                             <button
                                 type="button"
                                 onClick={onSkip}
-                                className="text-m font-semibold text-[var(--accent-mint3)] hover:cursor-pointer hover:text-[var(--accent-mint2)]"
+                                className="text-m font-semibold text-[#fe7696] hover:cursor-pointer hover:text-[#ffa0b7]"
                             >
                                 선택 안 할래요
                             </button>

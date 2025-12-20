@@ -36,7 +36,30 @@ export type ApiError = {
 };
 
 // API 기본 URL (환경 변수로 설정 가능)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
+// 프로덕션에서는 절대 경로 사용, 개발 환경에서는 프록시 사용
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
+    (import.meta.env.PROD ? "http://3.36.255.180:8080/api" : "/api");
+
+// 타임아웃을 포함한 fetch 래퍼
+async function fetchWithTimeout(url: string, options: RequestInit, timeout = 10000): Promise<Response> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    try {
+        const response = await fetch(url, {
+            ...options,
+            signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+        return response;
+    } catch (error) {
+        clearTimeout(timeoutId);
+        if (error instanceof Error && error.name === "AbortError") {
+            throw new Error("요청 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.");
+        }
+        throw error;
+    }
+}
 
 // 공통 에러 처리 함수
 async function handleResponse<T>(response: Response): Promise<T> {
@@ -65,7 +88,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
 // 회원가입 API
 export async function signUpApi(data: SignupRequest): Promise<AuthResponse> {
     // [수정 완료]: 백엔드 AuthController의 @PostMapping("/register")와 일치시킵니다.
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -79,7 +102,7 @@ export async function signUpApi(data: SignupRequest): Promise<AuthResponse> {
 
 // 로그인 API
 export async function loginApi(data: LoginRequest): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

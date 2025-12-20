@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import OptionCard from "../components/optionCard";
 import QuestionLayout from "../components/questionLayout";
 import { getAnswer, removeAnswer, setAnswer } from "../utils/compositionSession";
@@ -29,6 +29,8 @@ const INSTRUMENT_OPTIONS = [
 
 function InstrumentPage() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const isEditMode = searchParams.get("from") === "review";
     const [selected, setSelected] = useState<string>("");
     const [customValue, setCustomValue] = useState<string>("");
 
@@ -48,12 +50,12 @@ function InstrumentPage() {
     const handleNext = () => {
         if (!selected.trim()) return;
         setAnswer("instrument", selected.trim());
-        navigate("/key");
+        navigate(isEditMode ? "/review" : "/key");
     };
 
     const handleSkip = () => {
         removeAnswer("instrument");
-        navigate("/key");
+        navigate(isEditMode ? "/review" : "/key");
     };
 
     return (
@@ -61,9 +63,9 @@ function InstrumentPage() {
             title="어떤 악기를 원하시나요?"
             description="대표 악기를 선택하면 그 질감을 중심으로 구성해드려요."
             stepLabel="03 / 06"
-            onBack={() => navigate(-1)}
+            onBack={() => navigate(isEditMode ? "/review" : -1)}
             onSkip={handleSkip}
-            primaryAction={{ label: "다음", onClick: handleNext, disabled: !selected.trim(), variant: "rainbow" }}
+            primaryAction={{ label: isEditMode ? "완료" : "다음", onClick: handleNext, disabled: !selected.trim(), variant: "rainbow" }}
         >
             <div className={OPTION_GRID_CLASS}>
                 {INSTRUMENT_OPTIONS.map((option) => (

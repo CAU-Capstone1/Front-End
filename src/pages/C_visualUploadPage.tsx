@@ -1,19 +1,21 @@
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import VisualUploader from "../components/visualUploader";
 import Button from "../components/button";
 import { getAnswer } from "../utils/compositionSession";
 
 function VisualUploadPage() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const isEditMode = searchParams.get("from") === "review";
 
     const handleNext = () => {
         const mainMelody = getAnswer("hummingMain");
-        if (!mainMelody) {
+        if (!mainMelody && !isEditMode) {
             alert("메인 멜로디 허밍을 먼저 업로드해주세요.");
             navigate("/");
             return;
         }
-        navigate("/what1");
+        navigate(isEditMode ? "/review" : "/what1");
     };
 
     return (
@@ -27,7 +29,7 @@ function VisualUploadPage() {
                         step 02
                     </span>
                     <h1 className="text-[2.6rem] font-semibold leading-tight text-[var(--text-primary)]">
-                        참고 이미지나 영상을 준비했나요?
+                        참고 이미지를를 준비했나요?
                     </h1>
                     <p className="text-base text-[var(--text-muted)]">
                         AI에게 보여주고 싶은 분위기가 있다면 여기에서 업로드해 주세요. 꼭 필요하지는 않으니 건너뛰어도 괜찮아요.
@@ -40,7 +42,7 @@ function VisualUploadPage() {
 
                 <div className="flex flex-wrap justify-center gap-4">
                     <Button onClick={handleNext} variant="rainbow" className="px-24 py-5 text-lg">
-                        다음
+                        {isEditMode ? "완료" : "다음"}
                     </Button>
                 </div>
             </div>

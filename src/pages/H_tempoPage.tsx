@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import QuestionLayout from "../components/questionLayout";
 import { getAnswer, removeAnswer, setAnswer } from "../utils/compositionSession";
 
@@ -13,6 +13,8 @@ const TEMPO_OPTIONS = [
 
 function TempoPage() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const isEditMode = searchParams.get("from") === "review";
     const [selected, setSelected] = useState<string>("");
 
     useEffect(() => {
@@ -36,9 +38,9 @@ function TempoPage() {
             title="어떤 빠르기를 원하시나요?"
             description="원하는 템포를 선택하면 음악의 속도를 맞춰드려요."
             stepLabel="06 / 06"
-            onBack={() => navigate(-1)}
+            onBack={() => navigate(isEditMode ? "/review" : -1)}
             onSkip={handleSkip}
-            primaryAction={{ label: "확인하기", onClick: handleNext, disabled: !selected, variant: "rainbow" }}
+            primaryAction={{ label: isEditMode ? "완료" : "확인하기", onClick: handleNext, disabled: !selected, variant: "rainbow" }}
         >
             <div className="space-y-3">
                 {TEMPO_OPTIONS.map((option) => {

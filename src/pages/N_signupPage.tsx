@@ -34,8 +34,7 @@ function SignupPage() {
         setLoading(true);
         try {
             await signUp(email, password, name);
-            alert("회원가입이 완료되었습니다!");
-            navigate("/myPage");
+            navigate("/");
         } catch (err) {
             setError(err instanceof Error ? err.message : "회원가입에 실패했습니다.");
         } finally {

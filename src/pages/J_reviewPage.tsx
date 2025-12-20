@@ -7,6 +7,7 @@ import { formatAnswerValue } from "../utils/valueLabels";
 import type { CompositionAnswerKey } from "../utils/compositionSession";
 import MusicGeneratingLoader from "../components/MusicGeneratingLoader";
 import { pollJobUntilComplete, type JobStatusResponse } from "../api/checkJobStatus";
+import { isLoggedIn } from "../utils/auth";
 
 type ReviewItem = {
     key: CompositionAnswerKey;
@@ -14,13 +15,45 @@ type ReviewItem = {
     value: string;
     rawValue: string | null | undefined;
     route: string;
+    helper?: string;
 };
 
-const REVIEW_ITEMS: Array<Omit<ReviewItem, "value" | "rawValue">> = [
+// 키 옵션 정보 (키 페이지와 동일)
+const KEY_GROUPS = [
+    {
+        label: "밝은 계열",
+        caption: "맑고 희망찬 분위기를 만들고 싶을 때",
+        options: [
+            { value: "C", label: "C", helper: "순수하고 안정적인, 기본에 충실한 느낌" },
+            { value: "D", label: "D", helper: "밝고 경쾌한, 가볍게 뛰어오르는 기분" },
+            { value: "E", label: "E", helper: "화려하고 반짝이는, 무대 위 스포트라이트" },
+        ],
+    },
+    {
+        label: "어두운 계열",
+        caption: "잔잔하거나 깊이 있는 분위기를 원할 때",
+        options: [
+            { value: "F", label: "F", helper: "잔잔하고 따뜻한, 여유로운 감성" },
+            { value: "Gm", label: "Gm", helper: "드라마틱하고 몰입감 있는 전개" },
+            { value: "Am", label: "Am", helper: "감성적인 울림, 애틋한 장면" },
+        ],
+    },
+];
+
+// 템포 옵션 정보 (템포 페이지와 동일)
+const TEMPO_OPTIONS = [
+    { label: "아주 빠르게", value: "very-fast", helper: "에너지 넘치는 160BPM 이상" },
+    { label: "빠르게", value: "fast", helper: "활기찬 130~150BPM" },
+    { label: "보통", value: "medium", helper: "익숙하고 편안한 110~120BPM" },
+    { label: "느리게", value: "slow", helper: "잔잔한 80~100BPM" },
+    { label: "아주 느리게", value: "very-slow", helper: "감성적인 60BPM 이하" },
+];
+
+const REVIEW_ITEMS: Array<Omit<ReviewItem, "value" | "rawValue" | "helper">> = [
     { key: "hummingStart", label: "시작 멜로디", route: "/" },
     { key: "hummingMain", label: "메인 멜로디", route: "/" },
     { key: "hummingEnd", label: "끝 멜로디", route: "/" },
-    { key: "referenceVisual", label: "참고 이미지 / 영상", route: "/visual" },
+    { key: "referenceVisual", label: "참고 이미지", route: "/visual" },
     { key: "style", label: "장르", route: "/what1" },
     { key: "mood", label: "무드", route: "/what2" },
     { key: "instrument", label: "악기", route: "/instrument" },
@@ -35,7 +68,7 @@ function buildHighlightText(answers: Record<string, string | null | undefined>) 
     if (answers.hummingStart) parts.push("시작 멜로디 업로드 완료");
     if (answers.hummingMain) parts.push("메인 멜로디 업로드 완료");
     if (answers.hummingEnd) parts.push("끝 멜로디 업로드 완료");
-    if (answers.referenceVisual) parts.push("참고 비주얼 첨부");
+    if (answers.referenceVisual) parts.push("참고 이미지 첨부");
     if (answers.mood) parts.push(`${formatAnswerValue(answers.mood)} 분위기`);
     if (answers.instrument) parts.push(formatAnswerValue(answers.instrument));
     if (answers.tempo) parts.push(formatAnswerValue(answers.tempo));
@@ -57,11 +90,35 @@ function ReviewPage() {
         const answers = getAllAnswers();
         const nextItems: ReviewItem[] = REVIEW_ITEMS.map((item) => {
             const rawValue = answers[item.key];
-            const formatted = item.key === "duration"
+            let formatted = item.key === "duration"
                 ? formatAnswerValue(rawValue ?? null, "초")
                 : formatAnswerValue(rawValue ?? null);
+            
+            // 참고 이미지가 base64인 경우 짧게 표시
+            if (item.key === "referenceVisual" && rawValue && rawValue.startsWith("data:")) {
+                formatted = "이미지 업로드 완료";
+            }
+            
             const value = formatted === "-" ? "선택하지 않음" : formatted;
-            return { ...item, rawValue, value };
+            
+            // 키 또는 템포인 경우 helper 텍스트 찾기
+            let helper: string | undefined;
+            if (item.key === "key" && rawValue) {
+                for (const group of KEY_GROUPS) {
+                    const option = group.options.find(opt => opt.value === rawValue);
+                    if (option) {
+                        helper = option.helper;
+                        break;
+                    }
+                }
+            } else if (item.key === "tempo" && rawValue) {
+                const option = TEMPO_OPTIONS.find(opt => opt.value === rawValue);
+                if (option) {
+                    helper = option.helper;
+                }
+            }
+            
+            return { ...item, rawValue, value, helper };
         });
         setItems(nextItems);
         setHighlightText(buildHighlightText(answers));
@@ -69,7 +126,22 @@ function ReviewPage() {
 
     const hasAnySelection = useMemo(() => items.some((item) => item.value !== "선택하지 않음"), [items]);
 
+    // 로딩 화면 표시
+    if (isSubmitting) {
+        return <MusicGeneratingLoader />;
+    }
+
     const handleConfirm = async () => {
+        // 인증 상태 확인
+        if (!isLoggedIn()) {
+            const shouldLogin = confirm("음악을 생성하려면 로그인이 필요합니다. 로그인 페이지로 이동하시겠습니까?");
+            if (shouldLogin) {
+                // 로그인 후 리뷰 페이지로 돌아올 수 있도록 returnUrl 추가
+                navigate("/login?returnUrl=/review");
+            }
+            return;
+        }
+
         setIsSubmitting(true);
         setError(null);
         const answers = getAllAnswers();
@@ -125,11 +197,6 @@ function ReviewPage() {
         }
     };
 
-    // 로딩 화면 표시
-    if (isSubmitting) {
-        return <MusicGeneratingLoader />;
-    }
-
     return (
         <div className="relative min-h-screen w-full overflow-hidden px-4 py-16 sm:px-10">
             <div className="pointer-events-none absolute -left-20 top-16 h-64 w-64 rounded-full bg-[var(--accent-rose)]/15 blur-3xl" />
@@ -142,7 +209,7 @@ function ReviewPage() {
                         review
                     </span>
                     <h1 className="text-[2.6rem] font-semibold leading-tight text-[var(--text-primary)] mb-2">
-                        현재 설정을 한번 더 확인해요
+                        이대로 음악을 만들어볼까요?
                     </h1>
                     <p className="text-base text-[var(--text-muted)] mb-3">필요한 부분을 수정한 뒤 그대로 음악 생성을 진행할 수 있어요.</p>
                 </header>
@@ -158,18 +225,23 @@ function ReviewPage() {
                             className="flex h-full flex-col justify-between gap-4 rounded-[2rem] border-4 border-black/10 bg-white/85 px-6 py-6 shadow-[0_16px_0_rgba(46,31,39,0.08)]"
                         >
                             <div>
-                                <p className="text-2xl font-semibold uppercase tracking-[0.25em] text-[var(--accent-rose)] mb-2">{item.label}</p>
+                                <p className="text-2xl font-semibold uppercase tracking-[0.25em] text-[#d4577a] mb-2">{item.label}</p>
                                 <p
-                                    className={`text-lg font-semibold ${
+                                    className={`text-lg font-semibold break-words overflow-hidden ${
                                         item.value === "선택하지 않음"
-                                            ? "text-[var(--accent-amber)]"
-                                            : "text-[var(--text-primary)]"
+                                            ? "text-[#e3bebe]"
+                                            : "text-[#2e1f27]"
                                     }`}
                                 >
                                     {item.value}
                                 </p>
+                                {item.helper && (
+                                    <p className="text-sm text-[var(--text-muted)] mt-2">
+                                        {item.helper}
+                                    </p>
+                                )}
                             </div>
-                            <Button variant="outline" className="self-end px-4" onClick={() => navigate(item.route)}>
+                            <Button variant="outline" className="self-end px-4 !text-[rgb(230,173,52)]" onClick={() => navigate(`${item.route}?from=review`)}>
                                 수정하기
                             </Button>
                         </div>
@@ -183,15 +255,9 @@ function ReviewPage() {
                 )}
 
                 {error && (
-                    <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-4 text-sm text-red-600">
-                        <p className="font-semibold mb-2">❌ 오류가 발생했습니다</p>
-                        <pre className="whitespace-pre-wrap text-left text-xs bg-white/50 p-3 rounded-lg overflow-auto max-h-60">
-                            {error}
-                        </pre>
-                        <p className="mt-3 text-center text-xs text-red-500">
-                            문제가 계속되면 서버 관리자에게 문의하거나 잠시 후 다시 시도해주세요.
-                        </p>
-                    </div>
+                    <p className="rounded-2xl border border-red-200 bg-red-50 px-6 py-4 text-center text-sm text-red-600">
+                        {error}
+                    </p>
                 )}
 
                 <div className="flex flex-wrap justify-center gap-4">

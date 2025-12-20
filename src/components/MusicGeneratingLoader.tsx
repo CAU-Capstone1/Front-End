@@ -1,15 +1,18 @@
 import { useEffect, useState } from "react";
+import DinoGame from "./DinoGame";
 
 const LOADING_MESSAGES = [
+    "아이디어를 멜로디로 바꾸는 중이에요...",
     "AI가 멜로디를 분석하고 있어요...",
     "악기 소리를 조합하고 있어요...",
     "리듬과 템포를 맞추고 있어요...",
-    "최종 음악을 완성하고 있어요...",
+    "멋진 사운드를 상상하는 중이에요...",
     "거의 다 완성되었어요!",
 ];
 
 export default function MusicGeneratingLoader() {
     const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+    const [showGame, setShowGame] = useState(false);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -91,6 +94,15 @@ export default function MusicGeneratingLoader() {
                     </div>
                 </div>
 
+                {/* 게임 버튼 */}
+                <button
+                    onClick={() => setShowGame(true)}
+                    className="mt-8 px-8 py-4 rounded-full border-2 border-[var(--accent-amber)] bg-white text-[var(--text-primary)] font-semibold text-lg shadow-[0_8px_0_rgba(242,137,130,0.32)] hover:bg-[var(--accent-amber)]/10 hover:translate-y-[2px] hover:shadow-[0_6px_0_rgba(242,137,130,0.25)] transition-all duration-300"
+                >
+                    START!
+                </button>
+                <p className="text-sm text-[var(--text-muted)] mt-2">기다리는 동안 게임을 즐겨보세요!</p>
+
                 {/* 스타일 태그 */}
                 <style>{`
                     @keyframes float {
@@ -114,6 +126,15 @@ export default function MusicGeneratingLoader() {
                     }
                 `}</style>
             </div>
+
+            {/* 게임 모달 */}
+            {showGame && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-white/30 backdrop-blur-sm">
+                    <div className="relative">
+                        <DinoGame onClose={() => setShowGame(false)} />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

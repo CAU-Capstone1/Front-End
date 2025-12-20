@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import OptionCard from "../components/optionCard";
 import QuestionLayout from "../components/questionLayout";
 import { getAnswer, removeAnswer, setAnswer } from "../utils/compositionSession";
@@ -7,28 +7,30 @@ import { getAnswer, removeAnswer, setAnswer } from "../utils/compositionSession"
 const GENRE_OPTIONS = [
     {
         label: "클래식",
-        value: "orchestra",
+        value: "classical",
         imageUrl: "https://www.knso.or.kr/resources/images/sub/img_intro3.jpg",
     },
     {
         label: "힙합",
         value: "hiphop",
-        imageUrl: "https://i.namu.wiki/i/Jz224Csh4AhvZ53rujh-eqK_GKO_x7jxsNbsBV5FyoM2aEF36Y0ScvTUKunhDR1-fKej9wXzVyASyCdtGY8H6w.webp",
-    },
-    {
-        label: "재즈",
-        value: "lofi",
-        imageUrl: "https://img1.daumcdn.net/thumb/R1280x0.fwebp/?fname=http://t1.daumcdn.net/brunch/service/user/3XvV/image/Vp2Idqu3LI8_4_fC2To-0o5ovHU.JPG",
+        imageUrl: "/hiphop2.jpg",
     },
     {
         label: "록",
-        value: "sageuk",
-        imageUrl: "https://img.segye.com/content/image/2023/04/25/20230425518948.jpg",
+        value: "rock",
+        imageUrl: "/rock.jpg",
+    },
+    {
+        label: "재즈",
+        value: "jazz",
+        imageUrl: "/JAZZ2.jpg",
     },
 ];
 
 function What1() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const isEditMode = searchParams.get("from") === "review";
     const [selected, setSelected] = useState<string>("");
     const [customValue, setCustomValue] = useState<string>("");
 
@@ -53,12 +55,13 @@ function What1() {
     const handleNext = () => {
         if (!selected.trim()) return;
         setAnswer("style", selected.trim());
-        navigate("/what2");
+        // 수정 모드면 리뷰 페이지로, 아니면 다음 단계로
+        navigate(isEditMode ? "/review" : "/what2");
     };
 
     const handleSkip = () => {
         removeAnswer("style");
-        navigate("/what2");
+        navigate(isEditMode ? "/review" : "/what2");
     };
 
     return (
@@ -66,8 +69,9 @@ function What1() {
             title="어떤 장르의 음악을 만들고 싶으신가요?"
             description="느낌에 가장 가까운 장르를 선택하거나 직접 입력할 수 있어요."
             stepLabel="01 / 06"
+            onBack={() => navigate(isEditMode ? "/review" : -1)}
             onSkip={handleSkip}
-            primaryAction={{ label: "다음", onClick: handleNext, disabled: !selected.trim(), variant: "rainbow" }}
+            primaryAction={{ label: isEditMode ? "완료" : "다음", onClick: handleNext, disabled: !selected.trim(), variant: "rainbow" }}
         >
             <div className={OPTION_GRID_CLASS}>
                 {GENRE_OPTIONS.map((option) => (

@@ -3,7 +3,6 @@ import { useNavigate } from "react-router";
 import Button from "../components/button";
 import { getAllSavedMusic, deleteSavedMusic, updateMusicName, type SavedMusic } from "../utils/musicStorage";
 import { isLoggedIn, getCurrentUser, logout } from "../utils/auth";
-
 function MyPage() {
     const navigate = useNavigate();
     const [savedMusicList, setSavedMusicList] = useState<SavedMusic[]>([]);
@@ -12,8 +11,6 @@ function MyPage() {
     const [currentUser, setCurrentUser] = useState(getCurrentUser());
     const [playingId, setPlayingId] = useState<string | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
-
-    // 로그인 확인
     useEffect(() => {
         if (!isLoggedIn()) {
             alert("로그인이 필요합니다.");
@@ -22,10 +19,8 @@ function MyPage() {
         }
         setCurrentUser(getCurrentUser());
     }, [navigate]);
-
     const loadAndSortMusic = () => {
         const music = getAllSavedMusic();
-        // 최신순으로 정렬 (날짜 내림차순)
         const sorted = music.sort((a, b) => {
             const dateA = new Date(a.createdAt).getTime();
             const dateB = new Date(b.createdAt).getTime();
@@ -33,12 +28,9 @@ function MyPage() {
         });
         setSavedMusicList(sorted);
     };
-
     useEffect(() => {
         loadAndSortMusic();
     }, []);
-
-    // 컴포넌트 언마운트 시 오디오 정리
     useEffect(() => {
         return () => {
             if (audioRef.current) {
@@ -47,19 +39,16 @@ function MyPage() {
             }
         };
     }, []);
-
     const handleDelete = (id: string) => {
         if (confirm("정말 이 음악을 삭제하시겠습니까?")) {
             deleteSavedMusic(id);
             loadAndSortMusic();
         }
     };
-
     const handleEditStart = (music: SavedMusic) => {
         setEditingId(music.id);
         setEditingName(music.name);
     };
-
     const handleEditSave = (id: string) => {
         if (editingName.trim()) {
             updateMusicName(id, editingName.trim());
@@ -68,12 +57,10 @@ function MyPage() {
         setEditingId(null);
         setEditingName("");
     };
-
     const handleEditCancel = () => {
         setEditingId(null);
         setEditingName("");
     };
-
     const formatDate = (dateString: string) => {
         try {
             const date = new Date(dateString);
@@ -86,11 +73,8 @@ function MyPage() {
             return dateString;
         }
     };
-
     const handlePlay = async (music: SavedMusic) => {
-        // composeResponse에서 musicUrl 추출
         let musicUrl: string | null = null;
-        
         if (music.composeResponse) {
             try {
                 const parsed = typeof music.composeResponse === 'string' 
@@ -101,57 +85,41 @@ function MyPage() {
                 console.error("응답 파싱 실패:", error);
             }
         }
-
         if (!musicUrl) {
             alert("재생할 음악 파일을 찾을 수 없습니다.");
             return;
         }
-
-        // 이미 재생 중인 같은 음악이면 일시정지
         if (playingId === music.id && audioRef.current && !audioRef.current.paused) {
             audioRef.current.pause();
             setPlayingId(null);
             return;
         }
-
-        // 다른 음악이 재생 중이면 정지
         if (audioRef.current && playingId !== music.id) {
             audioRef.current.pause();
             audioRef.current = null;
         }
-
         try {
-            // Audio 객체가 없거나 다른 음악이면 새로 생성
             if (!audioRef.current || audioRef.current.src !== musicUrl) {
-                // 기존 이벤트 리스너 제거를 위해 새 객체 생성
                 if (audioRef.current) {
                     audioRef.current.pause();
                     audioRef.current = null;
                 }
-                
                 audioRef.current = new Audio(musicUrl);
-                
-                // 재생 이벤트 리스너
                 audioRef.current.addEventListener("play", () => {
                     setPlayingId(music.id);
                 });
-                
                 audioRef.current.addEventListener("pause", () => {
                     setPlayingId(null);
                 });
-                
                 audioRef.current.addEventListener("ended", () => {
                     setPlayingId(null);
                 });
-                
                 audioRef.current.addEventListener("error", (e) => {
                     console.error("음악 재생 오류:", e);
                     setPlayingId(null);
                     alert("음악 재생 중 오류가 발생했습니다.");
                 });
             }
-
-            // 재생
             await audioRef.current.play();
         } catch (error) {
             console.error("재생 실패:", error);
@@ -159,11 +127,8 @@ function MyPage() {
             setPlayingId(null);
         }
     };
-
     const handleDownload = async (music: SavedMusic) => {
-        // composeResponse에서 musicUrl 추출
         let musicUrl: string | null = null;
-        
         if (music.composeResponse) {
             try {
                 const parsed = typeof music.composeResponse === 'string' 
@@ -174,69 +139,53 @@ function MyPage() {
                 console.error("응답 파싱 실패:", error);
             }
         }
-
         if (!musicUrl) {
             alert("다운로드할 음악 파일을 찾을 수 없습니다.");
             return;
         }
-
         try {
-            // 먼저 fetch로 시도 (CORS가 허용된 경우)
             try {
                 const response = await fetch(musicUrl, {
                     method: 'GET',
                     mode: 'cors',
                 });
-                
                 if (response.ok) {
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement("a");
                     a.href = url;
-                    
-                    // 파일명 생성 (음악 이름 사용)
                     const fileName = music.name.trim() 
                         ? `${music.name.trim()}.mp3` 
                         : `music-${Date.now()}.mp3`;
                     a.download = fileName;
-                    
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
                     window.URL.revokeObjectURL(url);
-                    
-                    return; // 성공하면 여기서 종료
+                    return; 
                 }
             } catch (fetchError) {
-                // CORS 오류 등으로 fetch 실패 시 직접 링크 방식 사용
                 console.log("Fetch 실패, 직접 링크 방식 사용:", fetchError);
             }
-            
-            // CORS 문제로 fetch가 실패한 경우, 직접 링크로 다운로드 시도
-            // S3 URL에 직접 접근하여 다운로드 (브라우저가 자동으로 다운로드 처리)
             const a = document.createElement("a");
             a.href = musicUrl;
             a.download = music.name.trim() 
                 ? `${music.name.trim()}.mp3` 
                 : `music-${Date.now()}.mp3`;
             a.style.display = 'none';
-            
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-            
         } catch (error) {
             console.error("다운로드 실패:", error);
             alert("다운로드 중 오류가 발생했습니다.");
         }
     };
-
     return (
         <div className="relative min-h-screen w-full overflow-hidden px-4 py-16 sm:px-10">
             <div className="pointer-events-none absolute -left-24 top-20 h-64 w-64 rounded-full bg-[var(--accent-rose)]/18 blur-3xl" />
             <div className="pointer-events-none absolute -right-12 top-0 h-80 w-80 rounded-[45%] bg-[var(--accent-amber)]/20 blur-3xl" />
             <div className="pointer-events-none absolute bottom-10 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[var(--accent-rose)]/12 blur-3xl" />
-
             <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-12">
                 <header className="text-center space-y-3">
                     <div className="flex items-center justify-between mb-4">
@@ -263,7 +212,6 @@ function MyPage() {
                                         navigate("/");
                                     } catch (error) {
                                         console.error("로그아웃 실패:", error);
-                                        // 에러가 발생해도 로컬 스토리지를 정리하고 시작 페이지로 이동
                                         localStorage.clear();
                                         sessionStorage.clear();
                                         navigate("/");
@@ -278,13 +226,10 @@ function MyPage() {
                     <h1 className="text-[2.6rem] font-semibold leading-tight text-[var(--text-primary)]">내 보관함</h1>
                     <p className="text-base text-[var(--text-muted)]">그동안 만든 음악들을 확인하고 관리하세요.</p>
                 </header>
-
                 {savedMusicList.length === 0 ? (
                     <div className="rounded-2xl border-4 border-black/10 bg-white/85 p-12 text-center shadow-[0_22px_0_rgba(46,31,39,0.08)]">
                         <p className="text-lg text-[var(--text-muted)] m-6">아직 저장된 음악이 없습니다.</p>
-                        {/* <Button toWhere="/main" variant="rainbow" className="px-8 py-4">
-                            음악 만들기
-                        </Button> */}
+                        {}
                     </div>
                 ) : (
                     <div className="space-y-4">
@@ -339,7 +284,6 @@ function MyPage() {
                                             </div>
                                         )}
                                     </div>
-
                                     <div className="flex items-center gap-3">
                                         <button
                                             onClick={() => handlePlay(music)}
@@ -380,14 +324,8 @@ function MyPage() {
                         ))}
                     </div>
                 )}
-
                 <div className="flex justify-center gap-4">
-                    {/* <Button toWhere="/" variant="outline" className="px-8 py-5 flex items-center gap-2">
-                        <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
-                            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
-                        </svg>
-                        홈으로
-                    </Button> */}
+                    {}
                     <Button toWhere="/" variant="rainbow" className="px-12 py-5">
                         새 음악 만들기
                     </Button>
@@ -396,6 +334,4 @@ function MyPage() {
         </div>
     );
 }
-
 export default MyPage;
-

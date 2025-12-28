@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import QuestionLayout from "../components/questionLayout";
 import { getAnswer, removeAnswer, setAnswer } from "../utils/compositionSession";
-
 const TEMPO_OPTIONS = [
     { label: "아주 빠르게", value: "very-fast", helper: "에너지 넘치는 160BPM 이상" },
     { label: "빠르게", value: "fast", helper: "활기찬 130~150BPM" },
@@ -10,29 +9,24 @@ const TEMPO_OPTIONS = [
     { label: "느리게", value: "slow", helper: "잔잔한 80~100BPM" },
     { label: "아주 느리게", value: "very-slow", helper: "감성적인 60BPM 이하" },
 ];
-
 function TempoPage() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const isEditMode = searchParams.get("from") === "review";
     const [selected, setSelected] = useState<string>("");
-
     useEffect(() => {
         const cached = getAnswer("tempo");
         if (cached) setSelected(cached);
     }, []);
-
     const handleNext = () => {
         if (!selected) return;
         setAnswer("tempo", selected);
         navigate("/review");
     };
-
     const handleSkip = () => {
         removeAnswer("tempo");
         navigate("/review");
     };
-
     return (
         <QuestionLayout
             title="어떤 빠르기를 원하시나요?"
@@ -75,6 +69,4 @@ function TempoPage() {
         </QuestionLayout>
     );
 }
-
 export default TempoPage;
-

@@ -3,36 +3,24 @@ import { useNavigate } from "react-router";
 import AudioFileUploader from "../components/audioFile";
 import Button from "../components/button";
 import { getAnswer } from "../utils/compositionSession";
-
 function MainPage() {
     const navigate = useNavigate();
     const [isMainMelodyUploaded, setIsMainMelodyUploaded] = useState(() => !!getAnswer("hummingMain"));
-
-    // 메인 멜로디 업로드 상태를 확인
     useEffect(() => {
         const checkMainMelody = () => {
             setIsMainMelodyUploaded(!!getAnswer("hummingMain"));
         };
-
-        // 초기 확인
         checkMainMelody();
-
-        // 메인 멜로디 업로드 완료 이벤트 감지
         const handleMainMelodyUploaded = () => {
             checkMainMelody();
         };
-
         window.addEventListener("mainMelodyUploaded", handleMainMelodyUploaded);
-
-        // 주기적으로도 확인 (다른 경로로 업로드된 경우 대비)
         const interval = setInterval(checkMainMelody, 1000);
-
         return () => {
             window.removeEventListener("mainMelodyUploaded", handleMainMelodyUploaded);
             clearInterval(interval);
         };
     }, []);
-
     const requireMainMelody = () => {
         const mainMelody = getAnswer("hummingMain");
         if (!mainMelody) {
@@ -41,23 +29,19 @@ function MainPage() {
         }
         return true;
     };
-
     const handleGoVisual = () => {
         if (!requireMainMelody()) return;
         navigate("/visual");
     };
-
     const handleSkip = () => {
         if (!requireMainMelody()) return;
         navigate("/what1");
     };
-
     return (
         <div className="relative flex min-h-screen w-full items-center justify-center overflow-x-hidden px-4 py-16 sm:px-10">
             <div className="pointer-events-none absolute -left-10 top-0 hidden h-40 w-40 rounded-full bg-[var(--accent-rose)]/35 blur-3xl sm:block" />
             <div className="pointer-events-none absolute -right-6 top-32 hidden h-44 w-44 rounded-full bg-[var(--accent-mint)]/45 blur-3xl sm:block" />
             <div className="pointer-events-none absolute left-1/2 bottom-10 hidden h-48 w-48 -translate-x-1/2 rounded-full bg-[var(--accent-amber)]/30 blur-3xl sm:block" />
-
             <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center gap-5">
                 <header className="flex w-full items-center justify-between">
                     <Button variant="ghost" onClick={() => navigate(-1)} className="text-m text-[var(--text-muted)]">
@@ -66,7 +50,6 @@ function MainPage() {
                     <span />
                 </header>
                 <AudioFileUploader />
-
                 <div className="flex flex-col items-center gap-4 text-center mt-15 min-h-[120px]">
                     {isMainMelodyUploaded ? (
                         <div className="flex flex-wrap justify-center gap-10 animate-fade-in-up">
@@ -85,5 +68,4 @@ function MainPage() {
         </div>
     );
 }
-
 export default MainPage;

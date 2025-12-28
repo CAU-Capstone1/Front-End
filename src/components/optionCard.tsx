@@ -6,7 +6,6 @@ type OptionCardProps = {
     imageUrl?: string;
     helperText?: string;
 };
-
 function OptionCard({ label, value, onClick, selected, imageUrl, helperText }: OptionCardProps) {
     return (
         <button
@@ -51,6 +50,4 @@ function OptionCard({ label, value, onClick, selected, imageUrl, helperText }: O
         </button>
     );
 }
-
 export default OptionCard;
-

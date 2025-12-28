@@ -1,12 +1,23 @@
 import { Outlet, useLocation } from "react-router";
+import { useEffect } from "react";
 import GlobalHeader from "../components/GlobalHeader";
 import CursorSparkles from "../components/CursorSparkles";
-
+import { isLoggedIn, refreshCurrentUser } from "../utils/auth";
 export default function AppLayout() {
     const location = useLocation();
-    // review 페이지(음악 생성 화면)에서는 애니메이션 비활성화
     const isReviewPage = location.pathname === "/review";
-
+    useEffect(() => {
+        const validateToken = async () => {
+            if (isLoggedIn()) {
+                try {
+                    await refreshCurrentUser();
+                } catch (error) {
+                    console.warn("토큰 유효성 검사 실패, 자동 로그아웃 처리");
+                }
+            }
+        };
+        validateToken();
+    }, []);
     return (
         <>
             <GlobalHeader />
@@ -22,4 +33,3 @@ export default function AppLayout() {
         </>
     );
 }
-

@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import QuestionLayout from "../components/questionLayout";
 import { getAnswer, removeAnswer, setAnswer } from "../utils/compositionSession";
+
 type KeyOption = {
     value: string;
     label: string;
     helper: string;
 };
+
 const KEY_GROUPS: Array<{
     label: string;
     caption: string;
@@ -31,24 +33,29 @@ const KEY_GROUPS: Array<{
         ],
     },
 ];
+
 function KeyPage() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const isEditMode = searchParams.get("from") === "review";
     const [selectedKey, setSelectedKey] = useState<string>("");
+
     useEffect(() => {
         const cached = getAnswer("key");
         if (cached) setSelectedKey(cached);
     }, []);
+
     const handleNext = () => {
         if (!selectedKey) return;
         setAnswer("key", selectedKey);
         navigate(isEditMode ? "/review" : "/length");
     };
+
     const handleSkip = () => {
         removeAnswer("key");
         navigate(isEditMode ? "/review" : "/length");
     };
+
     return (
         <QuestionLayout
             title="어떤 키를 원하시나요?"
@@ -91,4 +98,6 @@ function KeyPage() {
         </QuestionLayout>
     );
 }
+
 export default KeyPage;
+

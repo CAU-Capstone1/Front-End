@@ -1,10 +1,13 @@
 import { useCallback, useRef, useState } from "react";
 import Button from "./button";
 import { getAnswer, removeAnswer, setAnswer } from "../utils/compositionSession";
+
 const MAX_IMAGE_SIZE_MB = 20;
+
 export default function VisualUploader() {
     const [file, setFile] = useState<File | null>(null);
     const [previewURL, setPreviewURL] = useState<string | null>(() => {
+        // 저장된 base64 이미지가 있으면 미리보기로 설정
         const savedImage = getAnswer("referenceVisual");
         return (savedImage && savedImage.startsWith("data:")) ? savedImage : null;
     });
@@ -12,33 +15,44 @@ export default function VisualUploader() {
     const [storedName, setStoredName] = useState<string | null>(() => 
         getAnswer("referenceVisualName") ?? getAnswer("referenceVisual") ?? null
     );
+
     const inputRef = useRef<HTMLInputElement | null>(null);
+
     const validateFile = (candidate: File) => {
         if (!candidate.type.startsWith("image/") && !candidate.type.startsWith("video/")) {
             alert("이미지만 업로드할 수 있어요.");
             return false;
         }
+
         if (candidate.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
             alert(`최대 ${MAX_IMAGE_SIZE_MB}MB 이하의 파일만 업로드할 수 있어요.`);
             return false;
         }
+
         return true;
     };
+
     const handleFiles = useCallback((files: FileList | null) => {
         if (!files?.length) return;
         const candidate = files[0];
         if (!validateFile(candidate)) return;
+
         setFile(candidate);
         setStatus("이미지 업로드 완료");
         setStoredName(candidate.name);
+        
+        // blob URL 생성
         const blobURL = URL.createObjectURL(candidate);
         setPreviewURL((prev) => {
             if (prev) URL.revokeObjectURL(prev);
             return blobURL;
         });
+        
+        // 이미지를 base64로 변환하여 저장 (sessionStorage에 저장 가능하도록)
         const reader = new FileReader();
         reader.onloadend = () => {
             const base64String = reader.result as string;
+            // base64 데이터 저장
             setAnswer("referenceVisual", base64String);
             setAnswer("referenceVisualName", candidate.name);
             console.log("✅ 이미지가 base64로 저장되었습니다:", {
@@ -49,7 +63,9 @@ export default function VisualUploader() {
         };
         reader.readAsDataURL(candidate);
     }, []);
+
     const reset = () => {
+        // base64 데이터가 아닌 blob URL인 경우에만 revoke
         if (previewURL && previewURL.startsWith("blob:")) {
             URL.revokeObjectURL(previewURL);
         }
@@ -60,7 +76,9 @@ export default function VisualUploader() {
         removeAnswer("referenceVisualName");
         setStoredName(null);
     };
+
     const displayName = file?.name ?? storedName;
+
     return (
         <section className="rounded-[2.5rem] border-4 border-black/10 bg-gradient-to-tl from-white via-[#fff6da] to-[#ffe9f2] px-8 py-10 shadow-[0_25px_0_rgba(46,31,39,0.08)] sm:px-12">
             <div className="space-y-3 text-left">
@@ -72,6 +90,7 @@ export default function VisualUploader() {
                     분위기를 설명해 줄 수 있는 레퍼런스를 업로드하면 AI가 음악을 더 풍부하게 이해할 수 있어요.
                 </p>
             </div>
+
             <div className="mt-8 flex flex-col items-center gap-4">
                 {!displayName && (
                     <button
@@ -83,6 +102,7 @@ export default function VisualUploader() {
                         <span className="text-xs text-[var(--text-muted)]">최대 {MAX_IMAGE_SIZE_MB}MB (JPG / PNG / MP4 등)</span>
                     </button>
                 )}
+
                 {displayName && (
                     <div className="w-full max-w-md space-y-3 rounded-[1.8rem] border border-black/10 bg-white/80 p-4 text-sm text-[var(--text-primary)] shadow-[0_12px_0_rgba(46,31,39,0.08)]">
                         <p className="font-semibold">{displayName}</p>
@@ -110,6 +130,7 @@ export default function VisualUploader() {
                     </div>
                 )}
             </div>
+
             <input
                 ref={inputRef}
                 type="file"
@@ -120,3 +141,4 @@ export default function VisualUploader() {
         </section>
     );
 }
+

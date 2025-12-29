@@ -4,16 +4,21 @@ import Button from "../components/button";
 import { resetAnswers } from "../utils/compositionSession";
 import { getCurrentUser } from "../utils/auth";
 import DinoGame from "../components/DinoGame";
+
 const SPARKLES = Array.from({ length: 30 }).map((_, idx) => idx);
+
 function StartPage() {
     const navigate = useNavigate();
     const [showModal, setShowModal] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [isDragOver, setIsDragOver] = useState(false);
     const [showGame, setShowGame] = useState(false);
+
+    // 시작 페이지에 들어올 때마다 이전 선택사항 초기화
     useEffect(() => {
         resetAnswers();
     }, []);
+
     const handleStartClick = () => {
         const user = getCurrentUser();
         if (!user) {
@@ -22,36 +27,45 @@ function StartPage() {
             navigate("/main");
         }
     };
+
     const handleDragStart = (e: React.DragEvent) => {
         setIsDragging(true);
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', 'logo');
     };
+
     const handleDragEnd = () => {
         setIsDragging(false);
     };
+
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
         setIsDragOver(true);
     };
+
     const handleDragLeave = () => {
         setIsDragOver(false);
     };
+
     const handleDrop = (e: React.DragEvent) => {
         e.preventDefault();
         setIsDragOver(false);
         setIsDragging(false);
+        
         const data = e.dataTransfer.getData('text/plain');
         if (data === 'logo') {
+            // 게임 시작
             setShowGame(true);
         }
     };
+
     return (
         <div className="start-gradient-bg relative flex min-h-screen w-full items-center justify-center overflow-hidden px-4 py-20 sm:px-10">
             <div className="pointer-events-none absolute -left-24 top-24 h-64 w-64 animate-[floatUp_9s_ease-in-out_infinite] rounded-full bg-[var(--accent-rose)]/30 blur-3xl" />
             <div className="pointer-events-none absolute right-10 top-16 h-56 w-56 animate-[floatUp_13s_ease-in-out_infinite] rounded-full bg-[var(--accent-mint)]/30 blur-3xl" />
             <div className="pointer-events-none absolute left-1/2 bottom-[-3rem] h-72 w-72 -translate-x-1/2 animate-[floatUp_11s_ease-in-out_infinite] rounded-full bg-[var(--accent-amber)]/35 blur-3xl" />
+
             {SPARKLES.map((sparkle) => (
                 <span
                     key={sparkle}
@@ -65,6 +79,7 @@ function StartPage() {
                     }}
                 />
             ))}
+
             <main className="relative mx-auto flex w-full max-w-5xl flex-col items-center gap-14 text-center">
                 <header className="flex flex-col items-center gap-6">
                     <img
@@ -77,8 +92,11 @@ function StartPage() {
                             isDragging ? 'opacity-50' : ''
                         }`}
                     />
-                    {}
+                    {/* <h1 className="start-title text-4xl font-bold tracking-[0.3em] uppercase sm:text-5xl">
+                        Humming Bird
+                    </h1> */}
                 </header>
+
                 <div className="flex flex-col items-center mt-6">
                     <div
                         onDragOver={handleDragOver}
@@ -100,7 +118,8 @@ function StartPage() {
                     </div>
                 </div>
             </main>
-            {}
+
+            {/* 로그인 필요 모달 */}
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
                     <div className="relative mx-4 w-full max-w-md rounded-[2rem] border-4 border-black/10 bg-white/95 px-8 py-10 shadow-[0_28px_0_rgba(46,31,39,0.15)] animate-fade-in-up">
@@ -129,9 +148,12 @@ function StartPage() {
                     </div>
                 </div>
             )}
-            {}
+
+            {/* 공룡 게임 */}
             {showGame && <DinoGame onClose={() => setShowGame(false)} />}
         </div>
     );
 }
+
 export default StartPage;
+

@@ -3,11 +3,12 @@ import { useNavigate, useSearchParams } from "react-router";
 import OptionCard from "../components/optionCard";
 import QuestionLayout from "../components/questionLayout";
 import { getAnswer, removeAnswer, setAnswer } from "../utils/compositionSession";
+
 const GENRE_OPTIONS = [
     {
         label: "클래식",
         value: "classical",
-        imageUrl: "https:
+        imageUrl: "https://www.knso.or.kr/resources/images/sub/img_intro3.jpg",
     },
     {
         label: "힙합",
@@ -25,16 +26,19 @@ const GENRE_OPTIONS = [
         imageUrl: "/JAZZ2.jpg",
     },
 ];
+
 function What1() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const isEditMode = searchParams.get("from") === "review";
     const [selected, setSelected] = useState<string>("");
     const [customValue, setCustomValue] = useState<string>("");
+
     const OPTION_GRID_CLASS = "grid grid-cols-1 gap-4 sm:grid-cols-2";
     const CUSTOM_INPUT_WRAPPER_CLASS = "mt-10 flex flex-col items-center gap-3";
     const OR_TEXT_CLASS = "mt-2 mb-2 text-sm font-semibold text-gray-400";
     const INPUT_CLASS = "retro-input w-full max-w-md text-center";
+
     useEffect(() => {
         const cached = getAnswer("style");
         if (cached) {
@@ -42,19 +46,24 @@ function What1() {
             setCustomValue(GENRE_OPTIONS.some((opt) => opt.value === cached) ? "" : cached);
         }
     }, []);
+
     const handleSelect = (value: string) => {
         setSelected(value);
         setCustomValue("");
     };
+
     const handleNext = () => {
         if (!selected.trim()) return;
         setAnswer("style", selected.trim());
+        // 수정 모드면 리뷰 페이지로, 아니면 다음 단계로
         navigate(isEditMode ? "/review" : "/what2");
     };
+
     const handleSkip = () => {
         removeAnswer("style");
         navigate(isEditMode ? "/review" : "/what2");
     };
+
     return (
         <QuestionLayout
             title="어떤 장르의 음악을 만들고 싶으신가요?"
@@ -76,6 +85,7 @@ function What1() {
                     />
                 ))}
             </div>
+
             <div className={CUSTOM_INPUT_WRAPPER_CLASS}>
                 <span className={OR_TEXT_CLASS}>또는</span>
                 <input
@@ -91,4 +101,6 @@ function What1() {
         </QuestionLayout>
     );
 }
+
 export default What1;
+

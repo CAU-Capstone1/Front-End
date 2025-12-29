@@ -1,6 +1,9 @@
+/*사용자가 /what1, /key, /review, /musicResult 같은 경로로 이동할 때 어떤 화면이 나올지 결정*/
+
 import { createBrowserRouter } from "react-router";
 import { lazy, Suspense } from "react";
 import AppLayout from "../layout/AppLayout";
+
 const Loading = () => <div>로딩 중.........</div>;
 const Start = lazy(() => import("../pages/A_startPage.tsx"));
 const Main = lazy(() => import("../pages/B_mainPage.tsx"));
@@ -16,6 +19,7 @@ const MusicResult = lazy(() => import("../pages/K_musicResultPage.tsx"));
 const MyPage = lazy(() => import("../pages/L_myPage.tsx"));
 const LoginPage = lazy(() => import("../pages/M_loginPage.tsx"));
 const SignupPage = lazy(() => import("../pages/N_signupPage.tsx"));
+
 const router = createBrowserRouter([
     {
         element: <AppLayout />,
@@ -135,4 +139,5 @@ const router = createBrowserRouter([
         ],
     },
 ]);
+
 export default router

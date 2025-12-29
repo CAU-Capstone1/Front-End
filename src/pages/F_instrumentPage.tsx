@@ -3,38 +3,42 @@ import { useNavigate, useSearchParams } from "react-router";
 import OptionCard from "../components/optionCard";
 import QuestionLayout from "../components/questionLayout";
 import { getAnswer, removeAnswer, setAnswer } from "../utils/compositionSession";
+
 const INSTRUMENT_OPTIONS = [
     {
         label: "바이올린",
         value: "violin",
-        imageUrl: "https:
+        imageUrl: "https://i.pinimg.com/1200x/cb/a8/d1/cba8d11e7c7b44e8145d99583ec6bbab.jpg",
     },
     {
         label: "피아노",
         value: "piano",
-        imageUrl: "https:
+        imageUrl: "https://i.pinimg.com/1200x/99/38/d3/9938d308c797d53cb4e0d2258ab89a1d.jpg",
     },
     {
         label: "기타",
         value: "guitar",
-        imageUrl: "https:
+        imageUrl: "https://i.pinimg.com/736x/38/a7/36/38a73608ecb1cdb70439a424ae3c6c20.jpg",
     },
     {
         label: "드럼",
         value: "drum",
-        imageUrl: "https:
+        imageUrl: "https://i.pinimg.com/736x/a8/12/47/a81247532b53804438528daa6ed87bac.jpg",
     },
 ];
+
 function InstrumentPage() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const isEditMode = searchParams.get("from") === "review";
     const [selected, setSelected] = useState<string>("");
     const [customValue, setCustomValue] = useState<string>("");
+
     const OPTION_GRID_CLASS = "grid grid-cols-1 gap-4 sm:grid-cols-2";
     const CUSTOM_INPUT_WRAPPER_CLASS = "mt-10 flex flex-col items-center gap-3";
     const OR_TEXT_CLASS = "mt-2 mb-2 text-sm font-semibold text-gray-400";
     const INPUT_CLASS = "retro-input w-full max-w-md text-center";
+
     useEffect(() => {
         const cached = getAnswer("instrument");
         if (cached) {
@@ -42,15 +46,18 @@ function InstrumentPage() {
             setCustomValue(INSTRUMENT_OPTIONS.some((opt) => opt.value === cached) ? "" : cached);
         }
     }, []);
+
     const handleNext = () => {
         if (!selected.trim()) return;
         setAnswer("instrument", selected.trim());
         navigate(isEditMode ? "/review" : "/key");
     };
+
     const handleSkip = () => {
         removeAnswer("instrument");
         navigate(isEditMode ? "/review" : "/key");
     };
+
     return (
         <QuestionLayout
             title="어떤 악기를 원하시나요?"
@@ -75,6 +82,7 @@ function InstrumentPage() {
                     />
                 ))}
             </div>
+
             <div className={CUSTOM_INPUT_WRAPPER_CLASS}>
                 <span className={OR_TEXT_CLASS}>또는</span>
                 <input
@@ -90,4 +98,6 @@ function InstrumentPage() {
         </QuestionLayout>
     );
 }
+
 export default InstrumentPage;
+

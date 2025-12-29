@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import QuestionLayout from "../components/questionLayout";
 import { getAnswer, removeAnswer, setAnswer } from "../utils/compositionSession";
+
 function LengthPage() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const isEditMode = searchParams.get("from") === "review";
     const [seconds, setSeconds] = useState<string>("");
+
     useEffect(() => {
         const cached = getAnswer("duration");
         if (!cached) return;
@@ -15,6 +17,7 @@ function LengthPage() {
         const numeric = Math.min(Number(sanitized), 180);
         setSeconds(numeric ? String(numeric) : "");
     }, []);
+
     const handleNext = () => {
         const trimmed = seconds.trim();
         if (!trimmed) return;
@@ -22,10 +25,12 @@ function LengthPage() {
         setAnswer("duration", String(numeric));
         navigate(isEditMode ? "/review" : "/tempo");
     };
+
     const handleSkip = () => {
         removeAnswer("duration");
         navigate(isEditMode ? "/review" : "/tempo");
     };
+
     return (
         <QuestionLayout
             title="어느 정도 길이를 원하시나요?"
@@ -60,4 +65,6 @@ function LengthPage() {
         </QuestionLayout>
     );
 }
+
 export default LengthPage;
+

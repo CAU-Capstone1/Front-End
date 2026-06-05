@@ -38,7 +38,7 @@ function TempoPage() {
             title="어떤 빠르기를 원하시나요?"
             description="원하는 템포를 선택하면 음악의 속도를 맞춰드려요."
             stepLabel="06 / 06"
-            onBack={() => navigate(isEditMode ? "/review" : -1)}
+            onBack={() => isEditMode ? navigate("/review") : navigate(-1)}
             onSkip={handleSkip}
             primaryAction={{ label: isEditMode ? "완료" : "확인하기", onClick: handleNext, disabled: !selected, variant: "rainbow" }}
         >

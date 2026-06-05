@@ -1,10 +1,6 @@
-import { getAuthHeaders } from "../utils/auth"; // 인증 헤더를 가져오기 위한 import
-import type { CompositionAnswers } from "../utils/compositionSession"; // 로컬 유틸리티 타입 import
-
-// API 기본 URL (환경 변수로 설정 가능)
-// 프로덕션에서는 절대 경로 사용, 개발 환경에서는 프록시 사용
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
-    (import.meta.env.PROD ? "http://3.36.255.180:8080/api" : "/api");
+import { API_BASE_URL } from "../lib/apiClient";
+import { getAuthHeaders } from "../utils/auth";
+import type { CompositionAnswers } from "../utils/compositionSession";
 
 export type CompositionRequestBody = {
     style?: string | null;
@@ -19,82 +15,65 @@ export type CompositionRequestBody = {
     referenceVisual?: string | null;
 };
 
-export async function createComposition(body: CompositionRequestBody) {
-    
-    // Authorization 헤더를 추가합니다.
-    const headers = { 
+// Covers all known field name variants the backend may return
+export type CompositionResponse = {
+    jobId?: string;
+    PublicJobId?: string;
+    id?: string;
+    status?: string;
+    Status?: string;
+    musicUrl?: string;
+    audioUrl?: string;
+    fileUrl?: string;
+    url?: string;
+    audio_url?: string;
+    music_url?: string;
+    progress?: number;
+    errorMessage?: string | null;
+};
+
+export async function createComposition(body: CompositionRequestBody): Promise<CompositionResponse> {
+    const headers = {
         "Content-Type": "application/json",
-        // 로그인 성공 후 저장된 토큰을 읽어와 "Authorization: Bearer <token>" 형태로 추가
-        ...getAuthHeaders(), 
+        ...getAuthHeaders(),
     };
 
-    const url = `${API_BASE_URL}/compose`;
-    
-    // 디버깅을 위한 로그 (개발 환경에서만)
-    if (import.meta.env.DEV) {
-        console.log("🌐 API 요청 URL:", url);
-        const authHeaders = getAuthHeaders();
-        console.log("📤 요청 헤더:", { 
-            "Content-Type": headers["Content-Type"],
-            Authorization: authHeaders.Authorization ? "Bearer ***" : "없음" 
-        });
-        console.log("📦 요청 본문:", body);
-    }
-
-    const response = await fetch(url, {
+    const response = await fetch(`${API_BASE_URL}/compose`, {
         method: "POST",
-        headers: headers, // 수정된 headers를 사용
+        headers,
         body: JSON.stringify(body),
     });
 
     if (!response.ok) {
-        // 401 Unauthorized 에러인 경우 (인증 실패)
         if (response.status === 401) {
-            console.error("❌ 인증 실패: 로그인이 필요합니다.");
-            // 토큰이 만료되었거나 유효하지 않은 경우
-            if (typeof window !== "undefined") {
-                // 로그인 페이지로 리다이렉트 (리뷰 페이지로 돌아올 수 있도록 returnUrl 추가)
-                const shouldRedirect = confirm("로그인이 만료되었습니다. 로그인 페이지로 이동하시겠습니까?");
-                if (shouldRedirect) {
-                    window.location.href = "/login?returnUrl=/review";
-                }
+            const shouldRedirect = confirm("로그인이 만료되었습니다. 로그인 페이지로 이동하시겠습니까?");
+            if (shouldRedirect) {
+                window.location.href = "/login?returnUrl=/review";
             }
             throw new Error("인증이 필요합니다. 로그인 후 다시 시도해주세요.");
         }
 
-        let errorMessage = "";
+        let errorMessage = `서버 오류 (${response.status})`;
         try {
-            const message = await response.text();
-            errorMessage = message;
-            console.error("❌ 서버 에러 응답:", message);
-            
-            // JSON 형식인 경우 파싱해서 더 읽기 쉽게 표시
+            const text = await response.text();
             try {
-                const errorJson = JSON.parse(message);
-                if (errorJson.message) {
-                    errorMessage = errorJson.message;
-                } else if (errorJson.error) {
-                    errorMessage = errorJson.error;
-                }
+                const json = JSON.parse(text) as { message?: string; error?: string };
+                errorMessage = json.message ?? json.error ?? text;
             } catch {
-                // JSON이 아니면 그대로 사용 (message 변수 사용)
+                if (text) errorMessage = text;
             }
-        } catch {
-            errorMessage = `서버 오류 (${response.status})`;
-        }
-        
+        } catch { /* ignore */ }
+
         throw new Error(`작곡 요청 실패 (${response.status}): ${errorMessage}`);
     }
 
-    return response.json().catch(() => ({}));
+    return response.json().catch(() => ({}) as CompositionResponse);
 }
 
 export function buildCompositionBody(answers: CompositionAnswers): CompositionRequestBody {
-    // referenceVisual이 base64 데이터인 경우 서버로 전송하지 않음 (너무 큼)
-    // base64 데이터는 클라이언트에서만 표시 목적으로 사용
     const referenceVisual = answers.referenceVisual;
-    const isBase64 = referenceVisual && referenceVisual.startsWith("data:");
-    
+    const isBase64 = referenceVisual?.startsWith("data:");
+
     return {
         style: answers.style ?? null,
         mood: answers.mood ?? null,
@@ -105,7 +84,6 @@ export function buildCompositionBody(answers: CompositionAnswers): CompositionRe
         hummingStart: answers.hummingStart ?? null,
         hummingMain: answers.hummingMain ?? null,
         hummingEnd: answers.hummingEnd ?? null,
-        // base64가 아닌 경우만 서버로 전송 (URL인 경우)
         referenceVisual: isBase64 ? null : (referenceVisual ?? null),
     };
 }

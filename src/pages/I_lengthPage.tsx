@@ -36,7 +36,7 @@ function LengthPage() {
             title="어느 정도 길이를 원하시나요?"
             description="대략적인 곡의 길이를 초 단위로 알려주세요."
             stepLabel="05 / 06"
-            onBack={() => navigate(isEditMode ? "/review" : -1)}
+            onBack={() => isEditMode ? navigate("/review") : navigate(-1)}
             onSkip={handleSkip}
             primaryAction={{ label: isEditMode ? "완료" : "다음", onClick: handleNext, disabled: !seconds.trim(), variant: "rainbow" }}
         >

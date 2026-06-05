@@ -63,7 +63,7 @@ function InstrumentPage() {
             title="어떤 악기를 원하시나요?"
             description="대표 악기를 선택하면 그 질감을 중심으로 구성해드려요."
             stepLabel="03 / 06"
-            onBack={() => navigate(isEditMode ? "/review" : -1)}
+            onBack={() => isEditMode ? navigate("/review") : navigate(-1)}
             onSkip={handleSkip}
             primaryAction={{ label: isEditMode ? "완료" : "다음", onClick: handleNext, disabled: !selected.trim(), variant: "rainbow" }}
         >

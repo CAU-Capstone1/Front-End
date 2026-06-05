@@ -69,7 +69,7 @@ function What1() {
             title="어떤 장르의 음악을 만들고 싶으신가요?"
             description="느낌에 가장 가까운 장르를 선택하거나 직접 입력할 수 있어요."
             stepLabel="01 / 06"
-            onBack={() => navigate(isEditMode ? "/review" : -1)}
+            onBack={() => isEditMode ? navigate("/review") : navigate(-1)}
             onSkip={handleSkip}
             primaryAction={{ label: isEditMode ? "완료" : "다음", onClick: handleNext, disabled: !selected.trim(), variant: "rainbow" }}
         >

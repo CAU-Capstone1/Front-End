@@ -61,7 +61,7 @@ function KeyPage() {
             title="어떤 키를 원하시나요?"
             description="원하는 분위기의 음계를 골라보세요."
             stepLabel="04 / 06"
-            onBack={() => navigate(isEditMode ? "/review" : -1)}
+            onBack={() => isEditMode ? navigate("/review") : navigate(-1)}
             onSkip={handleSkip}
             primaryAction={{ label: isEditMode ? "완료" : "다음", onClick: handleNext, disabled: !selectedKey, variant: "rainbow" }}
         >

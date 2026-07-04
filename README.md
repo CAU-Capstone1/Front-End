@@ -3,7 +3,7 @@
 허밍을 업로드하면 AI가 완성된 음악을 만들어주는 웹 애플리케이션.
 장르, 분위기, 악기, 키, 템포, 길이를 단계적으로 선택하고 자신의 멜로디를 녹음하거나 업로드하면, 백엔드 AI 엔진이 완성된 음악 파일을 생성합니다.
 
-<img width="700" alt="KakaoTalk_20260705_014326721" src="https://github.com/user-attachments/assets/172c6083-0238-48f4-abf7-25e66eafacb6" />
+<img alt="KakaoTalk_20260705_014326721" src="https://github.com/user-attachments/assets/172c6083-0238-48f4-abf7-25e66eafacb6" />
 
 
 ---

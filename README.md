@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/humming-bird-title.svg" alt="Humming Bird" width="500" />
+  <img src="./assets/humming-bird-title.svg" alt="Humming Bird" />
 </p>
 
 허밍을 업로드하면 AI가 완성된 음악을 만들어주는 웹 애플리케이션.

@@ -1,3 +1,5 @@
+import { getAuthHeaders } from "../utils/auth";
+
 // API 기본 URL (환경 변수로 설정 가능)
 // 프로덕션에서는 절대 경로 사용, 개발 환경에서는 프록시 사용
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
@@ -12,7 +14,10 @@ export async function uploadAudio(file: File | Blob, fileName?: string) {
         body: formData,
         cache: "no-store",
         redirect: "follow",
-        headers: { Accept: "application/json, text/plain, */*" },
+        headers: {
+            Accept: "application/json, text/plain, */*",
+            ...getAuthHeaders(), // 업로드는 로그인한 사용자만 가능
+        },
     });
 
     const ct = res.headers.get("content-type") || "";

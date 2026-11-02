@@ -38,13 +38,17 @@ npm install
 npm run dev
 ```
 
-기본적으로 `/api` 경로는 Vite 프록시를 통해 백엔드 서버로 전달됩니다.
+기본적으로 `/api` 경로는 Vite 프록시를 통해 로컬 백엔드(`http://localhost:8080`)로 전달됩니다.
+백엔드를 로컬에서 실행하는 방법은 [Back-End README](https://github.com/CAU-Capstone1/Back-End#readme)를 참고하세요.
 
 ### 환경변수 설정
 
 ```bash
 # .env.development (기본값 사용 시 생략 가능)
 VITE_API_BASE_URL=/api
+
+# .env.local (선택) 개발 서버 프록시가 연결할 백엔드 주소, 기본값 http://localhost:8080
+API_PROXY_TARGET=http://localhost:8080
 
 # .env.production
 VITE_API_BASE_URL=https://your-backend-url/api

@@ -3,6 +3,9 @@ import { useNavigate, useSearchParams } from "react-router";
 import QuestionLayout from "../components/questionLayout";
 import { getAnswer, removeAnswer, setAnswer } from "../utils/compositionSession";
 
+// 백엔드 작곡 API가 허용하는 최대 길이 (초)
+const MAX_DURATION_SEC = 30;
+
 function LengthPage() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -14,14 +17,14 @@ function LengthPage() {
         if (!cached) return;
         const sanitized = cached.replace(/[^0-9]/g, "");
         if (!sanitized) return;
-        const numeric = Math.min(Number(sanitized), 180);
+        const numeric = Math.min(Number(sanitized), MAX_DURATION_SEC);
         setSeconds(numeric ? String(numeric) : "");
     }, []);
 
     const handleNext = () => {
         const trimmed = seconds.trim();
         if (!trimmed) return;
-        const numeric = Math.min(Number(trimmed), 180);
+        const numeric = Math.min(Number(trimmed), MAX_DURATION_SEC);
         setAnswer("duration", String(numeric));
         navigate(isEditMode ? "/review" : "/tempo");
     };
@@ -50,16 +53,16 @@ function LengthPage() {
                                 setSeconds("");
                                 return;
                             }
-                            const numeric = Math.min(Number(raw), 180);
+                            const numeric = Math.min(Number(raw), MAX_DURATION_SEC);
                             setSeconds(String(numeric));
                         }}
-                        placeholder="예: 120"
+                        placeholder="예: 20"
                         className="flex-1 border-none bg-transparent text-center text-3xl font-semibold text-[var(--text-primary)] outline-none"
                     />
                     <span className="text-lg font-semibold text-[var(--accent-rose)]">초</span>
                 </div>
                 <p className="text-base font-medium text-[var(--text-muted)]">
-                최대 180초(3분)까지만 입력할 수 있어요.
+                최대 {MAX_DURATION_SEC}초까지만 입력할 수 있어요.
                 </p>
             </div>
         </QuestionLayout>

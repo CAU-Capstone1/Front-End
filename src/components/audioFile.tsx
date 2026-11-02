@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router";
 import Button from "./button";
 import { uploadAudio } from "../api/uploadAudio";
+import { isLoggedIn } from "../utils/auth";
 import { getAnswer, removeAnswer, setAnswer } from "../utils/compositionSession";
 import type { CompositionAnswerKey } from "../utils/compositionSession";
 
@@ -31,6 +33,18 @@ const SEGMENT_KEY_MAP: Record<SegmentId, CompositionAnswerKey> = {
 };
 
 export default function AudioFileUploader() {
+  const navigate = useNavigate();
+
+  // 허밍 업로드는 로그인이 필요하므로, 녹음·파일 선택을 시작하기 전에 확인해 작업한 내용이 사라지지 않게 한다
+  const ensureLoggedIn = () => {
+    if (isLoggedIn()) return true;
+    const shouldLogin = confirm("허밍을 업로드하려면 로그인이 필요합니다. 로그인 페이지로 이동하시겠습니까?");
+    if (shouldLogin) {
+      navigate("/login?returnUrl=/main");
+    }
+    return false;
+  };
+
   const [segmentState, setSegmentState] = useState<Record<SegmentId, SegmentState>>(() => ({
     start: {
       file: null,
@@ -135,6 +149,7 @@ export default function AudioFileUploader() {
   const uploadSegment = async (segmentId: SegmentId) => {
     const current = segmentState[segmentId];
     if (!current.file) return;
+    if (!ensureLoggedIn()) return;
 
     setSegmentState((prev) => ({
       ...prev,
@@ -191,6 +206,7 @@ export default function AudioFileUploader() {
   };
 
   const startRecording = async (segmentId: SegmentId) => {
+    if (!ensureLoggedIn()) return;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
@@ -357,7 +373,10 @@ export default function AudioFileUploader() {
                   <div className="flex flex-col gap-2">
                     <button
                       type="button"
-                      onClick={() => segmentInputRefs[segment.id].current?.click()}
+                      onClick={() => {
+                        if (!ensureLoggedIn()) return;
+                        segmentInputRefs[segment.id].current?.click();
+                      }}
                       className={`my-btn rounded-[1.2rem] border-2 bg-white px-3 py-3 text-sm font-semibold shadow-[0_8px_0_rgba(242,137,130,0.18)] transition hover:-translate-y-[2px] ${
                         segment.required
                           ? "border-[var(--accent-rose)] text-[var(--accent-rose)]"
